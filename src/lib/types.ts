@@ -11,6 +11,8 @@ export interface ArchivedMessage {
   priorityScore?: number; // 0-100
   isSpam?: boolean;
   tags?: string[];
+  opportunityScore?: number; // 0-100
+  decisionPending?: boolean;
 }
 
 export interface ContactProfile {
@@ -38,4 +40,10 @@ export interface VaultItem {
   content: string;
   timestamp: string;
   platform: string;
+}
+
+export interface AIAction {
+  type: 'reply' | 'reminder' | 'task' | 'escalate';
+  label: string;
+  description: string;
 }

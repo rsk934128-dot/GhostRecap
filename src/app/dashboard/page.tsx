@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { 
   Search, Sparkles, RefreshCcw, BrainCircuit, ShieldAlert, 
   Target, Zap, AlertTriangle, ChevronRight, MessageSquare, 
-  CheckCircle2, TrendingUp, Info
+  CheckCircle2, TrendingUp, Info, Rocket, Timer, Briefcase,
+  ShieldCheck, ArrowUpRight, MousePointerClick
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ClassificationBadge } from '@/components/dashboard/ClassificationBadge';
 import { runCopilot, CopilotOutput } from '@/ai/flows/copilot-workspace';
+import { getPredictiveInsights, PredictiveOutput } from '@/ai/flows/predictive-insights';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ArchivedMessage } from '@/lib/types';
@@ -23,8 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Progress } from '@/components/ui/progress';
 
-export default function IntelligenceCommandCenter() {
+export default function MissionControlCenter() {
   const [messages, setMessages] = useState<ArchivedMessage[]>(MOCK_MESSAGES);
   const [search, setSearch] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -32,17 +35,31 @@ export default function IntelligenceCommandCenter() {
   const [selectedMsg, setSelectedMsg] = useState<ArchivedMessage | null>(null);
   const [analysis, setAnalysis] = useState<CopilotOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    // Initial intelligence fetch
+    handleRunGlobalIntelligence();
   }, []);
+
+  const handleRunGlobalIntelligence = async () => {
+    try {
+      const results = await getPredictiveInsights({
+        messages: messages.map(m => ({ sender: m.sender, content: m.content, timestamp: m.timestamp }))
+      });
+      setGlobalInsights(results);
+    } catch (e) {
+      console.error("Global intelligence failed");
+    }
+  };
 
   const stats = useMemo(() => {
     return {
       total: messages.length,
       urgent: messages.filter(m => m.category === 'Urgent').length,
-      otp: messages.filter(m => m.category === 'OTP').length,
-      spam: messages.filter(m => m.isSpam).length,
+      opportunities: messages.filter(m => (m.opportunityScore || 0) > 70).length,
+      decisions: messages.filter(m => m.decisionPending).length,
       avgPriority: Math.round(messages.reduce((acc, m) => acc + (m.priorityScore || 0), 0) / messages.length)
     };
   }, [messages]);
@@ -58,15 +75,18 @@ export default function IntelligenceCommandCenter() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       const incoming: ArchivedMessage = {
         id: Math.random().toString(36).substring(7),
-        sender: 'Project Lead',
-        content: 'URGENT: Client feedback received. Review the shared document ASAP.',
+        sender: 'Investor Alpha',
+        content: 'I reviewed the proposal. Let’s discuss the equity split tomorrow morning.',
         timestamp: new Date().toISOString(),
         app: 'WhatsApp',
         category: 'Urgent',
         priorityScore: 98,
+        opportunityScore: 95,
+        decisionPending: true,
       };
       setMessages(prev => [incoming, ...prev]);
-      toast({ title: "Command Sync Complete", description: "New urgent intelligence fragment indexed." });
+      toast({ title: "Autonomous Indexing Complete", description: "New High-Value Opportunity detected." });
+      handleRunGlobalIntelligence();
     } catch (error) {
       toast({ variant: "destructive", title: "Sync Error", description: "Intelligence bridge failed." });
     } finally {
@@ -93,13 +113,13 @@ export default function IntelligenceCommandCenter() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-2 py-0 border-primary/20">OS v2.5 Cognitive</Badge>
+            <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-2 py-0 border-primary/20">OS v3.0 Autonomous</Badge>
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1">
-              <TrendingUp size={10} className="text-green-500" /> System Health: 94%
+              <ShieldCheck size={10} className="text-green-500" /> Trust Fabric: ACTIVE
             </span>
           </div>
-          <h1 className="text-4xl font-headline font-bold">Executive Command Center</h1>
-          <p className="text-muted-foreground">AI-driven predictive intelligence and communication orchestration.</p>
+          <h1 className="text-4xl font-headline font-bold">Mission Control</h1>
+          <p className="text-muted-foreground">Unified autonomous orchestration and communication intelligence.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -108,64 +128,92 @@ export default function IntelligenceCommandCenter() {
             disabled={isSyncing}
           >
             {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} className="group-hover:animate-pulse" />}
-            {isSyncing ? "Orchestrating..." : "Sync Intelligence"}
+            {isSyncing ? "Syncing Sources..." : "Sync Intelligence"}
           </Button>
         </div>
       </header>
 
-      {/* Cognitive Layer Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Autonomous Operation Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-primary/5 border-primary/20 ghostly-fade overflow-hidden group">
-          <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
-            <BrainCircuit size={80} />
-          </div>
           <CardContent className="p-6 relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-primary/20 text-primary">
-                <Sparkles size={20} />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-primary/20 text-primary">
+                  <Briefcase size={20} />
+                </div>
+                <h3 className="font-bold">Opportunity Pipeline</h3>
               </div>
-              <h3 className="font-bold">Cognitive Briefing</h3>
+              <ArrowUpRight size={16} className="text-primary opacity-50" />
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              You have <span className="text-primary font-bold">{stats.urgent} urgent</span> threads requiring attention. 
-              <span className="text-foreground"> 3 actionable tasks</span> were detected in recent Signal communications. 
-              Communication health has improved by <span className="text-green-400 font-bold">12%</span> this week.
-            </p>
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <span className="text-3xl font-bold font-headline">{globalInsights?.opportunityPipeline || 0}%</span>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase">Pipeline Health</span>
+              </div>
+              <Progress value={globalInsights?.opportunityPipeline || 0} className="h-1 bg-white/5" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Detected <span className="text-primary font-bold">{stats.opportunities} high-value signals</span> in the last 24h. Potential growth detected in relationship nodes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-accent/5 border-accent/20 ghostly-fade relative overflow-hidden group">
+          <CardContent className="p-6 relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-accent/20 text-accent">
+                  <Timer size={20} />
+                </div>
+                <h3 className="font-bold">Pending Decisions</h3>
+              </div>
+              <MousePointerClick size={16} className="text-accent opacity-50" />
+            </div>
+            <div className="space-y-3">
+              {stats.decisions > 0 ? (
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/10">
+                  <p className="text-xs font-bold text-accent mb-1">{stats.decisions} DECISIONS REQUIRED</p>
+                  <p className="text-[10px] text-muted-foreground italic leading-tight">Autonomous Agent has drafted 2 response options for Investor Alpha.</p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground py-4">No critical pending decisions identified.</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         <Card className="bg-destructive/5 border-destructive/20 ghostly-fade relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
-            <ShieldAlert size={80} />
-          </div>
           <CardContent className="p-6 relative z-10">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-destructive/20 text-destructive">
-                <AlertTriangle size={20} />
+                <ShieldAlert size={20} />
               </div>
-              <h3 className="font-bold">Predictive Risks</h3>
+              <h3 className="font-bold">Active Risks</h3>
             </div>
             <ul className="space-y-2">
+              {globalInsights?.insights.filter(i => i.type === 'Risk').map((risk, idx) => (
+                <li key={idx} className="text-xs flex items-start gap-2 text-muted-foreground">
+                  <div className="w-1 h-1 rounded-full bg-destructive mt-1.5 shrink-0" />
+                  {risk.description}
+                </li>
+              ))}
               <li className="text-xs flex items-start gap-2 text-muted-foreground">
-                <Info size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                Unanswered follow-up from Alex Rivera (4h delay)
-              </li>
-              <li className="text-xs flex items-start gap-2 text-muted-foreground">
-                <Info size={14} className="text-red-400 shrink-0 mt-0.5" />
-                Detected suspicious login attempt fragment in SMS
+                <div className="w-1 h-1 rounded-full bg-destructive mt-1.5 shrink-0" />
+                Unanswered high-priority from Alex Rivera
               </li>
             </ul>
           </CardContent>
         </Card>
       </div>
 
-      {/* Core Stats */}
+      {/* Core OS Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Fragments', value: stats.total, icon: BrainCircuit, color: 'text-primary' },
-          { label: 'High Priority', value: stats.urgent, icon: Target, color: 'text-red-400' },
-          { label: 'Security OTP', value: stats.otp, icon: MessageSquare, color: 'text-amber-400' },
-          { label: 'Spam Blocked', value: stats.spam, icon: ShieldAlert, color: 'text-muted-foreground' },
+          { label: 'Decision Nodes', value: stats.decisions, icon: CheckCircle2, color: 'text-accent' },
+          { label: 'Opportunities', value: stats.opportunities, icon: Rocket, color: 'text-orange-400' },
+          { label: 'Trust Score', value: '98%', icon: ShieldCheck, color: 'text-green-400' },
         ].map((stat, i) => (
           <Card key={i} className="bg-secondary/10 border-white/5 hover:bg-secondary/20 transition-colors">
             <CardContent className="p-4 flex flex-col gap-1">
@@ -182,14 +230,14 @@ export default function IntelligenceCommandCenter() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
             className="pl-10 h-12 bg-secondary/50 border-white/5 focus-visible:ring-primary/50 text-lg" 
-            placeholder="Ask AI Search (e.g. 'Show budget decisions')..." 
+            placeholder="Search Memory Graph (e.g. 'Price discussion with Sarah')..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Intelligence Feed */}
+      {/* Unified Intelligence Feed */}
       <div className="grid gap-3">
         {filtered.map((msg) => (
           <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
@@ -206,12 +254,11 @@ export default function IntelligenceCommandCenter() {
                         <span className="font-bold truncate text-sm">{msg.sender}</span>
                         <Badge variant="outline" className="text-[8px] uppercase border-white/10 px-1 py-0">{msg.app}</Badge>
                         {msg.category && <ClassificationBadge category={msg.category} className="scale-75 origin-left" />}
-                        {msg.priorityScore !== undefined && (
-                          <div className="flex items-center gap-1.5 ml-2">
-                            <span className={`text-[10px] font-bold ${msg.priorityScore > 80 ? 'text-red-400' : 'text-green-400'}`}>
-                              {msg.priorityScore}% Score
-                            </span>
-                          </div>
+                        {msg.opportunityScore && msg.opportunityScore > 70 && (
+                          <Badge className="bg-orange-500/10 text-orange-400 text-[8px] border-orange-500/20 px-1 py-0">Opportunity</Badge>
+                        )}
+                        {msg.decisionPending && (
+                          <Badge className="bg-accent/10 text-accent text-[8px] border-accent/20 px-1 py-0">Decision Pending</Badge>
                         )}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-mono">
@@ -239,22 +286,22 @@ export default function IntelligenceCommandCenter() {
         ))}
       </div>
 
-      {/* Copilot Workspace Dialog */}
+      {/* Action Engine Workspace */}
       <Dialog open={!!selectedMsg} onOpenChange={(open) => !open && setSelectedMsg(null)}>
         <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline">
               <BrainCircuit className="text-primary" />
-              Copilot Workspace
+              Autonomous Action Engine
             </DialogTitle>
             <DialogDescription>
-              Cognitive analysis for message from {selectedMsg?.sender}
+              Orchestrating response for {selectedMsg?.sender}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
             <div className="p-4 rounded-xl bg-secondary/50 border border-white/5">
-              <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Original Context</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Source Context</p>
               <p className="text-sm italic">"{selectedMsg?.content}"</p>
             </div>
 
@@ -269,7 +316,7 @@ export default function IntelligenceCommandCenter() {
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <Sparkles size={14} className="text-primary" />
-                      Executive Summary
+                      Autonomous Summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
@@ -277,29 +324,24 @@ export default function IntelligenceCommandCenter() {
                   </CardContent>
                 </Card>
 
-                {analysis.tasks && analysis.tasks.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                      <CheckCircle2 size={12} className="text-green-500" /> Action Items Extracted
-                    </p>
-                    <div className="grid gap-2">
-                      {analysis.tasks.map((task, i) => (
-                        <div key={i} className="p-2 rounded-lg bg-white/5 border border-white/5 text-xs flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          {task}
-                        </div>
-                      ))}
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                    <Zap size={12} className="text-primary" /> Recommended Autonomous Actions
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button className="h-10 text-xs font-bold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 justify-start gap-2">
+                      <ArrowUpRight size={14} /> Draft Equity Reply
+                    </Button>
+                    <Button className="h-10 text-xs font-bold bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 justify-start gap-2">
+                      <Timer size={14} /> Schedule Follow-up
+                    </Button>
+                    <Button variant="outline" className="h-10 text-xs font-bold border-white/10 justify-start gap-2">
+                      <CheckCircle2 size={14} /> Extract Tasks
+                    </Button>
+                    <Button variant="outline" className="h-10 text-xs font-bold border-white/10 justify-start gap-2">
+                      <ShieldCheck size={14} /> Verify Identity
+                    </Button>
                   </div>
-                )}
-
-                <div className="flex gap-2">
-                  <Button className="flex-1 h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground">
-                    Draft Contextual Reply
-                  </Button>
-                  <Button variant="outline" className="flex-1 h-9 text-xs font-bold border-white/10">
-                    Add to Follow-up Queue
-                  </Button>
                 </div>
               </div>
             )}
