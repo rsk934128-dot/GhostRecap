@@ -12,7 +12,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  BrainCircuit
+  BrainCircuit,
+  Target,
+  Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -23,9 +25,11 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const navItems = [
-    { name: 'Unified Feed', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Audit History', icon: History, href: '/dashboard/timeline' },
-    { name: 'Intelligence Rules', icon: Zap, href: '/dashboard/rules' },
+    { name: 'Relationship Intel', icon: Target, href: '/dashboard/contacts' },
+    { name: 'Secure Vault', icon: Lock, href: '/dashboard/vault' },
+    { name: 'Automation Studio', icon: Zap, href: '/dashboard/rules' },
     { name: 'Direct Link Hub', icon: Link2, href: '/dashboard/direct' },
     { name: 'Intel & Roadmap', icon: BrainCircuit, href: '/dashboard/privacy' },
   ];
@@ -75,7 +79,7 @@ export function Sidebar() {
           )}
         >
           <Settings size={20} />
-          {!collapsed && <span className="font-medium text-sm">Platform Settings</span>}
+          {!collapsed && <span className="font-medium text-sm">OS Settings</span>}
         </Link>
         
         <Button 

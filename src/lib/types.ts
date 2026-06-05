@@ -10,6 +10,16 @@ export interface ArchivedMessage {
   isDeleted?: boolean;
   priorityScore?: number; // 0-100
   isSpam?: boolean;
+  tags?: string[];
+}
+
+export interface ContactProfile {
+  id: string;
+  name: string;
+  interactionScore: number; // 0-100
+  lastInteraction: string;
+  priority: 'High' | 'Medium' | 'Low';
+  platforms: string[];
 }
 
 export interface AutomationRule {
@@ -18,4 +28,14 @@ export interface AutomationRule {
   trigger: string;
   response: string;
   isActive: boolean;
+  tag?: string;
+}
+
+export interface VaultItem {
+  id: string;
+  type: 'OTP' | 'Receipt' | 'Contract' | 'Document';
+  title: string;
+  content: string;
+  timestamp: string;
+  platform: string;
 }
