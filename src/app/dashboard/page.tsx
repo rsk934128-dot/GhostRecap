@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Sparkles, MoreVertical, Trash2, ExternalLink } from 'lucide-react';
+import { Search, Filter, Sparkles, MoreVertical, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ClassificationBadge } from '@/components/dashboard/ClassificationBadge';
@@ -15,6 +15,11 @@ export default function ArchiveDashboard() {
   const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [search, setSearch] = useState('');
   const [analyzing, setAnalyzing] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filtered = messages.filter(m => 
     m.sender.toLowerCase().includes(search.toLowerCase()) || 
@@ -84,7 +89,9 @@ export default function ArchiveDashboard() {
                       {msg.category && <ClassificationBadge category={msg.category} />}
                       {msg.isDeleted && <span className="text-[10px] uppercase tracking-wider font-bold text-accent animate-pulse">Recovered</span>}
                     </div>
-                    <span className="text-xs text-muted-foreground">{format(new Date(msg.timestamp), 'h:mm a')}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {mounted ? format(new Date(msg.timestamp), 'h:mm a') : '...'}
+                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                     {msg.content}

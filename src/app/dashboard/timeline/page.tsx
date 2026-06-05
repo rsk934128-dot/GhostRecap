@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { History, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +8,12 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 export default function TimelinePage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const sorted = [...MOCK_MESSAGES].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   return (
@@ -41,7 +48,9 @@ export default function TimelinePage() {
                     <span className="font-headline font-bold">{item.sender}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 font-bold uppercase tracking-widest">{item.app}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{format(new Date(item.timestamp), 'MMM d, yyyy h:mm a')}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {mounted ? format(new Date(item.timestamp), 'MMM d, yyyy h:mm a') : '...'}
+                  </span>
                 </div>
                 <p className={cn(
                   "text-sm leading-relaxed",
