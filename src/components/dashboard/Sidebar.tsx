@@ -11,7 +11,8 @@ import {
   ShieldCheck, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BrainCircuit
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -22,11 +23,11 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const navItems = [
-    { name: 'Archive Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { name: 'History Timeline', icon: History, href: '/dashboard/timeline' },
-    { name: 'Response Rules', icon: Zap, href: '/dashboard/rules' },
+    { name: 'Unified Feed', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'Audit History', icon: History, href: '/dashboard/timeline' },
+    { name: 'Intelligence Rules', icon: Zap, href: '/dashboard/rules' },
     { name: 'Direct Link Hub', icon: Link2, href: '/dashboard/direct' },
-    { name: 'Privacy Center', icon: ShieldCheck, href: '/dashboard/privacy' },
+    { name: 'Intel & Roadmap', icon: BrainCircuit, href: '/dashboard/privacy' },
   ];
 
   return (
@@ -35,7 +36,7 @@ export function Sidebar() {
       collapsed ? "w-20" : "w-64"
     )}>
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-[0_0_20px_rgba(102,145,255,0.4)]">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/40">
           <Ghost size={20} />
         </div>
         {!collapsed && <span className="font-headline font-bold text-xl tracking-tight">GhostRecap</span>}
@@ -59,7 +60,7 @@ export function Sidebar() {
                 "transition-transform",
                 isActive ? "scale-110" : "group-hover:scale-110"
               )} />
-              {!collapsed && <span className="font-medium">{item.name}</span>}
+              {!collapsed && <span className="font-medium text-sm">{item.name}</span>}
               {isActive && !collapsed && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
             </Link>
           );
@@ -74,7 +75,7 @@ export function Sidebar() {
           )}
         >
           <Settings size={20} />
-          {!collapsed && <span className="font-medium">Settings</span>}
+          {!collapsed && <span className="font-medium text-sm">Platform Settings</span>}
         </Link>
         
         <Button 

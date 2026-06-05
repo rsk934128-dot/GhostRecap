@@ -1,4 +1,4 @@
-export type MessageCategory = 'Urgent' | 'Transactional' | 'OTP' | 'Other';
+export type MessageCategory = 'Urgent' | 'Transactional' | 'OTP' | 'Other' | 'Spam';
 
 export interface ArchivedMessage {
   id: string;
@@ -8,6 +8,8 @@ export interface ArchivedMessage {
   app: 'WhatsApp' | 'Telegram' | 'Signal' | 'Viber' | 'Messenger';
   category?: MessageCategory;
   isDeleted?: boolean;
+  priorityScore?: number; // 0-100
+  isSpam?: boolean;
 }
 
 export interface AutomationRule {
