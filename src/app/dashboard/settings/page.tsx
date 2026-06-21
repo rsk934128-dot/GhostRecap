@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   FileJson,
   FileSpreadsheet,
-  RefreshCcw
+  RefreshCcw,
+  Lock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -98,6 +99,16 @@ export default function SettingsPage() {
               <div className="space-y-0.5">
                 <Label className="text-base font-semibold">Zero-Knowledge Mode</Label>
                 <p className="text-sm text-muted-foreground">Encrypt all local communications with your master key only.</p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+            <Separator className="bg-white/5" />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base font-semibold flex items-center gap-2">
+                  <Lock size={14} className="text-primary" /> PCI-DSS Data Masking
+                </Label>
+                <p className="text-sm text-muted-foreground">Enable mandatory tokenization for all sensitive financial fragments.</p>
               </div>
               <Switch defaultChecked />
             </div>

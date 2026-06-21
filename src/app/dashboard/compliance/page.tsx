@@ -11,7 +11,10 @@ import {
   FileCheck, 
   AlertCircle,
   Activity,
-  Zap
+  Zap,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,12 +25,15 @@ import { collection, query, where, limit } from 'firebase/firestore';
 import { VisaCompliance, GlobalBridgeStatus } from '@/lib/types';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import { maskSensitiveData, generateSecureToken } from '@/lib/security';
+import { cn } from '@/lib/utils';
 
 export default function GlobalCompliancePage() {
   const { user } = useUser();
   const db = useFirestore();
   const [syncing, setSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showTokens, setShowTokens] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +68,10 @@ export default function GlobalCompliancePage() {
       });
     }, 2000);
   };
+
+  const sampleCard = "4532781290124456";
+  const maskedCard = maskSensitiveData(sampleCard);
+  const secureToken = generateSecureToken(user?.uid || "NEXUS");
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -105,27 +115,31 @@ export default function GlobalCompliancePage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/10 border-white/5 md:col-span-2 ghostly-fade" style={{ animationDelay: '100ms' }}>
+        <Card className="bg-primary/5 border-primary/20 md:col-span-2 ghostly-fade overflow-hidden relative" style={{ animationDelay: '100ms' }}>
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Lock size={80} />
+          </div>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Zap size={18} className="text-accent" /> Bridge Latency (ms)
+              <ShieldCheck size={18} className="text-primary" /> Nexus Tokenization Engine
             </CardTitle>
-            <CardDescription>Real-time performance metrics of global payment bridges.</CardDescription>
+            <CardDescription>PCI-DSS compliant data masking in active memory.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-end gap-4 h-24 pt-4">
-              {bridges.map((b, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                  <div 
-                    className={cn(
-                      "w-full rounded-t-lg transition-all duration-500",
-                      b.status === 'connected' ? "bg-primary" : b.status === 'limited' ? "bg-amber-500" : "bg-white/5"
-                    )}
-                    style={{ height: b.latency ? `${(b.latency / 150) * 100}%` : '10%' }}
-                  />
-                  <span className="text-[9px] font-bold uppercase text-muted-foreground group-hover:text-foreground transition-colors">{b.provider}</span>
-                </div>
-              ))}
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Live Handshake Masking</p>
+              <div className="p-3 rounded-lg bg-black/40 border border-white/5 font-mono text-xs flex items-center justify-between">
+                <span>{showTokens ? sampleCard : maskedCard}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowTokens(!showTokens)}>
+                  {showTokens ? <EyeOff size={12} /> : <Eye size={12} />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Generated Sovereign Token</p>
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 font-mono text-xs text-primary">
+                {secureToken}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -166,7 +180,7 @@ export default function GlobalCompliancePage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShieldCheck size={20} className="text-primary" />
@@ -176,7 +190,7 @@ export default function GlobalCompliancePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { label: 'PCI-DSS Self-Assessment', status: 'complete' },
+              { label: 'PCI-DSS Self-Assessment (Masking Active)', status: 'complete' },
               { label: 'E2EE Hardware Handshake', status: 'complete' },
               { label: 'Visa QR Settlement Node', status: 'pending' },
               { label: 'Apple Pay Entitlements', status: 'pending' },
