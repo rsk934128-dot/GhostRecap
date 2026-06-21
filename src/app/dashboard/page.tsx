@@ -50,7 +50,11 @@ export default function MissionControlCenter() {
       });
       setGlobalInsights(results);
     } catch (e) {
-      console.error("Global intelligence failed");
+      toast({
+        variant: "destructive",
+        title: "Intelligence Failure",
+        description: "Global predictive analysis could not be completed."
+      });
     }
   };
 

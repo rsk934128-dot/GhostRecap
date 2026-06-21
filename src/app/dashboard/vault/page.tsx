@@ -6,11 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 
 export default function SecureIntelligenceVault() {
   const [locked, setLocked] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (locked) {
     return (
@@ -68,7 +73,9 @@ export default function SecureIntelligenceVault() {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-0.5">
                       <h4 className="font-bold text-sm truncate">{item.title}</h4>
-                      <span className="text-[10px] text-muted-foreground">{format(new Date(item.timestamp), 'MMM d')}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {mounted ? format(new Date(item.timestamp), 'MMM d') : '...'}
+                      </span>
                     </div>
                     <p className="text-xs text-muted-foreground font-mono">{item.content}</p>
                   </div>
