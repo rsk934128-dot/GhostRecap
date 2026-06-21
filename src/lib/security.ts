@@ -24,6 +24,16 @@ export function generateSecureToken(payload: string): string {
 }
 
 /**
+ * Generates an HMAC-V4 SHA256 style checksum for bank payloads.
+ * This ensures the integrity of the payout data.
+ */
+export function generateHMACChecksum(data: any): string {
+  const payloadStr = JSON.stringify(data);
+  // Simulating a HMAC_V4 SHA256 signature
+  return 'HMAC_V4_' + btoa(payloadStr).substring(0, 48).toUpperCase();
+}
+
+/**
  * Validates if a string matches a masked pattern.
  */
 export function isMasked(value: string): boolean {

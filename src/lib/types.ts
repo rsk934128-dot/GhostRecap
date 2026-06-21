@@ -96,6 +96,25 @@ export interface LiquidityNode {
   type: 'bank' | 'gateway' | 'global' | 'core';
 }
 
+// --- Midland Payout Types ---
+
+export interface MDBPayoutPayload {
+  sourceAccountNumber: string;
+  destinationAccountNumber: string;
+  routingNumber: string;
+  amount: number;
+  currency: string;
+  narration: string;
+  checksum: string;
+}
+
+export interface MDBPayoutResponse {
+  success: boolean;
+  transactionId?: string;
+  message: string;
+  timestamp: string;
+}
+
 export interface StressTestResult {
   timestamp: string;
   throughput: number; // tx/sec

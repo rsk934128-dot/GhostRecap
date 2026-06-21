@@ -1,22 +1,25 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction } from '@/lib/types';
+import { Transaction, MDBPayoutResponse } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap } from 'lucide-react';
+import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
+import { executeMDBPayout } from '@/app/lib/midland-actions';
 import { toast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { cn } from '@/lib/utils';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -25,24 +28,30 @@ export default function NexusLedgerPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isAuditing, setIsAuditing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
+  const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
+
+  // Payout Form State
+  const [payoutData, setPayoutData] = useState({
+    destAccount: '',
+    routing: '',
+    amount: '',
+    narration: 'Mission 400 Settlement'
+  });
 
   const ledgerQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    
-    let q = query(
+    return query(
       collection(db, 'transactions'),
       where('merchantId', '==', user.uid),
       orderBy('timestamp', 'desc'),
       limit(50)
     );
-
-    return q;
   }, [db, user]);
 
   const { data: transactions, loading } = useCollection<Transaction>(ledgerQuery);
 
-  // Filtering transactions locally for better UI responsiveness since compound index might not be ready
   const filteredTransactions = transactions?.filter(t => {
     const statusMatch = statusFilter === 'all' || t.status === statusFilter;
     const typeMatch = typeFilter === 'all' || t.type === typeFilter;
@@ -52,61 +61,78 @@ export default function NexusLedgerPage() {
   const handleSeedData = async () => {
     if (!db || !user) return;
     setIsSeeding(true);
-    
     const mockTxs = [
       { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString() },
       { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString() },
       { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString() },
       { amount: 12000, currency: 'BDT', status: 'pending', description: 'Visa Compliance Fee', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString() },
-      { amount: 500, currency: 'BDT', status: 'completed', description: 'Nagad Gateway Test', type: 'payment', timestamp: new Date(Date.now() - 18000000).toISOString() },
     ];
-
     try {
       for (const tx of mockTxs) {
-        addDoc(collection(db, 'transactions'), {
-          ...tx,
-          merchantId: user.uid,
-        }).catch(async (err) => {
-          const permError = new FirestorePermissionError({
-            path: 'transactions',
-            operation: 'create',
-            requestResourceData: tx
-          });
-          errorEmitter.emit('permission-error', permError);
+        addDoc(collection(db, 'transactions'), { ...tx, merchantId: user.uid }).catch(async () => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({ path: 'transactions', operation: 'create', requestResourceData: tx }));
         });
       }
       toast({ title: "Nexus Node Seeded", description: "Mock transaction fragments pushed to your node." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Seeding Failed", description: "Could not push data to Node Nexus." });
     } finally {
       setIsSeeding(false);
     }
   };
 
   const handleRunAIAudit = async () => {
-    if (!filteredTransactions || filteredTransactions.length === 0) {
-      toast({ variant: "destructive", title: "Empty Ledger", description: "No transaction fragments found to analyze. Try seeding data first." });
+    if (!filteredTransactions?.length) {
+      toast({ variant: "destructive", title: "Empty Ledger", description: "No fragments found. Try seeding data first." });
       return;
     }
-
     setIsAuditing(true);
     try {
       const result = await analyzeNexusLedger({
-        transactions: filteredTransactions.map(t => ({
-          amount: t.amount,
-          currency: t.currency,
-          status: t.status,
-          description: t.description,
-          timestamp: t.timestamp,
-          type: t.type
-        })),
+        transactions: filteredTransactions.map(t => ({ amount: t.amount, currency: t.currency, status: t.status, description: t.description, timestamp: t.timestamp, type: t.type })),
         merchantName: user?.displayName || "Nexus Merchant"
       });
       setAuditResult(result);
     } catch (e) {
-      toast({ variant: "destructive", title: "Audit Failure", description: "Nexus AI Auditor could not complete the scan." });
+      toast({ variant: "destructive", title: "Audit Failure", description: "Nexus AI Auditor failed." });
     } finally {
       setIsAuditing(false);
+    }
+  };
+
+  const handleExecutePayout = async () => {
+    if (!payoutData.destAccount || !payoutData.amount) {
+      toast({ variant: "destructive", title: "Invalid Data", description: "Please fill in the destination and amount." });
+      return;
+    }
+    setIsExecutingPayout(true);
+    try {
+      const response: MDBPayoutResponse = await executeMDBPayout({
+        sourceAccountNumber: 'MDB-NEXUS-778899',
+        destinationAccountNumber: payoutData.destAccount,
+        routingNumber: payoutData.routing || '000111222',
+        amount: parseFloat(payoutData.amount),
+        narration: payoutData.narration
+      });
+
+      if (response.success) {
+        toast({ title: "Payout Successful", description: `Transaction ID: ${response.transactionId}` });
+        // Log to ledger
+        addDoc(collection(db, 'transactions'), {
+          amount: parseFloat(payoutData.amount),
+          currency: 'BDT',
+          status: 'completed',
+          description: `Payout to ${payoutData.destAccount}: ${payoutData.narration}`,
+          type: 'payout',
+          merchantId: user?.uid,
+          timestamp: new Date().toISOString()
+        });
+        setIsPayoutDialogOpen(false);
+      } else {
+        toast({ variant: "destructive", title: "Payout Failed", description: response.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Nexus Core Reset", description: "Fund transfer aborted." });
+    } finally {
+      setIsExecutingPayout(false);
     }
   };
 
@@ -126,212 +152,176 @@ export default function NexusLedgerPage() {
           <p className="text-muted-foreground">Real-time financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="gap-2 border-primary/20 hover:bg-primary/5 text-primary"
-            onClick={handleSeedData}
-            disabled={isSeeding || loading}
-          >
-            {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />}
-            Seed Test Node
+          <Button variant="outline" className="gap-2 border-primary/20 text-primary" onClick={() => setIsPayoutDialogOpen(true)}>
+            <Send size={16} /> Initiate Payout
           </Button>
-          <Button 
-            variant="default" 
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
-            onClick={handleRunAIAudit}
-            disabled={isAuditing || loading}
-          >
-            {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} />}
-            {isAuditing ? "Auditing Node..." : "Run AI Audit"}
+          <Button variant="outline" className="gap-2 border-primary/20" onClick={handleSeedData} disabled={isSeeding}>
+            {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />} Seed Test Node
+          </Button>
+          <Button className="gap-2 bg-primary font-bold shadow-lg" onClick={handleRunAIAudit} disabled={isAuditing}>
+            {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} />} Run AI Audit
           </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Compliance Score</CardDescription>
-            <CardTitle className="text-2xl font-headline text-primary">{auditResult ? `${auditResult.complianceScore}%` : '--'}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Fraud Risk</CardDescription>
-            <CardTitle className={`text-2xl font-headline ${auditResult?.fraudAnalysis.riskLevel === 'High' ? 'text-destructive' : 'text-green-500'}`}>
-              {auditResult ? auditResult.fraudAnalysis.riskLevel : '--'}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Node Health</CardDescription>
-            <CardTitle className="text-2xl font-headline text-primary">100%</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader className="p-4 pb-2">
-            <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Network Status</CardDescription>
-            <CardTitle className="text-2xl font-headline text-primary">LIVE</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Compliance Score', value: auditResult ? `${auditResult.complianceScore}%` : '--', color: 'text-primary' },
+          { label: 'Fraud Risk', value: auditResult ? auditResult.fraudAnalysis.riskLevel : '--', color: auditResult?.fraudAnalysis.riskLevel === 'High' ? 'text-destructive' : 'text-green-500' },
+          { label: 'Node Health', value: '100%', color: 'text-primary' },
+          { label: 'Network Status', value: 'LIVE', color: 'text-primary' }
+        ].map((stat, i) => (
+          <Card key={i} className="bg-secondary/10 border-white/5">
+            <CardHeader className="p-4 pb-2">
+              <CardDescription className="text-[10px] uppercase font-bold tracking-widest">{stat.label}</CardDescription>
+              <CardTitle className={cn("text-2xl font-headline", stat.color)}>{stat.value}</CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
 
       <Card className="bg-secondary/10 border-white/5">
         <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <Filter size={20} className="text-primary" />
-              Advanced Audit Filters
-            </CardTitle>
-            <div className="flex flex-wrap gap-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2 text-lg"><Filter size={20} className="text-primary" /> Ledger Filter</CardTitle>
+            <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] bg-black/20 border-white/10 h-9">
+                <SelectTrigger className="w-[120px] bg-black/20 border-white/10 h-9">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="flagged">Flagged</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[140px] bg-black/20 border-white/10 h-9">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="payment">Payment</SelectItem>
-                  <SelectItem value="refund">Refund</SelectItem>
-                  <SelectItem value="payout">Payout</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-white/5 overflow-hidden">
-            <Table>
-              <TableHeader className="bg-white/5">
-                <TableRow>
-                  <TableHead className="w-[180px]">Timestamp</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground animate-pulse">
-                      Streaming from Node Nexus...
-                    </TableCell>
+          <Table>
+            <TableHeader className="bg-white/5">
+              <TableRow>
+                <TableHead>Timestamp</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={5} className="text-center py-10 animate-pulse">Streaming fragments...</TableCell></TableRow>
+              ) : filteredTransactions?.length ? (
+                filteredTransactions.map((tx) => (
+                  <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 transition-colors">
+                    <TableCell className="text-xs font-mono text-muted-foreground">{tx.timestamp ? format(new Date(tx.timestamp), 'MMM d, HH:mm') : '...'}</TableCell>
+                    <TableCell className="font-medium">{tx.description}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-[9px] uppercase">{tx.type}</Badge></TableCell>
+                    <TableCell>{getStatusBadge(tx.status)}</TableCell>
+                    <TableCell className="text-right font-bold font-mono text-primary">{tx.currency} {tx.amount.toLocaleString()}</TableCell>
                   </TableRow>
-                ) : filteredTransactions && filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((tx) => (
-                    <TableRow key={tx.id} className="hover:bg-white/5 transition-colors border-white/5">
-                      <TableCell className="text-xs font-mono text-muted-foreground">
-                        {tx.timestamp ? format(new Date(tx.timestamp), 'MMM d, HH:mm:ss') : '...'}
-                      </TableCell>
-                      <TableCell className="font-medium text-sm">{tx.description}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-xs uppercase font-bold">
-                          {tx.type === 'payout' ? <ArrowUpRight size={12} className="text-blue-400" /> : <ArrowDownLeft size={12} className="text-green-400" />}
-                          {tx.type}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(tx.status)}</TableCell>
-                      <TableCell className="text-right font-bold font-mono">
-                        {tx.currency} {tx.amount.toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                      <div className="flex flex-col items-center gap-2">
-                        <AlertCircle size={32} className="opacity-20" />
-                        <p>No transaction fragments found in this node.</p>
-                        <p className="text-xs">Click 'Seed Test Node' to populate dummy data.</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={5} className="text-center py-10">No fragments found in Node Nexus.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
-      <Dialog open={!!auditResult} onOpenChange={(open) => !open && setAuditResult(null)}>
-        <DialogContent className="max-w-3xl bg-card/95 backdrop-blur-xl border-white/10">
+      {/* Payout Dialog */}
+      <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-white/10 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
-              <BrainCircuit className="text-primary" />
-              Nexus AI Audit Report
+              <Landmark className="text-primary" /> Midland Fund Transfer
             </DialogTitle>
-            <DialogDescription>
-              Autonomous financial analysis for node {user?.uid}
-            </DialogDescription>
+            <DialogDescription>Execute NPSB/BEFTN transfer from MDB Core Nexus.</DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-primary/5 border-primary/20">
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-primary" />
-                    Compliance Score
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <p className="text-3xl font-bold font-headline text-primary">{auditResult?.complianceScore}%</p>
-                </CardContent>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Source Account</Label>
+              <div className="p-3 rounded-lg bg-black/40 border border-white/5 text-sm font-mono flex items-center gap-2">
+                <Wallet size={14} className="text-primary" /> MDB-NEXUS-778899 (COMMISSION)
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Destination Account</Label>
+              <Input 
+                className="bg-black/20 border-white/10 h-11" 
+                placeholder="Account Number (e.g. 10223344)"
+                value={payoutData.destAccount}
+                onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Routing Number</Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11" 
+                  placeholder="000111222"
+                  value={payoutData.routing}
+                  onChange={(e) => setPayoutData({...payoutData, routing: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 h-11" 
+                  placeholder="0.00"
+                  value={payoutData.amount}
+                  onChange={(e) => setPayoutData({...payoutData, amount: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Narration</Label>
+              <Input 
+                className="bg-black/20 border-white/10 h-11" 
+                value={payoutData.narration}
+                onChange={(e) => setPayoutData({...payoutData, narration: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsPayoutDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 shadow-lg shadow-primary/20"
+              onClick={handleExecutePayout}
+              disabled={isExecutingPayout}
+            >
+              {isExecutingPayout ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <ShieldAlert className="mr-2" size={16} />}
+              {isExecutingPayout ? "Processing..." : "Authorize Transfer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Audit Report Dialog */}
+      <Dialog open={!!auditResult} onOpenChange={(open) => !open && setAuditResult(null)}>
+        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <BrainCircuit className="text-primary" /> Nexus AI Audit Report
+            </DialogTitle>
+            <DialogDescription>Autonomous financial analysis for node {user?.uid}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-primary/5 border-primary/20 p-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Compliance Score</p>
+                <p className="text-3xl font-bold font-headline text-primary">{auditResult?.complianceScore}%</p>
               </Card>
-              <Card className={`bg-destructive/5 border-destructive/20 ${auditResult?.fraudAnalysis.riskLevel === 'Low' ? 'opacity-50' : ''}`}>
-                <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                    <ShieldAlert size={14} className="text-destructive" />
-                    Fraud Risk Level
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <p className="text-3xl font-bold font-headline text-destructive">{auditResult?.fraudAnalysis.riskLevel}</p>
-                </CardContent>
+              <Card className="bg-destructive/5 border-destructive/20 p-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Fraud Risk</p>
+                <p className="text-3xl font-bold font-headline text-destructive">{auditResult?.fraudAnalysis.riskLevel}</p>
               </Card>
             </div>
-
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-secondary/50 border border-white/5">
-                <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Smart Summary</p>
-                <p className="text-sm leading-relaxed">{auditResult?.smartSummary}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Key Findings</p>
-                  <ul className="space-y-1">
-                    {auditResult?.fraudAnalysis.findings.map((f, i) => (
-                      <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
-                        <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Recommendations</p>
-                  <ul className="space-y-1">
-                    {auditResult?.recommendations.map((r, i) => (
-                      <li key={i} className="text-[11px] flex items-start gap-2 text-muted-foreground">
-                        <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+            <div className="p-4 rounded-xl bg-secondary/50 border border-white/5 space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase">Summary</p>
+              <p className="text-sm leading-relaxed">{auditResult?.smartSummary}</p>
             </div>
           </div>
         </DialogContent>
