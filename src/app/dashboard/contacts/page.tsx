@@ -36,7 +36,7 @@ export default function RelationshipIntelligence() {
                   <Badge key={p} variant="secondary" className="text-[8px] px-1.5 py-0 bg-white/5">{p}</Badge>
                 ))}
               </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
