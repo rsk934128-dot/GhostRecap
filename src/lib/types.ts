@@ -157,6 +157,25 @@ export interface NagadPhilanthropyNode {
   status: 'Active' | 'Standby';
 }
 
+// --- Nagad Merchant Pay Types ---
+
+export interface NagadMerchantPayPayload {
+  merchantAccountNumber: string;
+  amount: number;
+  counterNumber?: string;
+  reference?: string;
+  pinSecureToken: string;
+  channel: 'USSD' | 'APP_QR' | 'GATEWAY_API';
+}
+
+export interface NagadMerchantPayResponse {
+  success: boolean;
+  transactionId?: string;
+  message: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
 export interface StressTestResult {
   timestamp: string;
   throughput: number; // tx/sec

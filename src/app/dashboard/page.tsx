@@ -18,7 +18,8 @@ import {
   Calendar,
   Shield,
   Fingerprint,
-  Globe
+  Globe,
+  QrCode
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -96,7 +97,8 @@ export default function MissionControlCenter() {
         if (tx.id && !processedTxIds.current.has(tx.id)) {
           processedTxIds.current.add(tx.id);
           const channel = tx.description.includes('Nagad') ? 'NAGAD-RSA' : 'MDB-HMAC';
-          addLog(`Fragment detected: ${tx.type.toUpperCase()} | ${tx.currency} ${tx.amount} via ${channel}`, tx.status === 'flagged' ? 'warning' : 'success');
+          const typeIcon = tx.type === 'payment' ? 'PAYMENT' : 'PAYOUT';
+          addLog(`${typeIcon} Fragment detected: ${tx.currency} ${tx.amount} via ${channel}`, tx.status === 'flagged' ? 'warning' : 'success');
         }
       });
     }
@@ -261,14 +263,14 @@ export default function MissionControlCenter() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 rounded-full bg-accent/10 text-accent">
-                <Fingerprint size={20} />
+                <QrCode size={20} />
               </div>
-              <Badge variant="outline" className="text-[9px] border-accent/20 text-accent uppercase">HSM V4</Badge>
+              <Badge variant="outline" className="text-[9px] border-accent/20 text-accent uppercase">QR ENGINE</Badge>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">Sovereign Trust</p>
-              <h3 className="text-xl font-bold font-headline">{handshakeResult ? 'VERIFIED' : 'PENDING'}</h3>
-              <p className="text-[9px] text-muted-foreground font-mono mt-2">Hardware Root Secure</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">C2B Status</p>
+              <h3 className="text-xl font-bold font-headline">{handshakeResult ? 'ACTIVE' : 'PENDING'}</h3>
+              <p className="text-[9px] text-muted-foreground font-mono mt-2">Merchant Pay Node Live</p>
             </div>
           </CardContent>
         </Card>
@@ -382,7 +384,7 @@ export default function MissionControlCenter() {
                     <CheckCircle2 size={12} className="text-green-500" />
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-muted-foreground">Suspicious Keyword Analysis</span>
+                    <span className="text-muted-foreground">Merchant QR Metadata Validation</span>
                     <CheckCircle2 size={12} className="text-green-500" />
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
@@ -406,7 +408,7 @@ export default function MissionControlCenter() {
             <CardContent className="space-y-4">
               {!handshakeResult ? (
                 <div className="space-y-4">
-                  <p className="text-xs text-muted-foreground">Hardward Security Module handshake required to unlock full predictive audit layer.</p>
+                  <p className="text-xs text-muted-foreground">Hardware Security Module handshake required to unlock full predictive audit layer.</p>
                   <Button 
                     className="w-full bg-primary font-bold shadow-lg" 
                     onClick={() => handleRespondToHandshake('ALPHA_01')}

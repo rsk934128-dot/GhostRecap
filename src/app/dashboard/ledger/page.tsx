@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import {
   RefreshCcw, Filter, BrainCircuit, 
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
   ShieldCheck, Smartphone, Zap, Search, AlertCircle,
-  Building2, MapPin, Heart, Gift
+  Building2, MapPin, Heart, Gift, QrCode, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
 import { executeMDBPayout } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
+import { executeNagadMerchantPay } from '@/app/lib/nagad-merchant-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -37,7 +38,9 @@ export default function NexusLedgerPage() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
+  const [isMerchantPayDialogOpen, setIsMerchantPayDialogOpen] = useState(false);
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
+  const [isExecutingMerchantPay, setIsExecutingMerchantPay] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
@@ -51,6 +54,15 @@ export default function NexusLedgerPage() {
     mfiOrg: '',
     mfiBranch: '',
     philanthropyId: '',
+  });
+
+  const [merchantPayData, setMerchantPayData] = useState<NagadMerchantPayPayload>({
+    merchantAccountNumber: '01711223344',
+    amount: 0,
+    counterNumber: '1',
+    reference: 'REF-NEXUS-01',
+    pinSecureToken: 'SECURE_PIN_HASH',
+    channel: 'APP_QR'
   });
 
   const ledgerQuery = useMemoFirebase(() => {
@@ -69,7 +81,6 @@ export default function NexusLedgerPage() {
     return statusFilter === 'all' || t.status === statusFilter;
   });
 
-  // MFI Filter Logic
   const mfiOrgs = useMemo(() => Array.from(new Set(MOCK_NAGAD_MFI_NODES.map(n => n.organizationName))), []);
   const availableBranches = useMemo(() => 
     MOCK_NAGAD_MFI_NODES.filter(n => n.organizationName === payoutData.mfiOrg),
@@ -87,7 +98,7 @@ export default function NexusLedgerPage() {
     
     const mockTxs = [
       { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString(), checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' }) },
-      { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString(), checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' }) },
+      { amount: 2500, currency: 'BDT', status: 'completed', description: 'Nagad Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString(), checksum: generateNagadSignature({ amount: 2500, source: 'BKASH' }) },
       { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString(), checksum: 'ERROR_CHECKSUM_MISMATCH' },
       { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad EMI: VPKA Foundation', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) },
       { amount: 5000, currency: 'BDT', status: 'completed', description: 'Donation: Quantum Foundation', type: 'payout', timestamp: new Date(Date.now() - 18000000).toISOString(), checksum: generateNagadSignature({ amount: 5000, source: 'CHARITY' }) }
@@ -215,6 +226,42 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handleExecuteMerchantPay = async () => {
+    if (!merchantPayData.amount || merchantPayData.amount <= 0) {
+      toast({ variant: "destructive", title: "Invalid Amount", description: "Please enter a valid BDT amount." });
+      return;
+    }
+
+    setIsExecutingMerchantPay(true);
+    try {
+      const response: NagadMerchantPayResponse = await executeNagadMerchantPay(merchantPayData);
+      
+      if (response.success) {
+        const txData = {
+          amount: merchantPayData.amount,
+          currency: 'BDT',
+          status: 'completed' as const,
+          description: `Merchant Pay: ${merchantPayData.reference} (${merchantPayData.channel})`,
+          type: 'payment' as const,
+          merchantId: user?.uid || 'GUEST',
+          timestamp: new Date().toISOString(),
+          checksum: response.metadata?.signature,
+          metadata: response.metadata
+        };
+
+        addDoc(collection(db, 'transactions'), txData);
+        toast({ title: "Payment Successful", description: response.message });
+        setIsMerchantPayDialogOpen(false);
+      } else {
+        toast({ variant: "destructive", title: "Payment Failed", description: response.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "System Error", description: "Merchant node handshake failed." });
+    } finally {
+      setIsExecutingMerchantPay(false);
+    }
+  };
+
   const getStatusBadge = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Completed</Badge>;
@@ -232,6 +279,9 @@ export default function NexusLedgerPage() {
           <p className="text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" className="gap-2 border-accent/20 text-accent hover:bg-accent/5" onClick={() => setIsMerchantPayDialogOpen(true)}>
+            <QrCode size={16} /> Simulate QR Pay
+          </Button>
           <Button variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsPayoutDialogOpen(true)}>
             <Send size={16} /> Initiate Payout
           </Button>
@@ -323,61 +373,83 @@ export default function NexusLedgerPage() {
         </CardContent>
       </Card>
 
-      {/* Transaction Details Dialog */}
-      <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
-        <DialogContent className="bg-card/95 backdrop-blur-xl border-white/10 sm:max-w-lg">
+      {/* Merchant Pay Simulator Dialog */}
+      <Dialog open={isMerchantPayDialogOpen} onOpenChange={setIsMerchantPayDialogOpen}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-accent/20 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
-              <ShieldCheck className="text-primary" /> Fragment Audit Trail
+              <QrCode className="text-accent" /> Merchant Pay Engine
             </DialogTitle>
-            <DialogDescription>Full cryptographic breakdown of the selected fragment.</DialogDescription>
+            <DialogDescription>Simulate a C2B/USSD payment to your merchant node.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4">
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex gap-2 p-1 bg-black/40 rounded-lg">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn("flex-1 text-[10px] h-8", merchantPayData.channel === 'APP_QR' && "bg-accent/20 text-accent")}
+                onClick={() => setMerchantPayData({...merchantPayData, channel: 'APP_QR'})}
+              >
+                App QR Pay
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn("flex-1 text-[10px] h-8", merchantPayData.channel === 'USSD' && "bg-accent/20 text-accent")}
+                onClick={() => setMerchantPayData({...merchantPayData, channel: 'USSD'})}
+              >
+                USSD *167#
+              </Button>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Internal Node ID</p>
-                <p className="text-xs font-mono">{selectedTx?.id || 'N/A'}</p>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 h-11" 
+                  value={merchantPayData.amount}
+                  onChange={(e) => setMerchantPayData({...merchantPayData, amount: parseFloat(e.target.value)})}
+                />
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Status</p>
-                <div>{selectedTx && getStatusBadge(selectedTx.status)}</div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Counter No</Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11" 
+                  value={merchantPayData.counterNumber}
+                  onChange={(e) => setMerchantPayData({...merchantPayData, counterNumber: e.target.value})}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                <Key size={12} className="text-primary" /> Digital Signature (HMAC/RSA)
-              </p>
-              <div className={cn(
-                "p-4 rounded-lg border font-mono text-[10px] break-all leading-relaxed bg-black/40",
-                selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' ? "border-destructive/30 text-destructive" : "border-white/5 text-green-400"
-              )}>
-                {selectedTx?.checksum || 'PENDING_VALIDATION'}
-              </div>
-              {selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' && (
-                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
-                  <AlertCircle size={14} className="text-destructive" />
-                  <p className="text-[10px] text-destructive font-bold">SECURITY ALERT: Checksum mismatch!</p>
-                </div>
-              )}
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Reference / Order ID</Label>
+              <Input 
+                className="bg-black/20 border-white/10 h-11" 
+                value={merchantPayData.reference}
+                onChange={(e) => setMerchantPayData({...merchantPayData, reference: e.target.value})}
+              />
             </div>
-
-            {selectedTx?.metadata && (
-              <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Meta-Data Logs</p>
-                <div className="p-3 rounded-lg bg-white/5 border border-white/5 text-[11px] font-mono space-y-1">
-                  {Object.entries(selectedTx.metadata).map(([key, val]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-muted-foreground">{key}:</span>
-                      <span className="text-right text-foreground">{String(val)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            
+            <div className="p-3 rounded-lg bg-accent/5 border border-accent/10 flex items-start gap-3">
+              <AlertCircle size={14} className="text-accent mt-0.5" />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                This simulation triggers the <strong>Tap and Hold</strong> logic for App QR and validates the <strong>Counter Number</strong> for USSD channels.
+              </p>
+            </div>
           </div>
+
           <DialogFooter>
-            <Button className="w-full bg-primary font-bold" onClick={() => setSelectedTx(null)}>Close Audit</Button>
+            <Button variant="ghost" onClick={() => setIsMerchantPayDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-accent text-accent-foreground font-bold px-8 shadow-lg shadow-accent/20"
+              onClick={handleExecuteMerchantPay}
+              disabled={isExecutingMerchantPay}
+            >
+              {isExecutingMerchantPay ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <Zap className="mr-2" size={16} />}
+              Authorize Payment
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -558,6 +630,65 @@ export default function NexusLedgerPage() {
               {isExecutingPayout ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <Zap className="mr-2" size={16} />}
               {isExecutingPayout ? "RSA Signing..." : "Authorize Transfer"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Details Dialog */}
+      <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-white/10 sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <ShieldCheck className="text-primary" /> Fragment Audit Trail
+            </DialogTitle>
+            <DialogDescription>Full cryptographic breakdown of the selected fragment.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Internal Node ID</p>
+                <p className="text-xs font-mono">{selectedTx?.id || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Status</p>
+                <div>{selectedTx && getStatusBadge(selectedTx.status)}</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                <Key size={12} className="text-primary" /> Digital Signature (HMAC/RSA)
+              </p>
+              <div className={cn(
+                "p-4 rounded-lg border font-mono text-[10px] break-all leading-relaxed bg-black/40",
+                selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' ? "border-destructive/30 text-destructive" : "border-white/5 text-green-400"
+              )}>
+                {selectedTx?.checksum || 'PENDING_VALIDATION'}
+              </div>
+              {selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
+                  <AlertCircle size={14} className="text-destructive" />
+                  <p className="text-[10px] text-destructive font-bold">SECURITY ALERT: Checksum mismatch!</p>
+                </div>
+              )}
+            </div>
+
+            {selectedTx?.metadata && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Meta-Data Logs</p>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/5 text-[11px] font-mono space-y-1">
+                  {Object.entries(selectedTx.metadata).map(([key, val]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="text-muted-foreground">{key}:</span>
+                      <span className="text-right text-foreground">{String(val)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button className="w-full bg-primary font-bold" onClick={() => setSelectedTx(null)}>Close Audit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
