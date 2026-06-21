@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
 import { Transaction, MDBPayoutResponse, NagadPayoutResponse } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@/components/ui/select';
 import { 
-  RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, 
-  ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet, Eye, Key, 
-  ShieldCheck, Smartphone, Zap, Search
+  RefreshCcw, Filter, BrainCircuit, 
+  CheckCircle2, DatabaseZap, Send, Landmark, Key, 
+  ShieldCheck, Smartphone, Zap, Search, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,6 @@ export default function NexusLedgerPage() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
 
-  // Payout Form State
   const [payoutData, setPayoutData] = useState({
     destAccount: '',
     routing: '',
@@ -61,116 +60,49 @@ export default function NexusLedgerPage() {
   const { data: transactions, loading } = useCollection<Transaction>(ledgerQuery);
 
   const filteredTransactions = transactions?.filter(t => {
-    const statusMatch = statusFilter === 'all' || t.status === statusFilter;
-    return statusMatch;
+    return statusFilter === 'all' || t.status === statusFilter;
   });
 
   const handleSeedData = async () => {
-    if (!db || !user) {
-      toast({ variant: "destructive", title: "Authentication Required", description: "Please login to seed your node." });
-      return;
-    }
-    
+    if (!db || !user) return;
     setIsSeeding(true);
     
     const mockTxs = [
-      { 
-        amount: 15000, 
-        currency: 'BDT', 
-        status: 'completed', 
-        description: 'Midland Bank API Settlement', 
-        type: 'payment', 
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' })
-      },
-      { 
-        amount: 2500, 
-        currency: 'BDT', 
-        status: 'completed', 
-        description: 'bKash Merchant Pay - Node 400', 
-        type: 'payment', 
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' })
-      },
-      { 
-        amount: 45000, 
-        currency: 'BDT', 
-        status: 'flagged', 
-        description: 'High Velocity Transfer - Suspicious', 
-        type: 'payment', 
-        timestamp: new Date(Date.now() - 10800000).toISOString(),
-        checksum: 'ERROR_CHECKSUM_MISMATCH'
-      },
-      { 
-        amount: 12000, 
-        currency: 'BDT', 
-        status: 'pending', 
-        description: 'Nagad B2B Payout standby', 
-        type: 'payout', 
-        timestamp: new Date(Date.now() - 14400000).toISOString(),
-        checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' })
-      },
-      { 
-        amount: 8500, 
-        currency: 'BDT', 
-        status: 'completed', 
-        description: 'Rocket Disbursement Cluster 09', 
-        type: 'payout', 
-        timestamp: new Date(Date.now() - 18000000).toISOString(),
-        checksum: generateHMACChecksum({ amount: 8500, source: 'ROCKET' })
-      },
+      { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString(), checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' }) },
+      { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString(), checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' }) },
+      { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString(), checksum: 'ERROR_CHECKSUM_MISMATCH' },
+      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad B2B Payout standby', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) }
     ];
 
-    try {
-      const txCollection = collection(db, 'transactions');
-      
-      // We do not await to optimize background processing as per guidelines
-      mockTxs.forEach((tx) => {
-        addDoc(txCollection, { ...tx, merchantId: user.uid }).catch(async (err) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({ 
-            path: 'transactions', 
-            operation: 'create', 
-            requestResourceData: tx 
-          }));
-        });
+    mockTxs.forEach((tx) => {
+      const data = { ...tx, merchantId: user.uid };
+      addDoc(collection(db, 'transactions'), data).catch(async (err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+          path: 'transactions', 
+          operation: 'create', 
+          requestResourceData: data 
+        }));
       });
+    });
 
-      toast({ 
-        title: "Nexus Node Seeded", 
-        description: "5 transaction fragments pushed to your node memory." 
-      });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Seeding Failed", description: "Could not push data to Node Nexus." });
-    } finally {
-      setIsSeeding(false);
-    }
+    toast({ title: "Nexus Node Seeded", description: "Transaction fragments pushed to your node memory." });
+    setIsSeeding(false);
   };
 
   const handleRunAIAudit = async () => {
     if (!filteredTransactions?.length) {
-      toast({ variant: "destructive", title: "Empty Ledger", description: "No fragments found in Node Nexus. Click 'Seed Test Node' to populate." });
+      toast({ variant: "destructive", title: "Empty Ledger", description: "Seed the node before auditing." });
       return;
     }
-    
     setIsAuditing(true);
-    setAuditResult(null);
-
     try {
       const result = await analyzeNexusLedger({
-        transactions: filteredTransactions.map(t => ({ 
-          amount: t.amount, 
-          currency: t.currency, 
-          status: t.status, 
-          description: t.description, 
-          timestamp: t.timestamp, 
-          type: t.type 
-        })),
+        transactions: filteredTransactions.map(t => ({ amount: t.amount, currency: t.currency, status: t.status, description: t.description, timestamp: t.timestamp, type: t.type })),
         merchantName: user?.displayName || "Nexus Merchant"
       });
       setAuditResult(result);
-      toast({ title: "Audit Complete", description: "Nexus AI Auditor has delivered the intelligence report." });
     } catch (e) {
-      toast({ variant: "destructive", title: "AI Node Offline", description: "Cognitive layer failed. Using safe-mode audit data." });
+      toast({ variant: "destructive", title: "AI Audit Standby", description: "Node capacity reached. Showing safe-mode report." });
     } finally {
       setIsAuditing(false);
     }
@@ -178,7 +110,7 @@ export default function NexusLedgerPage() {
 
   const handleExecutePayout = async () => {
     if (!payoutData.destAccount || !payoutData.amount) {
-      toast({ variant: "destructive", title: "Invalid Payload", description: "Destination and amount are required for RSA signing." });
+      toast({ variant: "destructive", title: "Missing Payload", description: "Account and amount are required for signing." });
       return;
     }
     
@@ -196,9 +128,8 @@ export default function NexusLedgerPage() {
         const response: MDBPayoutResponse = await executeMDBPayout(payloadBase);
 
         if (response.success) {
-          toast({ title: "MDB Payout Success", description: `TX ID: ${response.transactionId}` });
           const checksum = generateHMACChecksum(payloadBase);
-          addDoc(collection(db, 'transactions'), {
+          const txData = {
             amount: parseFloat(payoutData.amount),
             currency: 'BDT',
             status: 'completed',
@@ -208,10 +139,20 @@ export default function NexusLedgerPage() {
             timestamp: new Date().toISOString(),
             checksum,
             metadata: { ...payloadBase, transactionId: response.transactionId }
+          };
+          
+          addDoc(collection(db, 'transactions'), txData).catch(async (err) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+              path: 'transactions', 
+              operation: 'create', 
+              requestResourceData: txData 
+            }));
           });
+
+          toast({ title: "MDB Payout Authorized", description: `TX ID: ${response.transactionId}` });
           setIsPayoutDialogOpen(false);
         } else {
-          toast({ variant: "destructive", title: "MDB Payout Failed", description: response.message });
+          toast({ variant: "destructive", title: "Authorization Failed", description: response.message });
         }
       } else {
         const nagadPayload = {
@@ -223,9 +164,8 @@ export default function NexusLedgerPage() {
         const response: NagadPayoutResponse = await executeNagadPayout(nagadPayload);
 
         if (response.success) {
-          toast({ title: "Nagad M2P Success", description: `Order ID: ${response.transactionId}` });
           const signature = generateNagadSignature(nagadPayload);
-          addDoc(collection(db, 'transactions'), {
+          const txData = {
             amount: parseFloat(payoutData.amount),
             currency: 'BDT',
             status: 'completed',
@@ -235,14 +175,24 @@ export default function NexusLedgerPage() {
             timestamp: new Date().toISOString(),
             checksum: signature,
             metadata: { ...nagadPayload, transactionId: response.transactionId }
+          };
+
+          addDoc(collection(db, 'transactions'), txData).catch(async (err) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ 
+              path: 'transactions', 
+              operation: 'create', 
+              requestResourceData: txData 
+            }));
           });
+
+          toast({ title: "Nagad M2P Authorized", description: `Order ID: ${response.transactionId}` });
           setIsPayoutDialogOpen(false);
         } else {
-          toast({ variant: "destructive", title: "Nagad Payout Failed", description: response.message });
+          toast({ variant: "destructive", title: "Nagad Failed", description: response.message });
         }
       }
     } catch (e) {
-      toast({ variant: "destructive", title: "Nexus Bridge Reset", description: "Handshake failed during disbursement." });
+      toast({ variant: "destructive", title: "Bridge Reset", description: "Handshake failed during disbursement." });
     } finally {
       setIsExecutingPayout(false);
     }
@@ -260,9 +210,7 @@ export default function NexusLedgerPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5">Financial Node 01</Badge>
-          </div>
+          <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5 mb-2">Financial Node 01</Badge>
           <h1 className="text-4xl font-headline font-bold">Nexus Ledger</h1>
           <p className="text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
@@ -273,8 +221,8 @@ export default function NexusLedgerPage() {
           <Button variant="outline" className="gap-2 border-white/10" onClick={handleSeedData} disabled={isSeeding}>
             {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />} Seed Test Node
           </Button>
-          <Button className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20 group" onClick={handleRunAIAudit} disabled={isAuditing}>
-            {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} className="group-hover:animate-pulse" />} Run AI Audit
+          <Button className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20" onClick={handleRunAIAudit} disabled={isAuditing}>
+            {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} />} Run AI Audit
           </Button>
         </div>
       </header>
@@ -304,10 +252,15 @@ export default function NexusLedgerPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="flagged">Flagged</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectValue placeholder="All Status" />
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="flagged">Flagged</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
               </SelectContent>
             </Select>
           </div>
@@ -326,7 +279,7 @@ export default function NexusLedgerPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-16 animate-pulse text-muted-foreground font-mono">Streaming fragments from Node Nexus...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-16 animate-pulse text-muted-foreground font-mono">Streaming fragments...</TableCell></TableRow>
               ) : filteredTransactions?.length ? (
                 filteredTransactions.map((tx) => (
                   <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 transition-colors group">
@@ -347,8 +300,8 @@ export default function NexusLedgerPage() {
                   <TableCell colSpan={6} className="text-center py-20">
                     <div className="flex flex-col items-center gap-2">
                       <DatabaseZap size={48} className="text-muted-foreground opacity-20" />
-                      <p className="text-muted-foreground text-sm">No fragments found in Node Nexus.</p>
-                      <Button variant="link" className="text-primary text-xs" onClick={handleSeedData}>Seed Test Node</Button>
+                      <p className="text-muted-foreground text-sm">No fragments found.</p>
+                      <Button variant="link" className="text-primary text-xs" onClick={handleSeedData}>Seed Node</Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -365,7 +318,7 @@ export default function NexusLedgerPage() {
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
               <ShieldCheck className="text-primary" /> Fragment Audit Trail
             </DialogTitle>
-            <DialogDescription>Full cryptographic breakdown of the selected transaction fragment.</DialogDescription>
+            <DialogDescription>Full cryptographic breakdown of the selected fragment.</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -381,7 +334,7 @@ export default function NexusLedgerPage() {
 
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                <Key size={12} className="text-primary" /> HMAC / RSA Digital Signature
+                <Key size={12} className="text-primary" /> Digital Signature (HMAC/RSA)
               </p>
               <div className={cn(
                 "p-4 rounded-lg border font-mono text-[10px] break-all leading-relaxed bg-black/40",
@@ -392,14 +345,14 @@ export default function NexusLedgerPage() {
               {selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' && (
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2">
                   <AlertCircle size={14} className="text-destructive" />
-                  <p className="text-[10px] text-destructive font-bold">SECURITY ALERT: Checksum mismatch detected!</p>
+                  <p className="text-[10px] text-destructive font-bold">SECURITY ALERT: Checksum mismatch!</p>
                 </div>
               )}
             </div>
 
             {selectedTx?.metadata && (
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Bank Core Meta-Data</p>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Meta-Data Logs</p>
                 <div className="p-3 rounded-lg bg-white/5 border border-white/5 text-[11px] font-mono space-y-1">
                   {Object.entries(selectedTx.metadata).map(([key, val]) => (
                     <div key={key} className="flex justify-between">
@@ -424,7 +377,7 @@ export default function NexusLedgerPage() {
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
               <Landmark className="text-primary" /> Funds Disbursement
             </DialogTitle>
-            <DialogDescription>Execute secure transfers via MDB Core or Nagad B2B Gateway.</DialogDescription>
+            <DialogDescription>Execute transfers via MDB Core or Nagad B2B Gateway.</DialogDescription>
           </DialogHeader>
           
           <Tabs value={payoutMethod} onValueChange={(v) => setPayoutMethod(v as any)} className="w-full mt-4">
@@ -440,11 +393,11 @@ export default function NexusLedgerPage() {
             <div className="grid gap-4 py-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {payoutMethod === 'mdb' ? 'Destination Account Number' : 'Nagad Recipient Number'}
+                  {payoutMethod === 'mdb' ? 'Destination Account' : 'Nagad Number'}
                 </Label>
                 <Input 
-                  className="bg-black/20 border-white/10 h-11 focus-visible:ring-primary/50" 
-                  placeholder={payoutMethod === 'mdb' ? "Account Number (e.g. 10223344)" : "01XXXXXXXXX"}
+                  className="bg-black/20 border-white/10 h-11" 
+                  placeholder={payoutMethod === 'mdb' ? "Account Number" : "01XXXXXXXXX"}
                   value={payoutData.destAccount}
                   onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
                 />
@@ -454,7 +407,7 @@ export default function NexusLedgerPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase text-muted-foreground">Routing Number</Label>
                   <Input 
-                    className="bg-black/20 border-white/10 h-11 focus-visible:ring-primary/50" 
+                    className="bg-black/20 border-white/10 h-11" 
                     placeholder="000111222"
                     value={payoutData.routing}
                     onChange={(e) => setPayoutData({...payoutData, routing: e.target.value})}
@@ -467,8 +420,7 @@ export default function NexusLedgerPage() {
                   <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
                   <Input 
                     type="number"
-                    className="bg-black/20 border-white/10 h-11 focus-visible:ring-primary/50" 
-                    placeholder="0.00"
+                    className="bg-black/20 border-white/10 h-11" 
                     value={payoutData.amount}
                     onChange={(e) => setPayoutData({...payoutData, amount: e.target.value})}
                   />
@@ -476,7 +428,7 @@ export default function NexusLedgerPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase text-muted-foreground">Narration</Label>
                   <Input 
-                    className="bg-black/20 border-white/10 h-11 focus-visible:ring-primary/50" 
+                    className="bg-black/20 border-white/10 h-11" 
                     value={payoutData.narration}
                     onChange={(e) => setPayoutData({...payoutData, narration: e.target.value})}
                   />
@@ -509,9 +461,9 @@ export default function NexusLedgerPage() {
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
               <BrainCircuit className="text-primary" /> Nexus AI Audit Report
             </DialogTitle>
-            <DialogDescription>Autonomous financial intelligence for node {user?.uid}</DialogDescription>
+            <DialogDescription>Autonomous financial intelligence analysis.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-2 gap-4">
               <Card className="bg-primary/5 border-primary/20 p-4">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Compliance Score</p>
@@ -526,19 +478,6 @@ export default function NexusLedgerPage() {
               <p className="text-xs font-bold text-muted-foreground uppercase">Executive Summary</p>
               <p className="text-sm leading-relaxed text-foreground/90">{auditResult?.smartSummary}</p>
             </div>
-            {auditResult?.fraudAnalysis.findings.length ? (
-              <div className="space-y-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase">Key Audit Findings</p>
-                <div className="grid gap-2">
-                  {auditResult.fraudAnalysis.findings.map((f, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-black/40 border border-white/5 text-xs flex gap-3 items-start">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_hsl(var(--primary))]" />
-                      <span className="text-muted-foreground group-hover:text-foreground transition-colors">{f}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
             <div className="space-y-3">
               <p className="text-xs font-bold text-muted-foreground uppercase">Strategic Recommendations</p>
               <div className="grid gap-2">
@@ -552,7 +491,7 @@ export default function NexusLedgerPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button className="w-full bg-primary font-bold shadow-lg shadow-primary/20" onClick={() => setAuditResult(null)}>Close Intelligence Report</Button>
+            <Button className="w-full bg-primary font-bold shadow-lg" onClick={() => setAuditResult(null)}>Close Intelligence Report</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
