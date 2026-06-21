@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -16,7 +17,8 @@ import {
   Lock,
   BarChart3,
   Globe,
-  Waves
+  Waves,
+  Music
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -36,6 +38,7 @@ export function Sidebar() {
     { name: 'Secure Vault', icon: Lock, href: '/dashboard/vault' },
     { name: 'Automation Studio', icon: Zap, href: '/dashboard/rules' },
     { name: 'Direct Link Hub', icon: Link2, href: '/dashboard/direct' },
+    { name: 'Media Hub', icon: Music, href: '/dashboard/media' },
     { name: 'Intel & Roadmap', icon: BrainCircuit, href: '/dashboard/privacy' },
   ];
 
