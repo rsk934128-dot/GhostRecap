@@ -1,11 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for categorizing messages using AI.
- * Updated to recognize MDB Core and Nexus specific signals.
- *
- * - smartMessageCategorization - A function that categorizes message content.
- * - SmartMessageCategorizationInput - The input type for the smartMessageCategorization function.
- * - SmartMessageCategorizationOutput - The return type for the smartMessageCategorization function.
+ * Updated to recognize MDB Core and Nexus specific signals with a silent failsafe.
  */
 
 import { ai } from '@/ai/genkit';
@@ -32,7 +28,12 @@ export type SmartMessageCategorizationOutput = z.infer<
 export async function smartMessageCategorization(
   input: SmartMessageCategorizationInput
 ): Promise<SmartMessageCategorizationOutput> {
-  return smartMessageCategorizationFlow(input);
+  try {
+    return await smartMessageCategorizationFlow(input);
+  } catch (error: any) {
+    // Silent fallback to 'Other' for categorizer quota issues to prevent UI noise.
+    return { category: 'Other' };
+  }
 }
 
 const prompt = ai.definePrompt({
