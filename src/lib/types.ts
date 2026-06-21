@@ -93,6 +93,7 @@ export interface LiquidityNode {
   currency: string;
   health: number; // 0-100
   status: 'online' | 'rebalancing' | 'offline';
+  type: 'bank' | 'gateway' | 'global' | 'core';
 }
 
 export interface StressTestResult {
@@ -101,4 +102,11 @@ export interface StressTestResult {
   successRate: number; // %
   avgLatency: number; // ms
   bottlenecks: string[];
+}
+
+export interface TopographyConnection {
+  from: string;
+  to: string;
+  status: 'active' | 'syncing' | 'idle';
+  load: number; // 0-100
 }

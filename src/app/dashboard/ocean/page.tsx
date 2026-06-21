@@ -19,9 +19,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
-import { LiquidityNode, StressTestResult } from '@/lib/types';
+import { LiquidityNode } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Link from 'next/link';
 
 export default function OceanMixingPage() {
   const [isTesting, setIsTesting] = useState(false);
@@ -33,9 +34,9 @@ export default function OceanMixingPage() {
   }, []);
 
   const nodes: LiquidityNode[] = [
-    { id: '1', name: 'Midland Bank Node', balance: 4500000, currency: 'BDT', health: 98, status: 'online' },
-    { id: '2', name: 'bKash Gateway Node', balance: 1200000, currency: 'BDT', health: 92, status: 'rebalancing' },
-    { id: '3', name: 'Global Bridge Node', balance: 85000, currency: 'USD', health: 100, status: 'online' },
+    { id: '1', name: 'Midland Bank Node', balance: 4500000, currency: 'BDT', health: 98, status: 'online', type: 'bank' },
+    { id: '2', name: 'bKash Gateway Node', balance: 1200000, currency: 'BDT', health: 92, status: 'rebalancing', type: 'gateway' },
+    { id: '3', name: 'Global Bridge Node', balance: 85000, currency: 'USD', health: 100, status: 'online', type: 'global' },
   ];
 
   const mockLatencyData = [
@@ -205,9 +206,11 @@ export default function OceanMixingPage() {
               </div>
             </div>
 
-            <Button variant="outline" className="w-full h-11 border-white/10 hover:bg-accent/10 hover:text-accent gap-2 font-bold group">
-              View Node Topography <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link href="/dashboard/ocean/topography">
+              <Button variant="outline" className="w-full h-11 border-white/10 hover:bg-accent/10 hover:text-accent gap-2 font-bold group">
+                View Node Topography <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
