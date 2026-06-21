@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -18,8 +19,9 @@ import { ArchivedMessage, Transaction } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser, useCollection } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { cn } from '@/lib/utils';
 
 export default function MissionControlCenter() {
   const { user } = useUser();
@@ -34,9 +36,17 @@ export default function MissionControlCenter() {
   const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
 
   // Real-time Ledger Data for Executive Dashboard
-  const { data: recentTransactions } = useCollection<Transaction>(
-    user ? query(collection(db, 'transactions'), where('merchantId', '==', user.uid), limit(5)) : null
-  );
+  const transactionsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, 'transactions'),
+      where('merchantId', '==', user.uid),
+      orderBy('timestamp', 'desc'),
+      limit(20)
+    );
+  }, [db, user]);
+
+  const { data: recentTransactions, loading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
   useEffect(() => {
     setMounted(true);
@@ -60,12 +70,17 @@ export default function MissionControlCenter() {
 
   const stats = useMemo(() => {
     const totalVolume = recentTransactions?.reduce((acc, t) => acc + t.amount, 0) || 0;
+    const flaggedCount = recentTransactions?.filter(t => t.status === 'flagged').length || 0;
+    const pendingCount = recentTransactions?.filter(t => t.status === 'pending').length || 0;
+    
     return {
-      total: messages.length,
+      totalMessages: messages.length,
       urgent: messages.filter(m => m.category === 'Urgent').length,
       opportunities: messages.filter(m => (m.opportunityScore || 0) > 70).length,
-      decisions: messages.filter(m => m.decisionPending).length,
+      decisions: messages.filter(m => m.decisionPending).length + pendingCount,
       volume: totalVolume,
+      flagged: flaggedCount,
+      txCount: recentTransactions?.length || 0,
     };
   }, [messages, recentTransactions]);
 
@@ -157,7 +172,7 @@ export default function MissionControlCenter() {
               </div>
               <Progress value={Math.min(100, (stats.volume / 100000) * 100)} className="h-1 bg-white/5" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Total node volume indexed from <span className="text-primary font-bold">Midland Bank & bKash</span> API endpoints.
+                Indexed from <span className="text-primary font-bold">Midland Bank & bKash</span>. {stats.txCount} fragments found.
               </p>
             </div>
           </CardContent>
@@ -178,7 +193,9 @@ export default function MissionControlCenter() {
               {stats.decisions > 0 ? (
                 <div className="p-3 rounded-lg bg-accent/10 border border-accent/10">
                   <p className="text-xs font-bold text-accent mb-1">{stats.decisions} DECISIONS REQUIRED</p>
-                  <p className="text-[10px] text-muted-foreground italic leading-tight">AI Agent detected unresolved discussions in the node fragments.</p>
+                  <p className="text-[10px] text-muted-foreground italic leading-tight">
+                    Includes {recentTransactions?.filter(t => t.status === 'pending').length || 0} pending transactions.
+                  </p>
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground py-4">No critical pending decisions identified.</p>
@@ -187,25 +204,32 @@ export default function MissionControlCenter() {
           </CardContent>
         </Card>
 
-        <Card className="bg-destructive/5 border-destructive/20 ghostly-fade relative overflow-hidden group">
+        <Card className={cn("ghostly-fade relative overflow-hidden group", stats.flagged > 0 ? "bg-destructive/5 border-destructive/20" : "bg-green-500/5 border-green-500/20")}>
           <CardContent className="p-6 relative z-10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-destructive/20 text-destructive">
+                <div className={cn("p-2 rounded-full", stats.flagged > 0 ? "bg-destructive/20 text-destructive" : "bg-green-500/20 text-green-500")}>
                   <ShieldAlert size={20} />
                 </div>
                 <h3 className="font-bold">Fraud Monitor</h3>
               </div>
-              <ShieldAlert size={16} className="text-destructive opacity-50" />
+              <ShieldAlert size={16} className={cn("opacity-50", stats.flagged > 0 ? "text-destructive" : "text-green-500")} />
             </div>
             <ul className="space-y-2">
-              <li className="text-xs flex items-start gap-2 text-muted-foreground">
-                <div className="w-1 h-1 rounded-full bg-destructive mt-1.5 shrink-0" />
-                No active threats detected in Node M400.
-              </li>
+              {stats.flagged > 0 ? (
+                <li className="text-xs flex items-start gap-2 text-destructive font-bold">
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0 animate-pulse" />
+                  {stats.flagged} suspicious fragments detected!
+                </li>
+              ) : (
+                <li className="text-xs flex items-start gap-2 text-muted-foreground">
+                  <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                  No active threats detected in Node M400.
+                </li>
+              )}
               <li className="text-xs flex items-start gap-2 text-muted-foreground">
                 <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                All transactions verified by Nexus Security.
+                Nexus Identity Trust: 100% Verified.
               </li>
             </ul>
           </CardContent>
@@ -214,8 +238,8 @@ export default function MissionControlCenter() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Fragments', value: stats.total, icon: BrainCircuit, color: 'text-primary' },
-          { label: 'Ledger Audit', value: stats.volume > 0 ? 'CLEAN' : 'PENDING', icon: CheckCircle2, color: 'text-accent' },
+          { label: 'Fragments', value: stats.txCount + stats.totalMessages, icon: BrainCircuit, color: 'text-primary' },
+          { label: 'Ledger Audit', value: stats.flagged === 0 ? 'CLEAN' : 'RISK', icon: CheckCircle2, color: stats.flagged === 0 ? 'text-accent' : 'text-destructive' },
           { label: 'Growth Signals', value: stats.opportunities, icon: Rocket, color: 'text-orange-400' },
           { label: 'Trust Fabric', value: '100%', icon: ShieldCheck, color: 'text-green-400' },
         ].map((stat, i) => (
@@ -347,4 +371,3 @@ export default function MissionControlCenter() {
     </div>
   );
 }
-
