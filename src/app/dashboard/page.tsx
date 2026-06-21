@@ -1,30 +1,24 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { 
-  Search, Sparkles, RefreshCcw, BrainCircuit, ShieldAlert, 
-  Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, CheckCircle2,
+  Search, RefreshCcw, Briefcase, ArrowUpRight, CheckCircle2,
   SignalHigh,
-  Bell,
-  Rocket,
+  Zap,
   Lock,
-  Key,
   Activity,
-  History,
-  FileBadge,
   Award,
-  Calendar,
-  Shield,
-  Fingerprint,
+  ShieldCheck,
+  ShieldAlert,
+  ChevronRight,
   Globe,
-  QrCode,
-  Wallet
+  QrCode
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ClassificationBadge } from '@/components/dashboard/ClassificationBadge';
 import { runCopilot, CopilotOutput } from '@/ai/flows/copilot-workspace';
 import { getPredictiveInsights, PredictiveOutput } from '@/ai/flows/predictive-insights';
 import { toast } from '@/hooks/use-toast';
@@ -36,7 +30,7 @@ import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { verifyHSMHandshake, validateInboundUrl, ALLOWED_NAGAD_DOMAINS } from '@/lib/security';
+import { verifyHSMHandshake, ALLOWED_NAGAD_DOMAINS } from '@/lib/security';
 
 export default function MissionControlCenter() {
   const { user } = useUser();
@@ -48,7 +42,6 @@ export default function MissionControlCenter() {
   const [selectedMsg, setSelectedMsg] = useState<ArchivedMessage | null>(null);
   const [analysis, setAnalysis] = useState<CopilotOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
   const [isCertDialogOpen, setIsCertDialogOpen] = useState(false);
@@ -66,7 +59,7 @@ export default function MissionControlCenter() {
     );
   }, [db, user]);
 
-  const { data: recentTransactions, loading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: recentTransactions } = useCollection<Transaction>(transactionsQuery);
 
   const addLog = (message: string, type: SystemLog['type'] = 'info') => {
     const newLog: SystemLog = {
@@ -81,7 +74,6 @@ export default function MissionControlCenter() {
 
   useEffect(() => {
     setMounted(true);
-    handleRunGlobalIntelligence();
     
     const stored = localStorage.getItem('giant_integration_step');
     if (stored === 'completed') {
@@ -93,7 +85,7 @@ export default function MissionControlCenter() {
   }, []);
 
   useEffect(() => {
-    if (recentTransactions) {
+    if (recentTransactions && mounted) {
       recentTransactions.forEach(tx => {
         if (tx.id && !processedTxIds.current.has(tx.id)) {
           processedTxIds.current.add(tx.id);
@@ -107,18 +99,7 @@ export default function MissionControlCenter() {
         }
       });
     }
-  }, [recentTransactions]);
-
-  const handleRunGlobalIntelligence = async () => {
-    try {
-      const results = await getPredictiveInsights({
-        messages: messages.map(m => ({ sender: m.sender, content: m.content, timestamp: m.timestamp }))
-      });
-      setGlobalInsights(results);
-    } catch (e) {
-      console.error("Intelligence Hub Error:", e);
-    }
-  };
+  }, [recentTransactions, mounted]);
 
   const stats = useMemo(() => {
     const totalVolume = recentTransactions?.reduce((acc, t) => acc + t.amount, 0) || 0;
@@ -127,12 +108,9 @@ export default function MissionControlCenter() {
     return {
       totalMessages: messages.length,
       urgent: messages.filter(m => m.category === 'Urgent').length,
-      opportunities: messages.filter(m => (m.opportunityScore || 0) > 70).length,
-      decisions: messages.filter(m => m.decisionPending).length,
       volume: totalVolume,
       flagged: flaggedCount,
       txCount: recentTransactions?.length || 0,
-      bankSignals: messages.filter(m => m.sender.toLowerCase().includes('bank') || m.content.toLowerCase().includes('hsm') || m.content.toLowerCase().includes('nexus')).length
     };
   }, [messages, recentTransactions]);
 
@@ -159,7 +137,6 @@ export default function MissionControlCenter() {
       setMessages(prev => [incoming, ...prev]);
       addLog('Anti-Phishing Firewall blocked external domain node.', 'error');
       toast({ variant: "destructive", title: "Phishing Risk Blocked", description: "Suspicious Nagad link detected and quarantined." });
-      handleRunGlobalIntelligence();
     } catch (error) {
       addLog('Sync engine failed to handshake with HSM Bridge.', 'error');
     } finally {
@@ -204,7 +181,7 @@ export default function MissionControlCenter() {
     }
   };
 
-  const mdbSignal = messages.find(m => m.tags?.includes('MDB-CORE'));
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -305,7 +282,7 @@ export default function MissionControlCenter() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-4">
+        <div className="space-y-4" suppressHydrationWarning>
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
           </h3>
@@ -337,7 +314,7 @@ export default function MissionControlCenter() {
                         ))}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-mono">
-                        {mounted ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
+                        {format(new Date(msg.timestamp), 'HH:mm')}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors">
@@ -419,7 +396,7 @@ export default function MissionControlCenter() {
                     onClick={() => handleRespondToHandshake('ALPHA_01')}
                     disabled={handshaking}
                   >
-                    {handshaking ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <Shield size={16} className="mr-2" />}
+                    {handshaking ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
                     Authorize HSM Handshake
                   </Button>
                 </div>
@@ -441,7 +418,7 @@ export default function MissionControlCenter() {
         <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline">
-              <BrainCircuit className="text-primary" />
+              <Zap className="text-primary" />
               Nexus Cognitive Engine
             </DialogTitle>
           </DialogHeader>
@@ -484,8 +461,7 @@ export default function MissionControlCenter() {
 
       <Dialog open={isCertDialogOpen} onOpenChange={setIsCertDialogOpen}>
         <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/20 shadow-2xl shadow-amber-500/10">
-          <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/cert/800/600')] opacity-5 mix-blend-overlay pointer-events-none" />
-          <DialogHeader className="relative z-10 text-center space-y-4">
+          <DialogHeader className="text-center space-y-4">
             <div className="flex justify-center">
               <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20">
                 <Award className="text-amber-500 w-12 h-12" />
@@ -494,7 +470,7 @@ export default function MissionControlCenter() {
             <DialogTitle className="text-3xl font-headline font-bold text-amber-500 uppercase tracking-widest">Digital Trust Certificate</DialogTitle>
             <DialogDescription className="text-slate-400">Verified Hardware Security Module Handshake</DialogDescription>
           </DialogHeader>
-          <div className="relative z-10 py-8 px-6 border-y border-white/5 my-4 space-y-8">
+          <div className="py-8 px-6 border-y border-white/5 my-4 space-y-8">
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Issuer</p>
@@ -507,16 +483,16 @@ export default function MissionControlCenter() {
             </div>
             <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
               <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
-                <Key size={12} className="text-amber-500" /> RSA Signature
+                <Lock size={12} className="text-amber-500" /> RSA Signature
               </div>
               <p className="text-[11px] font-mono text-amber-500/80 break-all leading-relaxed p-3 rounded-lg border border-amber-500/10">
                 {handshakeResult?.signature || 'PENDING_INIT'}
               </p>
             </div>
           </div>
-          <DialogFooter className="relative z-10 flex sm:justify-between items-center w-full gap-4">
+          <DialogFooter className="flex sm:justify-between items-center w-full gap-4">
             <div className="text-[9px] text-slate-500 italic flex items-center gap-1">
-              <Lock size={10} /> PCI-DSS and Anti-Phishing Layer 4 Verified.
+              <ShieldCheck size={10} /> PCI-DSS and Anti-Phishing Layer 4 Verified.
             </div>
             <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold" onClick={() => setIsCertDialogOpen(false)}>Close Vault View</Button>
           </DialogFooter>
