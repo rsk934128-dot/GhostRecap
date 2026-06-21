@@ -47,3 +47,34 @@ export interface AIAction {
   label: string;
   description: string;
 }
+
+// --- Nexus Core Types ---
+
+export interface MerchantProfile {
+  id?: string;
+  businessName: string;
+  email: string;
+  status: 'active' | 'suspended' | 'pending';
+  merchantId: string;
+  createdAt: string;
+}
+
+export interface Transaction {
+  id?: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'flagged';
+  merchantId: string;
+  timestamp: string;
+  description: string;
+  type: 'payment' | 'refund' | 'payout';
+}
+
+export interface VisaCompliance {
+  id?: string;
+  merchantId: string;
+  score: number;
+  status: 'valid' | 'expired' | 'needs_review';
+  lastReviewed: string;
+  documentUrl: string;
+}

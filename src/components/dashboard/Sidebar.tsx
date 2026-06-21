@@ -14,7 +14,8 @@ import {
   ChevronRight,
   BrainCircuit,
   Target,
-  Lock
+  Lock,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ export function Sidebar() {
 
   const navItems = [
     { name: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'Nexus Ledger', icon: BarChart3, href: '/dashboard/ledger' },
     { name: 'Audit History', icon: History, href: '/dashboard/timeline' },
     { name: 'Relationship Intel', icon: Target, href: '/dashboard/contacts' },
     { name: 'Secure Vault', icon: Lock, href: '/dashboard/vault' },
