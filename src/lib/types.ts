@@ -85,3 +85,20 @@ export interface GlobalBridgeStatus {
   latency: number;
   lastSync: string;
 }
+
+export interface LiquidityNode {
+  id: string;
+  name: string;
+  balance: number;
+  currency: string;
+  health: number; // 0-100
+  status: 'online' | 'rebalancing' | 'offline';
+}
+
+export interface StressTestResult {
+  timestamp: string;
+  throughput: number; // tx/sec
+  successRate: number; // %
+  avgLatency: number; // ms
+  bottlenecks: string[];
+}
