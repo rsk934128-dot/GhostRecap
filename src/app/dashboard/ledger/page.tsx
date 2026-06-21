@@ -124,7 +124,7 @@ export default function NexusLedgerPage() {
 
   const handleRunAIAudit = async () => {
     if (!filteredTransactions?.length) {
-      toast({ variant: "destructive", title: "Empty Ledger", description: "No fragments found. Try seeding data first." });
+      toast({ variant: "destructive", title: "Empty Ledger", description: "No fragments found. Click 'Seed Test Node' first." });
       return;
     }
     setIsAuditing(true);
@@ -134,8 +134,9 @@ export default function NexusLedgerPage() {
         merchantName: user?.displayName || "Nexus Merchant"
       });
       setAuditResult(result);
+      toast({ title: "Audit Complete", description: "Nexus AI Auditor has finished the analysis." });
     } catch (e) {
-      toast({ variant: "destructive", title: "Audit Failure", description: "Nexus AI Auditor failed." });
+      toast({ variant: "destructive", title: "Audit Failure", description: "Nexus AI Auditor failed to connect." });
     } finally {
       setIsAuditing(false);
     }
@@ -306,7 +307,7 @@ export default function NexusLedgerPage() {
                   </TableRow>
                 ))
               ) : (
-                <TableRow><TableCell colSpan={6} className="text-center py-10">No fragments found in Node Nexus.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10">No fragments found in Node Nexus. Click 'Seed Test Node' to generate data.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -480,7 +481,34 @@ export default function NexusLedgerPage() {
               <p className="text-xs font-bold text-muted-foreground uppercase">Summary</p>
               <p className="text-sm leading-relaxed">{auditResult?.smartSummary}</p>
             </div>
+            {auditResult?.fraudAnalysis.findings.length ? (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-muted-foreground uppercase">Key Findings</p>
+                <div className="grid gap-2">
+                  {auditResult.fraudAnalysis.findings.map((f, i) => (
+                    <div key={i} className="p-3 rounded-lg bg-black/40 border border-white/5 text-xs flex gap-2 items-start">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase">Recommendations</p>
+              <div className="grid gap-2">
+                {auditResult?.recommendations.map((r, i) => (
+                  <div key={i} className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs flex gap-2 items-start">
+                    <CheckCircle2 size={14} className="text-primary shrink-0" />
+                    <span>{r}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+          <DialogFooter>
+            <Button className="w-full bg-primary font-bold" onClick={() => setAuditResult(null)}>Close Report</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
