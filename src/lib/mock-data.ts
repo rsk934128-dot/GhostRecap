@@ -1,4 +1,4 @@
-import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode } from './types';
+import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild } from './types';
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
@@ -148,4 +148,63 @@ export const NAGAD_BANK_NODES = [
   "Union Bank",
   "United Commercial Bank",
   "Uttara Bank",
+];
+
+export const MOCK_TEST_RESULTS: TestLabResult[] = [
+  {
+    id: 'tr-1',
+    device: 'Pixel 7 Pro',
+    osVersion: 'Android 13',
+    type: 'Robo',
+    status: 'Passed',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    duration: '4m 12s',
+    screenshots: ['https://picsum.photos/seed/test1/200/400', 'https://picsum.photos/seed/test2/200/400']
+  },
+  {
+    id: 'tr-2',
+    device: 'iPhone 14 Pro',
+    osVersion: 'iOS 16.2',
+    type: 'Instrumentation',
+    status: 'Passed',
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    duration: '8m 45s'
+  },
+  {
+    id: 'tr-3',
+    device: 'Galaxy S23',
+    osVersion: 'Android 13',
+    type: 'Robo',
+    status: 'Failed',
+    timestamp: new Date(Date.now() - 10800000).toISOString(),
+    duration: '2m 30s',
+    screenshots: ['https://picsum.photos/seed/error1/200/400']
+  }
+];
+
+export const MOCK_PIPELINE_BUILDS: PipelineBuild[] = [
+  {
+    id: 'build-442',
+    branch: 'main',
+    commitHash: 'c2d7a19',
+    status: 'Success',
+    timestamp: new Date(Date.now() - 1800000).toISOString(),
+    author: 'Farid Node'
+  },
+  {
+    id: 'build-441',
+    branch: 'feat/nagad-bridge',
+    commitHash: 'a1b2c3d',
+    status: 'Success',
+    timestamp: new Date(Date.now() - 14400000).toISOString(),
+    author: 'Farid Node'
+  },
+  {
+    id: 'build-440',
+    branch: 'fix/hsm-handshake',
+    commitHash: 'e5f6g7h',
+    status: 'Failed',
+    timestamp: new Date(Date.now() - 86400000).toISOString(),
+    author: 'Farid Node'
+  }
 ];

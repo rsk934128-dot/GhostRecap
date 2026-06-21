@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -18,7 +17,9 @@ import {
   BarChart3,
   Globe,
   Waves,
-  Music
+  Music,
+  FlaskConical,
+  GitBranch
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -34,6 +35,7 @@ export function Sidebar() {
     { name: 'Global Bridge', icon: Globe, href: '/dashboard/compliance' },
     { name: 'Ocean Mixing', icon: Waves, href: '/dashboard/ocean' },
     { name: 'Audit History', icon: History, href: '/dashboard/timeline' },
+    { name: 'CI/CD Monitor', icon: GitBranch, href: '/dashboard/testing' },
     { name: 'Relationship Intel', icon: Target, href: '/dashboard/contacts' },
     { name: 'Secure Vault', icon: Lock, href: '/dashboard/vault' },
     { name: 'Automation Studio', icon: Zap, href: '/dashboard/rules' },

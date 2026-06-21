@@ -198,3 +198,26 @@ export interface SystemLog {
   timestamp: string;
   module: string;
 }
+
+// --- Testing & CI/CD Types ---
+
+export interface TestLabResult {
+  id: string;
+  device: string;
+  osVersion: string;
+  type: 'Robo' | 'Instrumentation' | 'GameLoop';
+  status: 'Passed' | 'Failed' | 'In Progress';
+  timestamp: string;
+  duration: string;
+  screenshots?: string[];
+  logsUrl?: string;
+}
+
+export interface PipelineBuild {
+  id: string;
+  branch: string;
+  commitHash: string;
+  status: 'Success' | 'Failed' | 'Building';
+  timestamp: string;
+  author: string;
+}
