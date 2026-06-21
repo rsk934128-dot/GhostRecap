@@ -28,7 +28,24 @@ const PredictiveOutputSchema = z.object({
 export type PredictiveOutput = z.infer<typeof PredictiveOutputSchema>;
 
 export async function getPredictiveInsights(input: z.infer<typeof PredictiveInputSchema>): Promise<PredictiveOutput> {
-  return predictiveFlow(input);
+  try {
+    return await predictiveFlow(input);
+  } catch (error: any) {
+    if (error.message?.includes('429') || error.message?.includes('QUOTA_EXCEEDED') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+      return {
+        insights: [
+          { 
+            type: 'Follow-up', 
+            description: 'AI Insights are temporarily limited due to high network demand. Core system monitoring remains active.', 
+            impactScore: 0 
+          }
+        ],
+        healthScore: 100,
+        opportunityPipeline: 0
+      };
+    }
+    throw error;
+  }
 }
 
 const prompt = ai.definePrompt({

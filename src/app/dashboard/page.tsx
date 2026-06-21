@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -108,7 +107,8 @@ export default function MissionControlCenter() {
       });
       setGlobalInsights(results);
     } catch (e) {
-      console.error(e);
+      console.error("Intelligence Hub Error:", e);
+      // No toast here to avoid annoying the user on mount if quota is hit
     }
   };
 
@@ -197,9 +197,14 @@ export default function MissionControlCenter() {
       });
       setAnalysis(result);
       addLog(`Analysis complete for ${msg.sender}. Priority: ${result.priorityScore || 'N/A'}`, 'success');
-    } catch (e) {
-      addLog('Cognitive Layer connection timeout.', 'error');
-      toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not connect to Cognitive Layer.' });
+    } catch (e: any) {
+      addLog('Cognitive Layer connection error.', 'error');
+      const isQuota = e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED');
+      toast({ 
+        variant: 'destructive', 
+        title: isQuota ? 'AI Quota Exceeded' : 'Analysis Failed', 
+        description: isQuota ? 'The cognitive layer is currently at capacity. Please try again in a few minutes.' : 'Could not connect to Cognitive Layer.' 
+      });
     } finally {
       setIsAnalyzing(false);
     }
