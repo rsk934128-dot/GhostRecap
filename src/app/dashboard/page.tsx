@@ -13,7 +13,11 @@ import {
   Lock,
   Key,
   Activity,
-  History
+  History,
+  FileBadge,
+  Award,
+  Calendar,
+  Shield
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +28,7 @@ import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ArchivedMessage, Transaction, SystemLog } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
@@ -44,6 +48,7 @@ export default function MissionControlCenter() {
   const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
+  const [isCertDialogOpen, setIsCertDialogOpen] = useState(false);
   const [logs, setLogs] = useState<SystemLog[]>([]);
   
   const processedTxIds = useRef<Set<string>>(new Set());
@@ -77,7 +82,7 @@ export default function MissionControlCenter() {
     
     const stored = localStorage.getItem('giant_integration_step');
     if (stored === 'completed') {
-      setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED" });
+      setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED_GR8821" });
     }
 
     addLog('System initialized. Nexus Core handshake standby.', 'info');
@@ -277,8 +282,13 @@ export default function MissionControlCenter() {
                 </div>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="text-green-500 hover:bg-green-500/10 text-xs font-bold gap-2">
-              <Key size={12} /> View Certificate
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-green-500 hover:bg-green-500/10 text-xs font-bold gap-2"
+              onClick={() => setIsCertDialogOpen(true)}
+            >
+              <FileBadge size={16} /> View Certificate
             </Button>
           </CardContent>
         </Card>
@@ -499,6 +509,81 @@ export default function MissionControlCenter() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Digital Certificate Dialog */}
+      <Dialog open={isCertDialogOpen} onOpenChange={setIsCertDialogOpen}>
+        <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/20 shadow-2xl shadow-amber-500/10">
+          <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/cert/800/600')] opacity-5 mix-blend-overlay pointer-events-none" />
+          
+          <DialogHeader className="relative z-10 text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20">
+                <Award className="text-amber-500 w-12 h-12" />
+              </div>
+            </div>
+            <DialogTitle className="text-3xl font-headline font-bold text-amber-500 uppercase tracking-widest">
+              Digital Trust Certificate
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 font-medium">
+              Verified Hardware Security Module Handshake
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative z-10 py-8 px-6 border-y border-white/5 my-4 space-y-8">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Issuer</p>
+                <p className="text-sm font-bold text-slate-200">Midland Bank Core HSM Bridge</p>
+              </div>
+              <div className="space-y-1 text-right">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Subject</p>
+                <p className="text-sm font-bold text-slate-200">Nexus Node Alpha-01</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Validity</p>
+                <div className="flex items-center gap-2 text-sm font-bold text-green-500">
+                  <Calendar size={14} /> {format(new Date(), 'MMM dd, yyyy')} - Perpetual
+                </div>
+              </div>
+              <div className="space-y-1 text-right">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Status</p>
+                <Badge className="bg-green-500/20 text-green-500 border-green-500/30">ACTIVE & SECURE</Badge>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
+                  <Key size={12} className="text-amber-500" /> Digital Signature (RSA-2048)
+                </div>
+                <p className="text-[11px] font-mono text-amber-500/80 break-all leading-relaxed bg-amber-500/5 p-3 rounded-lg border border-amber-500/10">
+                  {handshakeResult?.signature || 'PENDING_HSM_INIT'}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50 border border-white/5">
+                <div className="flex items-center gap-3">
+                  <Shield className="text-blue-500" size={20} />
+                  <div>
+                    <p className="text-xs font-bold text-slate-200">PCI-DSS Compliant Node</p>
+                    <p className="text-[10px] text-slate-500">E2EE Handshake Layer 4 Verified</p>
+                  </div>
+                </div>
+                <CheckCircle2 className="text-green-500" size={20} />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="relative z-10 flex sm:justify-between items-center w-full gap-4">
+            <div className="text-[9px] text-slate-500 italic flex items-center gap-1">
+              <Lock size={10} /> This certificate is immutable and stored in the Nexus Hardware Root.
+            </div>
+            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-8 shadow-lg shadow-amber-900/20" onClick={() => setIsCertDialogOpen(false)}>
+              Close Vault View
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

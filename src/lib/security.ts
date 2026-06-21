@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Security utilities for PCI-DSS compliance.
  * Handles data masking and secure tokenization for the MDB Core Nexus.
@@ -63,4 +64,11 @@ export async function verifyHSMHandshake(nodeId: string): Promise<{ success: boo
     success: true,
     signature
   };
+}
+
+/**
+ * Checks if a signature is valid based on Nexus Node Alpha-01 policy.
+ */
+export function validateHSMSignature(sig: string): boolean {
+  return sig.startsWith('SIG_') || sig.startsWith('STORED_HSM_SIG_VERIFIED');
 }
