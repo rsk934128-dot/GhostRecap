@@ -8,14 +8,14 @@ import {
   History, 
   Zap, 
   Link2, 
-  ShieldCheck, 
   Settings,
   ChevronLeft,
   ChevronRight,
   BrainCircuit,
   Target,
   Lock,
-  BarChart3
+  BarChart3,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -28,6 +28,7 @@ export function Sidebar() {
   const navItems = [
     { name: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Nexus Ledger', icon: BarChart3, href: '/dashboard/ledger' },
+    { name: 'Global Bridge', icon: Globe, href: '/dashboard/compliance' },
     { name: 'Audit History', icon: History, href: '/dashboard/timeline' },
     { name: 'Relationship Intel', icon: Target, href: '/dashboard/contacts' },
     { name: 'Secure Vault', icon: Lock, href: '/dashboard/vault' },

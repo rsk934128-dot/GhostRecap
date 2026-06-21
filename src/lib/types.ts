@@ -78,3 +78,10 @@ export interface VisaCompliance {
   lastReviewed: string;
   documentUrl: string;
 }
+
+export interface GlobalBridgeStatus {
+  provider: 'Google Pay' | 'Apple Pay' | 'Visa' | 'Mastercard';
+  status: 'connected' | 'pending' | 'failed' | 'limited';
+  latency: number;
+  lastSync: string;
+}
