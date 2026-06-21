@@ -1,14 +1,18 @@
-
 "use client";
 
-import { Music, Play, Disc, Star, Sparkles, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Music, Play, Disc, Star, Sparkles, TrendingUp, RefreshCcw, BrainCircuit, BarChart3, Globe } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
+import { analyzeMediaSentiment, MediaSentimentOutput } from '@/ai/flows/media-sentiment-analysis';
+import { toast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function MediaIntelligenceHub() {
   const [mounted, setMounted] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<MediaSentimentOutput | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -44,6 +48,19 @@ export default function MediaIntelligenceHub() {
     }
   ];
 
+  const handleRunAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzeMediaSentiment({ mediaData });
+      setAnalysisResult(result);
+      toast({ title: "Analysis Complete", description: "Cultural sentiment signals have been mapped." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Analysis Failed", description: "Intelligence node could not reach the cognitive layer." });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -59,8 +76,13 @@ export default function MediaIntelligenceHub() {
           </div>
           <p className="text-muted-foreground">Analyzing cultural sentiment and collaboration trends in global entertainment.</p>
         </div>
-        <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
-          <Sparkles size={16} /> Run Sentiment Analysis
+        <Button 
+          onClick={handleRunAnalysis}
+          disabled={isAnalyzing}
+          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+        >
+          {isAnalyzing ? <RefreshCcw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+          {isAnalyzing ? "Analyzing Trends..." : "Run Sentiment Analysis"}
         </Button>
       </header>
 
@@ -109,6 +131,59 @@ export default function MediaIntelligenceHub() {
           </p>
         </div>
       </Card>
+
+      {/* AI Analysis Result Dialog */}
+      <Dialog open={!!analysisResult} onOpenChange={(open) => !open && setAnalysisResult(null)}>
+        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <BrainCircuit className="text-primary" /> Media Sentiment Report
+            </DialogTitle>
+            <DialogDescription>Autonomous cultural analysis for the Entertainment Node</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-primary/5 border-primary/20 p-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Trend Score</p>
+                <p className="text-3xl font-bold font-headline text-primary">{analysisResult?.culturalTrendScore}%</p>
+              </Card>
+              <Card className="bg-accent/5 border-accent/20 p-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Market Impact</p>
+                <p className="text-sm font-bold mt-1 text-accent">{analysisResult?.marketImpact}</p>
+              </Card>
+            </div>
+            
+            <div className="p-4 rounded-xl bg-secondary/50 border border-white/5 space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">
+                <Globe size={14} className="text-primary" /> Overall Sentiment
+              </p>
+              <p className="text-sm leading-relaxed">{analysisResult?.overallSentiment}</p>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">
+                <BarChart3 size={14} className="text-primary" /> Key Cultural Insights
+              </p>
+              <div className="grid gap-2">
+                {analysisResult?.keyInsights.map((insight, idx) => (
+                  <div key={idx} className="p-3 rounded-lg bg-black/40 border border-white/5 text-xs flex gap-2 items-start">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <span>{insight}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+              <p className="text-[10px] font-bold text-primary uppercase mb-1">Recommendation</p>
+              <p className="text-sm font-medium">{analysisResult?.recommendation}</p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button className="bg-primary font-bold px-8" onClick={() => setAnalysisResult(null)}>Close Report</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
