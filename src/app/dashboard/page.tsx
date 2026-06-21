@@ -39,7 +39,6 @@ export default function MissionControlCenter() {
 
   useEffect(() => {
     setMounted(true);
-    // Initial intelligence fetch
     handleRunGlobalIntelligence();
   }, []);
 
@@ -64,7 +63,7 @@ export default function MissionControlCenter() {
       urgent: messages.filter(m => m.category === 'Urgent').length,
       opportunities: messages.filter(m => (m.opportunityScore || 0) > 70).length,
       decisions: messages.filter(m => m.decisionPending).length,
-      avgPriority: Math.round(messages.reduce((acc, m) => acc + (m.priorityScore || 0), 0) / messages.length)
+      avgPriority: Math.round(messages.reduce((acc, m) => acc + (m.priorityScore || 0), 0) / (messages.length || 1))
     };
   }, [messages]);
 
@@ -137,7 +136,6 @@ export default function MissionControlCenter() {
         </div>
       </header>
 
-      {/* Autonomous Operation Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-primary/5 border-primary/20 ghostly-fade overflow-hidden group">
           <CardContent className="p-6 relative z-10">
@@ -211,7 +209,6 @@ export default function MissionControlCenter() {
         </Card>
       </div>
 
-      {/* Core OS Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Fragments', value: stats.total, icon: BrainCircuit, color: 'text-primary' },
@@ -241,7 +238,6 @@ export default function MissionControlCenter() {
         </div>
       </div>
 
-      {/* Unified Intelligence Feed */}
       <div className="grid gap-3">
         {filtered.map((msg) => (
           <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
@@ -265,8 +261,8 @@ export default function MissionControlCenter() {
                           <Badge className="bg-accent/10 text-accent text-[8px] border-accent/20 px-1 py-0">Decision Pending</Badge>
                         )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground font-mono">
-                        {mounted ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {mounted ? format(new Date(msg.timestamp), 'h:mm a') : '...'}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors font-medium">
@@ -290,7 +286,6 @@ export default function MissionControlCenter() {
         ))}
       </div>
 
-      {/* Action Engine Workspace */}
       <Dialog open={!!selectedMsg} onOpenChange={(open) => !open && setSelectedMsg(null)}>
         <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
           <DialogHeader>

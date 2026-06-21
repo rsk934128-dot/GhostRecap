@@ -12,7 +12,8 @@ import {
   Download,
   ShieldCheck,
   FileJson,
-  FileSpreadsheet
+  FileSpreadsheet,
+  RefreshCcw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,9 +30,21 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
+  const [purging, setPurging] = useState(false);
 
   const handleSave = () => {
     setLoading(true);
@@ -52,11 +65,16 @@ export default function SettingsPage() {
   };
 
   const handlePurge = () => {
-    toast({
-      variant: "destructive",
-      title: "Data Purge Initiated",
-      description: "All local communication fragments are being wiped from this device.",
-    });
+    setPurging(true);
+    // Simulate a secure wipe process
+    setTimeout(() => {
+      setPurging(false);
+      toast({
+        variant: "destructive",
+        title: "Wipe Complete",
+        description: "All local communication fragments and audit trails have been permanently erased.",
+      });
+    }, 2000);
   };
 
   return (
@@ -136,15 +154,36 @@ export default function SettingsPage() {
           <AlertDescription>
             Purging your index will permanently erase all communication intelligence metadata and audit trails.
           </AlertDescription>
-          <Button variant="outline" size="sm" className="mt-4 border-destructive/50 hover:bg-destructive/20" onClick={handlePurge}>
-            <Trash2 size={16} className="mr-2" /> One-Click Data Purge
-          </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" className="mt-4 border-destructive/50 hover:bg-destructive/20" disabled={purging}>
+                {purging ? <RefreshCcw className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 size={16} className="mr-2" />}
+                One-Click Data Purge
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-card/95 backdrop-blur-xl border-destructive/20">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-destructive font-headline text-2xl">Confirm Permanent Wipe?</AlertDialogTitle>
+                <AlertDialogDescription className="text-muted-foreground">
+                  This action is irreversible. All local message fragments, relationship scores, and autonomous logs will be destroyed. Your hardware signature will remain, but all associated intelligence will be lost.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-secondary/50 border-white/5 hover:bg-secondary">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handlePurge} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Purge Everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Alert>
       </div>
 
       <div className="flex justify-end gap-4 mt-8 pt-8 border-t border-white/5">
-        <Button onClick={handleSave} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg">
-          <Save size={18} /> Save Intel Profile
+        <Button onClick={handleSave} disabled={loading} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg">
+          {loading ? <RefreshCcw size={18} className="animate-spin" /> : <Save size={18} />}
+          Save Intel Profile
         </Button>
       </div>
     </div>

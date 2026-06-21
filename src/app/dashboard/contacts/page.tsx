@@ -1,7 +1,7 @@
 "use client";
 
 import { MOCK_CONTACTS } from '@/lib/mock-data';
-import { Users, Target, MessageSquare, TrendingUp, ShieldCheck, Mail, Phone, ChevronRight } from 'lucide-react';
+import { Target, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
