@@ -1,4 +1,4 @@
-import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild, NagadBiller } from './types';
+import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild, NagadBiller, NagadGlobalMtoNode } from './types';
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
@@ -167,6 +167,19 @@ export const MOCK_NAGAD_BILLERS: NagadBiller[] = [
   // Internet
   { id: 'i1', name: 'Amber IT', code: '3001', category: 'Internet', chargeType: 'Fixed', chargeValue: 0 },
   { id: 'i2', name: 'Carnival Internet', code: '3002', category: 'Internet', chargeType: 'Fixed', chargeValue: 5 },
+];
+
+export const MOCK_NAGAD_MTO_NODES: NagadGlobalMtoNode[] = [
+  { country: "Australia", partnerMto: "Remitly", status: "Active" },
+  { country: "Austria", partnerMto: "Western Union", status: "Active" },
+  { country: "Bahrain", partnerMto: "NEC Bahrain", status: "Active" },
+  { country: "Belgium", partnerMto: "Ria Money Transfer", status: "Active" },
+  { country: "Brunei", partnerMto: "Merchantrade", status: "Active" },
+  { country: "Bulgaria", partnerMto: "MoneyGram", status: "Active" },
+  { country: "Canada", partnerMto: "Placid Express", status: "Active" },
+  { country: "USA", partnerMto: "ACE Money Transfer", status: "Active" },
+  { country: "UK", partnerMto: "Remit Choice", status: "Active" },
+  { country: "Malaysia", partnerMto: "Mycash Online", status: "Active" },
 ];
 
 export const MOCK_TEST_RESULTS: TestLabResult[] = [

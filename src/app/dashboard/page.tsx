@@ -96,7 +96,10 @@ export default function MissionControlCenter() {
       recentTransactions.forEach(tx => {
         if (tx.id && !processedTxIds.current.has(tx.id)) {
           processedTxIds.current.add(tx.id);
-          const channel = tx.description.includes('Nagad') ? 'NAGAD-RSA' : 'MDB-HMAC';
+          let channel = 'MDB-HMAC';
+          if (tx.description.includes('Nagad')) channel = 'NAGAD-RSA';
+          if (tx.description.includes('Remittance')) channel = 'GLOBAL-MTO';
+          
           const typeIcon = tx.type === 'payment' ? 'PAYMENT' : 'PAYOUT';
           addLog(`${typeIcon} Fragment detected: ${tx.currency} ${tx.amount} via ${channel}`, tx.status === 'flagged' ? 'warning' : 'success');
         }

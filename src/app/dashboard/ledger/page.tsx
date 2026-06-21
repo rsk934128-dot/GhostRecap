@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse, InboundRemittancePayload, RemittanceDisbursementResult } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,8 @@ import {
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
   ShieldCheck, Smartphone, Zap, Search, AlertCircle,
   Building2, MapPin, Heart, Gift, QrCode, User,
-  FileText, Lightbulb, GraduationCap, Wifi, Receipt
+  FileText, Lightbulb, GraduationCap, Wifi, Receipt,
+  Globe, Coins
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import { executeMDBPayout } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { executeNagadMerchantPay } from '@/app/lib/nagad-merchant-actions';
 import { executeNagadBillPay } from '@/app/lib/nagad-billpay-actions';
+import { executeGlobalRemittance } from '@/app/lib/nagad-remittance-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -31,7 +33,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
 import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCK_NAGAD_MFI_NODES, MOCK_NAGAD_PHILANTHROPY_NODES, MOCK_NAGAD_BILLERS } from '@/lib/mock-data';
+import { MOCK_NAGAD_MFI_NODES, MOCK_NAGAD_PHILANTHROPY_NODES, MOCK_NAGAD_BILLERS, MOCK_NAGAD_MTO_NODES } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -42,9 +44,11 @@ export default function NexusLedgerPage() {
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [isMerchantPayDialogOpen, setIsMerchantPayDialogOpen] = useState(false);
   const [isBillPayDialogOpen, setIsBillPayDialogOpen] = useState(false);
+  const [isRemittanceDialogOpen, setIsRemittanceDialogOpen] = useState(false);
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [isExecutingMerchantPay, setIsExecutingMerchantPay] = useState(false);
   const [isExecutingBillPay, setIsExecutingBillPay] = useState(false);
+  const [isExecutingRemittance, setIsExecutingRemittance] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
@@ -77,6 +81,15 @@ export default function NexusLedgerPage() {
     pinToken: 'SECURE_BILL_TOKEN'
   });
 
+  const [remittanceData, setRemittanceData] = useState<InboundRemittancePayload>({
+    remitterName: 'Farid Global',
+    beneficiaryNagadNumber: '01XXXXXXXXX',
+    sourceCountry: '',
+    mtoProvider: '',
+    principalAmountBDT: 0,
+    referenceNumber: 'MTCN-' + Math.random().toString(36).substr(2, 6).toUpperCase()
+  });
+
   const ledgerQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -107,6 +120,11 @@ export default function NexusLedgerPage() {
   const selectedBiller = useMemo(() => 
     MOCK_NAGAD_BILLERS.find(b => b.code === billPayData.billerCode),
     [billPayData.billerCode]
+  );
+
+  const selectedMto = useMemo(() => 
+    MOCK_NAGAD_MTO_NODES.find(m => m.country === remittanceData.sourceCountry),
+    [remittanceData.sourceCountry]
   );
 
   const handleSeedData = async () => {
@@ -315,6 +333,51 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handleExecuteRemittance = async () => {
+    if (!remittanceData.sourceCountry || !remittanceData.principalAmountBDT) {
+      toast({ variant: "destructive", title: "Payload Error", description: "Source country and amount are required." });
+      return;
+    }
+
+    setIsExecutingRemittance(true);
+    try {
+      const result: RemittanceDisbursementResult = await executeGlobalRemittance({
+        ...remittanceData,
+        mtoProvider: selectedMto?.partnerMto || 'Global Agent'
+      });
+
+      if (result.status === 'Settled') {
+        const txData = {
+          amount: result.totalCreditedAmount,
+          currency: 'BDT',
+          status: 'completed' as const,
+          description: `Inbound Remittance: ${result.txId} via ${selectedMto?.partnerMto}`,
+          type: 'payment' as const,
+          merchantId: user?.uid || 'GUEST',
+          timestamp: new Date().toISOString(),
+          metadata: {
+            ...remittanceData,
+            txId: result.txId,
+            principal: result.principalAmount,
+            incentive: result.governmentIncentive,
+            total: result.totalCreditedAmount,
+            mto: selectedMto?.partnerMto
+          }
+        };
+
+        addDoc(collection(db, 'transactions'), txData);
+        toast({ title: "Remittance Disbursed", description: result.message });
+        setIsRemittanceDialogOpen(false);
+      } else {
+        toast({ variant: "destructive", title: "Disbursement Failed", description: result.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Bridge Error", description: "Global MTO node connection reset." });
+    } finally {
+      setIsExecutingRemittance(false);
+    }
+  };
+
   const getStatusBadge = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Completed</Badge>;
@@ -332,6 +395,9 @@ export default function NexusLedgerPage() {
           <p className="text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2 border-blue-500/20 text-blue-500 hover:bg-blue-500/5" onClick={() => setIsRemittanceDialogOpen(true)}>
+            <Globe size={16} /> Global Remittance
+          </Button>
           <Button variant="outline" className="gap-2 border-amber-500/20 text-amber-500 hover:bg-amber-500/5" onClick={() => setIsBillPayDialogOpen(true)}>
             <Receipt size={16} /> Pay Bill
           </Button>
@@ -375,10 +441,12 @@ export default function NexusLedgerPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="flagged">Flagged</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectGroup>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="flagged">Flagged</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -428,6 +496,111 @@ export default function NexusLedgerPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Remittance Dialog */}
+      <Dialog open={isRemittanceDialogOpen} onOpenChange={setIsRemittanceDialogOpen}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-blue-500/20 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <Globe className="text-blue-500" /> Global MTO Bridge
+            </DialogTitle>
+            <DialogDescription>Inbound remittance with 2.5% Government Incentive.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                  <User size={10} /> Remitter Name
+                </Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11" 
+                  value={remittanceData.remitterName}
+                  onChange={(e) => setRemittanceData({...remittanceData, remitterName: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                  <Smartphone size={10} /> Beneficiary Nagad
+                </Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11 font-mono" 
+                  value={remittanceData.beneficiaryNagadNumber}
+                  onChange={(e) => setRemittanceData({...remittanceData, beneficiaryNagadNumber: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Source Country & MTO Partner</Label>
+              <Select 
+                value={remittanceData.sourceCountry} 
+                onValueChange={(v) => setRemittanceData({...remittanceData, sourceCountry: v})}
+              >
+                <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                  <SelectValue placeholder="Select Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOCK_NAGAD_MTO_NODES.map(node => (
+                    <SelectItem key={node.country} value={node.country} className="text-xs">
+                      {node.country} ({node.partnerMto})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Principal Amount (BDT)</Label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 h-11 text-lg font-bold" 
+                  value={remittanceData.principalAmountBDT || ''}
+                  onChange={(e) => setRemittanceData({...remittanceData, principalAmountBDT: parseFloat(e.target.value)})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Reference / MTCN</Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11 font-mono" 
+                  value={remittanceData.referenceNumber}
+                  onChange={(e) => setRemittanceData({...remittanceData, referenceNumber: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {remittanceData.principalAmountBDT > 0 && (
+              <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 space-y-3">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground uppercase font-bold tracking-tighter">Principal Amount</span>
+                  <span className="font-mono">৳ {remittanceData.principalAmountBDT.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-blue-400 uppercase font-bold tracking-tighter">Gov Incentive (2.5%)</span>
+                  <span className="font-mono text-blue-400">+ ৳ {(remittanceData.principalAmountBDT * 0.025).toLocaleString()}</span>
+                </div>
+                <div className="pt-2 border-t border-blue-500/10 flex justify-between items-center">
+                  <span className="text-sm font-bold text-foreground">Total Credited</span>
+                  <span className="text-lg font-bold text-blue-500 font-headline">৳ {(remittanceData.principalAmountBDT * 1.025).toLocaleString()}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsRemittanceDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-blue-600 text-white font-bold px-8 shadow-lg shadow-blue-500/20"
+              onClick={handleExecuteRemittance}
+              disabled={isExecutingRemittance}
+            >
+              {isExecutingRemittance ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <Coins className="mr-2" size={16} />}
+              Authorize Disbursement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Bill Pay Dialog */}
       <Dialog open={isBillPayDialogOpen} onOpenChange={setIsBillPayDialogOpen}>

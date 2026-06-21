@@ -205,6 +205,33 @@ export interface NagadBillPayResponse {
   timestamp: string;
 }
 
+// --- Global Remittance Types ---
+
+export interface NagadGlobalMtoNode {
+  country: string;
+  partnerMto: string;
+  status: 'Active' | 'Standby';
+}
+
+export interface InboundRemittancePayload {
+  remitterName: string;
+  beneficiaryNagadNumber: string;
+  sourceCountry: string;
+  mtoProvider: string;
+  principalAmountBDT: number;
+  referenceNumber: string; // MTCN বা গেটওয়ে ট্র্যাকিং আইডি
+}
+
+export interface RemittanceDisbursementResult {
+  txId: string;
+  principalAmount: number;
+  governmentIncentive: number; // ২.৫% প্রণোদনা
+  totalCreditedAmount: number; // সর্বমোট ক্রেডিট ব্যালেন্স
+  notificationPayload: string; // "১টি সিঙ্গেল SMS" ফরম্যাট
+  status: 'Settled' | 'Failed';
+  message: string;
+}
+
 export interface StressTestResult {
   timestamp: string;
   throughput: number; // tx/sec
