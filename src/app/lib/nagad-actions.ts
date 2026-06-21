@@ -1,9 +1,9 @@
-
 'use server';
 
 /**
  * @fileOverview Nagad B2B Payout Actions.
  * Handles Merchant-to-Personal (M2P) fund transfers and RSA signing.
+ * Includes support for EMI and Microfinance settlements.
  */
 
 import { generateNagadSignature } from '@/lib/security';
@@ -34,6 +34,10 @@ export async function executeNagadPayout(input: Omit<NagadPayoutPayload, 'signat
 
   console.log('--- NAGAD BRIDGE: DISPATCHING PAYOUT ---');
   console.log('Payload:', fullPayload);
+  
+  if (input.metadata?.mfiOrg) {
+    console.log(`Processing MFI Settlement for: ${input.metadata.mfiOrg} (${input.metadata.mfiBranch})`);
+  }
 
   // 4. Simulate API Handshake with Nagad Gateway
   try {

@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger, SelectGroup } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { 
   RefreshCcw, Filter, BrainCircuit, 
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
-  ShieldCheck, Smartphone, Zap, Search, AlertCircle
+  ShieldCheck, Smartphone, Zap, Search, AlertCircle,
+  Building2, MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
 import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MOCK_NAGAD_MFI_NODES } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -44,7 +46,9 @@ export default function NexusLedgerPage() {
     destAccount: '',
     routing: '',
     amount: '',
-    narration: 'Mission 400 Settlement'
+    narration: 'Mission 400 Settlement',
+    mfiOrg: '',
+    mfiBranch: ''
   });
 
   const ledgerQuery = useMemoFirebase(() => {
@@ -63,6 +67,13 @@ export default function NexusLedgerPage() {
     return statusFilter === 'all' || t.status === statusFilter;
   });
 
+  // MFI Filter Logic
+  const mfiOrgs = useMemo(() => Array.from(new Set(MOCK_NAGAD_MFI_NODES.map(n => n.organizationName))), []);
+  const availableBranches = useMemo(() => 
+    MOCK_NAGAD_MFI_NODES.filter(n => n.organizationName === payoutData.mfiOrg),
+    [payoutData.mfiOrg]
+  );
+
   const handleSeedData = async () => {
     if (!db || !user) return;
     setIsSeeding(true);
@@ -71,7 +82,7 @@ export default function NexusLedgerPage() {
       { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString(), checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' }) },
       { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString(), checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' }) },
       { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString(), checksum: 'ERROR_CHECKSUM_MISMATCH' },
-      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad B2B Payout standby', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) }
+      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad EMI: VPKA Foundation', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) }
     ];
 
     mockTxs.forEach((tx) => {
@@ -169,12 +180,17 @@ export default function NexusLedgerPage() {
             amount: parseFloat(payoutData.amount),
             currency: 'BDT',
             status: 'completed',
-            description: `Nagad B2B: ${payoutData.narration}`,
+            description: payoutData.mfiOrg ? `Nagad MFI: ${payoutData.mfiOrg}` : `Nagad B2B: ${payoutData.narration}`,
             type: 'payout',
             merchantId: user?.uid,
             timestamp: new Date().toISOString(),
             checksum: signature,
-            metadata: { ...nagadPayload, transactionId: response.transactionId }
+            metadata: { 
+              ...nagadPayload, 
+              transactionId: response.transactionId,
+              mfiOrg: payoutData.mfiOrg,
+              mfiBranch: payoutData.mfiBranch
+            }
           };
 
           addDoc(collection(db, 'transactions'), txData).catch(async (err) => {
@@ -252,12 +268,10 @@ export default function NexusLedgerPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="flagged">Flagged</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectGroup>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="flagged">Flagged</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -388,6 +402,48 @@ export default function NexusLedgerPage() {
             </TabsList>
             
             <div className="grid gap-4 py-6">
+              {payoutMethod === 'nagad' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                      <Building2 size={10} /> MFI Organization
+                    </Label>
+                    <Select 
+                      value={payoutData.mfiOrg} 
+                      onValueChange={(v) => setPayoutData({...payoutData, mfiOrg: v, mfiBranch: ''})}
+                    >
+                      <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                        <SelectValue placeholder="Select Organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mfiOrgs.map(org => <SelectItem key={org} value={org} className="text-xs">{org}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                      <MapPin size={10} /> Branch
+                    </Label>
+                    <Select 
+                      value={payoutData.mfiBranch} 
+                      onValueChange={(v) => setPayoutData({...payoutData, mfiBranch: v})}
+                      disabled={!payoutData.mfiOrg}
+                    >
+                      <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                        <SelectValue placeholder="Select Branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableBranches.map(node => (
+                          <SelectItem key={node.branchName} value={node.branchName} className="text-xs">
+                            {node.branchName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase text-muted-foreground">
                   {payoutMethod === 'mdb' ? 'Destination Account' : 'Nagad Number'}

@@ -1,4 +1,4 @@
-import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem } from './types';
+import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode } from './types';
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
@@ -86,4 +86,16 @@ export const MOCK_RULES: AutomationRule[] = [
     isActive: true,
     tag: 'Finance',
   }
+];
+
+export const MOCK_NAGAD_MFI_NODES: NagadMfiNode[] = [
+  { organizationName: "VPKA Foundation", branchName: "Matipara", payoutType: "EMI", status: "Active" },
+  { organizationName: "VPKA Foundation", branchName: "Head Office", payoutType: "Microfinance_Settlement", status: "Active" },
+  { organizationName: "Uttara Development Program Society UDPS", branchName: "Nayangonj Branch", payoutType: "EMI", status: "Active" },
+  { organizationName: "Uttara Development Program Society UDPS", branchName: "Gazipur Branch", payoutType: "EMI", status: "Active" },
+  { organizationName: "Sangathita Gramunnayan Karmasuchi SANGRAM", branchName: "Bhola Branch", payoutType: "EMI", status: "Active" },
+  { organizationName: "Sangathita Gramunnayan Karmasuchi SANGRAM", branchName: "Patuakhali Branch", payoutType: "Microfinance_Settlement", status: "Active" },
+  { organizationName: "Bureau Bangladesh", branchName: "Dhaka North", payoutType: "EMI", status: "Active" },
+  { organizationName: "ASA", branchName: "Comilla Zone", payoutType: "EMI", status: "Active" },
+  { organizationName: "TMSS", branchName: "Bogra Core", payoutType: "Microfinance_Settlement", status: "Active" },
 ];

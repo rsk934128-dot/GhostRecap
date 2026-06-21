@@ -1,4 +1,4 @@
-export type MessageCategory = 'Urgent' | 'Transactional' | 'OTP' | 'Other' | 'Spam';
+export type MessageCategory = 'Urgent' | 'Transactional' | 'OTP' | 'Other' | 'Spam' | 'MDB-Signal';
 
 export interface ArchivedMessage {
   id: string;
@@ -127,6 +127,11 @@ export interface NagadPayoutPayload {
   currency: "BDT";
   challenge: string;
   signature: string;
+  metadata?: {
+    mfiOrg?: string;
+    mfiBranch?: string;
+    payoutType?: string;
+  };
 }
 
 export interface NagadPayoutResponse {
@@ -134,6 +139,13 @@ export interface NagadPayoutResponse {
   transactionId?: string;
   message: string;
   timestamp: string;
+}
+
+export interface NagadMfiNode {
+  organizationName: string;
+  branchName: string;
+  payoutType: 'EMI' | 'Microfinance_Settlement';
+  status: 'Active' | 'Standby';
 }
 
 export interface StressTestResult {
