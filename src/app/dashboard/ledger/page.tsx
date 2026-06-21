@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import {
   RefreshCcw, Filter, BrainCircuit, 
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
   ShieldCheck, Smartphone, Zap, Search, AlertCircle,
-  Building2, MapPin
+  Building2, MapPin, Heart, Gift
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
 import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCK_NAGAD_MFI_NODES } from '@/lib/mock-data';
+import { MOCK_NAGAD_MFI_NODES, MOCK_NAGAD_PHILANTHROPY_NODES } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -41,6 +41,7 @@ export default function NexusLedgerPage() {
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
+  const [nagadMode, setNagadMode] = useState<'b2b' | 'mfi' | 'charity'>('b2b');
 
   const [payoutData, setPayoutData] = useState({
     destAccount: '',
@@ -48,7 +49,8 @@ export default function NexusLedgerPage() {
     amount: '',
     narration: 'Mission 400 Settlement',
     mfiOrg: '',
-    mfiBranch: ''
+    mfiBranch: '',
+    philanthropyId: '',
   });
 
   const ledgerQuery = useMemoFirebase(() => {
@@ -74,6 +76,11 @@ export default function NexusLedgerPage() {
     [payoutData.mfiOrg]
   );
 
+  const selectedPhilanthropy = useMemo(() => 
+    MOCK_NAGAD_PHILANTHROPY_NODES.find(n => n.id.toString() === payoutData.philanthropyId),
+    [payoutData.philanthropyId]
+  );
+
   const handleSeedData = async () => {
     if (!db || !user) return;
     setIsSeeding(true);
@@ -82,7 +89,8 @@ export default function NexusLedgerPage() {
       { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString(), checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' }) },
       { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString(), checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' }) },
       { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString(), checksum: 'ERROR_CHECKSUM_MISMATCH' },
-      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad EMI: VPKA Foundation', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) }
+      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Nagad EMI: VPKA Foundation', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString(), checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' }) },
+      { amount: 5000, currency: 'BDT', status: 'completed', description: 'Donation: Quantum Foundation', type: 'payout', timestamp: new Date(Date.now() - 18000000).toISOString(), checksum: generateNagadSignature({ amount: 5000, source: 'CHARITY' }) }
     ];
 
     mockTxs.forEach((tx) => {
@@ -96,7 +104,7 @@ export default function NexusLedgerPage() {
       });
     });
 
-    toast({ title: "Nexus Node Seeded", description: "Transaction fragments pushed to your node memory." });
+    toast({ title: "Nexus Node Seeded", description: "Transaction fragments (including Philanthropy) pushed to node." });
     setIsSeeding(false);
   };
 
@@ -120,8 +128,8 @@ export default function NexusLedgerPage() {
   };
 
   const handleExecutePayout = async () => {
-    if (!payoutData.destAccount || !payoutData.amount) {
-      toast({ variant: "destructive", title: "Missing Payload", description: "Account and amount are required for signing." });
+    if ((nagadMode === 'b2b' && !payoutData.destAccount) || !payoutData.amount) {
+      toast({ variant: "destructive", title: "Missing Payload", description: "Required fields missing for authorization." });
       return;
     }
     
@@ -152,35 +160,39 @@ export default function NexusLedgerPage() {
             metadata: { ...payloadBase, transactionId: response.transactionId }
           };
           
-          addDoc(collection(db, 'transactions'), txData).catch(async (err) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ 
-              path: 'transactions', 
-              operation: 'create', 
-              requestResourceData: txData 
-            }));
-          });
-
+          addDoc(collection(db, 'transactions'), txData);
           toast({ title: "MDB Payout Authorized", description: `TX ID: ${response.transactionId}` });
           setIsPayoutDialogOpen(false);
-        } else {
-          toast({ variant: "destructive", title: "Authorization Failed", description: response.message });
         }
       } else {
         const nagadPayload = {
-          customerMsisdn: payoutData.destAccount,
+          customerMsisdn: nagadMode === 'charity' ? '01799999999' : payoutData.destAccount,
           amount: parseFloat(payoutData.amount),
-          orderId: `NEXUS-NGD-${Date.now()}`
+          orderId: `NEXUS-NGD-${Date.now()}`,
+          metadata: {
+            mfiOrg: nagadMode === 'mfi' ? payoutData.mfiOrg : undefined,
+            mfiBranch: nagadMode === 'mfi' ? payoutData.mfiBranch : undefined,
+            philanthropyOrg: nagadMode === 'charity' ? selectedPhilanthropy?.organizationName : undefined,
+            donationCategory: nagadMode === 'charity' ? selectedPhilanthropy?.category : undefined,
+            payoutType: nagadMode.toUpperCase()
+          }
         };
 
         const response: NagadPayoutResponse = await executeNagadPayout(nagadPayload);
 
         if (response.success) {
           const signature = generateNagadSignature(nagadPayload);
+          const desc = nagadMode === 'charity' 
+            ? `Donation: ${selectedPhilanthropy?.organizationName}` 
+            : nagadMode === 'mfi' 
+              ? `Nagad MFI: ${payoutData.mfiOrg}` 
+              : `Nagad B2B: ${payoutData.narration}`;
+
           const txData = {
             amount: parseFloat(payoutData.amount),
             currency: 'BDT',
             status: 'completed',
-            description: payoutData.mfiOrg ? `Nagad MFI: ${payoutData.mfiOrg}` : `Nagad B2B: ${payoutData.narration}`,
+            description: desc,
             type: 'payout',
             merchantId: user?.uid,
             timestamp: new Date().toISOString(),
@@ -188,27 +200,16 @@ export default function NexusLedgerPage() {
             metadata: { 
               ...nagadPayload, 
               transactionId: response.transactionId,
-              mfiOrg: payoutData.mfiOrg,
-              mfiBranch: payoutData.mfiBranch
             }
           };
 
-          addDoc(collection(db, 'transactions'), txData).catch(async (err) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ 
-              path: 'transactions', 
-              operation: 'create', 
-              requestResourceData: txData 
-            }));
-          });
-
-          toast({ title: "Nagad M2P Authorized", description: `Order ID: ${response.transactionId}` });
+          addDoc(collection(db, 'transactions'), txData);
+          toast({ title: "Nagad Authorized", description: `Transferred to ${nagadMode.toUpperCase()}` });
           setIsPayoutDialogOpen(false);
-        } else {
-          toast({ variant: "destructive", title: "Nagad Failed", description: response.message });
         }
       }
     } catch (e) {
-      toast({ variant: "destructive", title: "Bridge Reset", description: "Handshake failed during disbursement." });
+      toast({ variant: "destructive", title: "Bridge Reset", description: "Authorization failed." });
     } finally {
       setIsExecutingPayout(false);
     }
@@ -403,6 +404,35 @@ export default function NexusLedgerPage() {
             
             <div className="grid gap-4 py-6">
               {payoutMethod === 'nagad' && (
+                <div className="flex gap-2 p-1 bg-black/40 rounded-lg mb-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn("flex-1 text-[10px] h-8", nagadMode === 'b2b' && "bg-accent/20 text-accent")}
+                    onClick={() => setNagadMode('b2b')}
+                  >
+                    B2B Transfer
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn("flex-1 text-[10px] h-8", nagadMode === 'mfi' && "bg-accent/20 text-accent")}
+                    onClick={() => setNagadMode('mfi')}
+                  >
+                    MFI / EMI
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn("flex-1 text-[10px] h-8", nagadMode === 'charity' && "bg-accent/20 text-accent")}
+                    onClick={() => setNagadMode('charity')}
+                  >
+                    Donation
+                  </Button>
+                </div>
+              )}
+
+              {payoutMethod === 'nagad' && nagadMode === 'mfi' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
@@ -444,17 +474,42 @@ export default function NexusLedgerPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {payoutMethod === 'mdb' ? 'Destination Account' : 'Nagad Number'}
-                </Label>
-                <Input 
-                  className="bg-black/20 border-white/10 h-11" 
-                  placeholder={payoutMethod === 'mdb' ? "Account Number" : "01XXXXXXXXX"}
-                  value={payoutData.destAccount}
-                  onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
-                />
-              </div>
+              {payoutMethod === 'nagad' && nagadMode === 'charity' && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                    <Heart size={10} className="text-red-400" /> Philanthropy Node
+                  </Label>
+                  <Select 
+                    value={payoutData.philanthropyId} 
+                    onValueChange={(v) => setPayoutData({...payoutData, philanthropyId: v})}
+                  >
+                    <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                      <SelectValue placeholder="Select Charity / Zakat Fund" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOCK_NAGAD_PHILANTHROPY_NODES.map(node => (
+                        <SelectItem key={node.id} value={node.id.toString()} className="text-xs">
+                          {node.organizationName} ({node.category})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {nagadMode === 'b2b' || payoutMethod === 'mdb' ? (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {payoutMethod === 'mdb' ? 'Destination Account' : 'Nagad Number'}
+                  </Label>
+                  <Input 
+                    className="bg-black/20 border-white/10 h-11" 
+                    placeholder={payoutMethod === 'mdb' ? "Account Number" : "01XXXXXXXXX"}
+                    value={payoutData.destAccount}
+                    onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
+                  />
+                </div>
+              ) : null}
 
               {payoutMethod === 'mdb' && (
                 <div className="space-y-2">

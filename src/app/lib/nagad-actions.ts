@@ -3,7 +3,7 @@
 /**
  * @fileOverview Nagad B2B Payout Actions.
  * Handles Merchant-to-Personal (M2P) fund transfers and RSA signing.
- * Includes support for EMI and Microfinance settlements.
+ * Includes support for EMI, Microfinance, and Philanthropy settlements.
  */
 
 import { generateNagadSignature } from '@/lib/security';
@@ -37,6 +37,10 @@ export async function executeNagadPayout(input: Omit<NagadPayoutPayload, 'signat
   
   if (input.metadata?.mfiOrg) {
     console.log(`Processing MFI Settlement for: ${input.metadata.mfiOrg} (${input.metadata.mfiBranch})`);
+  }
+
+  if (input.metadata?.philanthropyOrg) {
+    console.log(`Processing Philanthropy Donation to: ${input.metadata.philanthropyOrg} (${input.metadata.donationCategory})`);
   }
 
   // 4. Simulate API Handshake with Nagad Gateway

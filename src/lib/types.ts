@@ -131,6 +131,8 @@ export interface NagadPayoutPayload {
     mfiOrg?: string;
     mfiBranch?: string;
     payoutType?: string;
+    philanthropyOrg?: string;
+    donationCategory?: string;
   };
 }
 
@@ -145,6 +147,13 @@ export interface NagadMfiNode {
   organizationName: string;
   branchName: string;
   payoutType: 'EMI' | 'Microfinance_Settlement';
+  status: 'Active' | 'Standby';
+}
+
+export interface NagadPhilanthropyNode {
+  id: number;
+  organizationName: string;
+  category: 'Foundation' | 'Zakat_Fund' | 'Medical_Fund' | 'NGO' | 'Religious';
   status: 'Active' | 'Standby';
 }
 

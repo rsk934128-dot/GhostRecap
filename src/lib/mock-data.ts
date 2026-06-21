@@ -1,4 +1,4 @@
-import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode } from './types';
+import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode } from './types';
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
@@ -98,4 +98,15 @@ export const MOCK_NAGAD_MFI_NODES: NagadMfiNode[] = [
   { organizationName: "Bureau Bangladesh", branchName: "Dhaka North", payoutType: "EMI", status: "Active" },
   { organizationName: "ASA", branchName: "Comilla Zone", payoutType: "EMI", status: "Active" },
   { organizationName: "TMSS", branchName: "Bogra Core", payoutType: "Microfinance_Settlement", status: "Active" },
+];
+
+export const MOCK_NAGAD_PHILANTHROPY_NODES: NagadPhilanthropyNode[] = [
+  { id: 124, organizationName: "Quantum Foundation - Cumilla Branch", category: "Foundation", status: "Active" },
+  { id: 125, organizationName: "Quantum Foundation - Dhanmondi Branch", category: "Foundation", status: "Active" },
+  { id: 142, organizationName: "Quantum Foundation - Lama Center", category: "Foundation", status: "Active" },
+  { id: 165, organizationName: "Rogi Kolyan Somitee (Zakat Fund) Kurmitola General Hospital", category: "Zakat_Fund", status: "Active" },
+  { id: 167, organizationName: "Sajida Foundation", category: "NGO", status: "Active" },
+  { id: 174, organizationName: "Songjog Foundation - Medical Fund", category: "Medical_Fund", status: "Active" },
+  { id: 180, organizationName: "SOS Children's Villages Bangladesh", category: "NGO", status: "Active" },
+  { id: 195, organizationName: "Sadaqah Foundation", category: "Religious", status: "Active" },
 ];
