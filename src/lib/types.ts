@@ -68,6 +68,8 @@ export interface Transaction {
   timestamp: string;
   description: string;
   type: 'payment' | 'refund' | 'payout';
+  checksum?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface VisaCompliance {
@@ -128,4 +130,12 @@ export interface TopographyConnection {
   to: string;
   status: 'active' | 'syncing' | 'idle';
   load: number; // 0-100
+}
+
+export interface SystemLog {
+  id: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  message: string;
+  timestamp: string;
+  module: string;
 }

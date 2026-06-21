@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet } from 'lucide-react';
+import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet, Eye, Key, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
+import { generateHMACChecksum } from '@/lib/security';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -31,6 +32,7 @@ export default function NexusLedgerPage() {
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   // Payout Form State
   const [payoutData, setPayoutData] = useState({
@@ -61,12 +63,46 @@ export default function NexusLedgerPage() {
   const handleSeedData = async () => {
     if (!db || !user) return;
     setIsSeeding(true);
+    
     const mockTxs = [
-      { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString() },
-      { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString() },
-      { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString() },
-      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Visa Compliance Fee', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString() },
+      { 
+        amount: 15000, 
+        currency: 'BDT', 
+        status: 'completed', 
+        description: 'Midland Bank API Settlement', 
+        type: 'payment', 
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        checksum: generateHMACChecksum({ amount: 15000, source: 'MDB' })
+      },
+      { 
+        amount: 2500, 
+        currency: 'BDT', 
+        status: 'completed', 
+        description: 'bKash Merchant Pay - Node 400', 
+        type: 'payment', 
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        checksum: generateHMACChecksum({ amount: 2500, source: 'BKASH' })
+      },
+      { 
+        amount: 45000, 
+        currency: 'BDT', 
+        status: 'flagged', 
+        description: 'High Velocity Transfer - Suspicious', 
+        type: 'payment', 
+        timestamp: new Date(Date.now() - 10800000).toISOString(),
+        checksum: 'ERROR_CHECKSUM_MISMATCH'
+      },
+      { 
+        amount: 12000, 
+        currency: 'BDT', 
+        status: 'pending', 
+        description: 'Visa Compliance Fee', 
+        type: 'payout', 
+        timestamp: new Date(Date.now() - 14400000).toISOString(),
+        checksum: generateHMACChecksum({ amount: 12000, source: 'VISA' })
+      },
     ];
+
     try {
       for (const tx of mockTxs) {
         addDoc(collection(db, 'transactions'), { ...tx, merchantId: user.uid }).catch(async () => {
@@ -105,17 +141,21 @@ export default function NexusLedgerPage() {
     }
     setIsExecutingPayout(true);
     try {
-      const response: MDBPayoutResponse = await executeMDBPayout({
+      const payloadBase = {
         sourceAccountNumber: 'MDB-NEXUS-778899',
         destinationAccountNumber: payoutData.destAccount,
         routingNumber: payoutData.routing || '000111222',
         amount: parseFloat(payoutData.amount),
         narration: payoutData.narration
-      });
+      };
+
+      const response: MDBPayoutResponse = await executeMDBPayout(payloadBase);
 
       if (response.success) {
         toast({ title: "Payout Successful", description: `Transaction ID: ${response.transactionId}` });
-        // Log to ledger
+        
+        // Log to ledger with Checksum
+        const checksum = generateHMACChecksum(payloadBase);
         addDoc(collection(db, 'transactions'), {
           amount: parseFloat(payoutData.amount),
           currency: 'BDT',
@@ -123,7 +163,14 @@ export default function NexusLedgerPage() {
           description: `Payout to ${payoutData.destAccount}: ${payoutData.narration}`,
           type: 'payout',
           merchantId: user?.uid,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          checksum,
+          metadata: {
+            destAccount: payoutData.destAccount,
+            routing: payoutData.routing,
+            narration: payoutData.narration,
+            transactionId: response.transactionId
+          }
         });
         setIsPayoutDialogOpen(false);
       } else {
@@ -152,7 +199,7 @@ export default function NexusLedgerPage() {
           <p className="text-muted-foreground">Real-time financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-primary/20 text-primary" onClick={() => setIsPayoutDialogOpen(true)}>
+          <Button variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsPayoutDialogOpen(true)}>
             <Send size={16} /> Initiate Payout
           </Button>
           <Button variant="outline" className="gap-2 border-primary/20" onClick={handleSeedData} disabled={isSeeding}>
@@ -180,8 +227,8 @@ export default function NexusLedgerPage() {
         ))}
       </div>
 
-      <Card className="bg-secondary/10 border-white/5">
-        <CardHeader>
+      <Card className="bg-secondary/10 border-white/5 overflow-hidden">
+        <CardHeader className="bg-black/20">
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center gap-2 text-lg"><Filter size={20} className="text-primary" /> Ledger Filter</CardTitle>
             <div className="flex gap-2">
@@ -198,37 +245,101 @@ export default function NexusLedgerPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-white/5">
-              <TableRow>
+              <TableRow className="border-white/5">
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10 animate-pulse">Streaming fragments...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10 animate-pulse text-muted-foreground">Streaming fragments from MDB Nexus...</TableCell></TableRow>
               ) : filteredTransactions?.length ? (
                 filteredTransactions.map((tx) => (
-                  <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 transition-colors">
+                  <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 transition-colors group">
                     <TableCell className="text-xs font-mono text-muted-foreground">{tx.timestamp ? format(new Date(tx.timestamp), 'MMM d, HH:mm') : '...'}</TableCell>
                     <TableCell className="font-medium">{tx.description}</TableCell>
-                    <TableCell><Badge variant="outline" className="text-[9px] uppercase">{tx.type}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className="text-[9px] uppercase border-white/10">{tx.type}</Badge></TableCell>
                     <TableCell>{getStatusBadge(tx.status)}</TableCell>
                     <TableCell className="text-right font-bold font-mono text-primary">{tx.currency} {tx.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setSelectedTx(tx)}>
+                        <Eye size={14} className="text-muted-foreground" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
-                <TableRow><TableCell colSpan={5} className="text-center py-10">No fragments found in Node Nexus.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10">No fragments found in Node Nexus.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Transaction Details Dialog */}
+      <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-white/10 sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <ShieldCheck className="text-primary" /> Fragment Audit Trail
+            </DialogTitle>
+            <DialogDescription>Full cryptographic breakdown of the selected transaction fragment.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Transaction ID</p>
+                <p className="text-xs font-mono">{selectedTx?.id || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Status</p>
+                <div>{selectedTx && getStatusBadge(selectedTx.status)}</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                <Key size={12} className="text-primary" /> HMAC Checksum (SHA-256)
+              </p>
+              <div className={cn(
+                "p-3 rounded-lg border font-mono text-[10px] break-all",
+                selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' ? "bg-destructive/10 border-destructive/20 text-destructive" : "bg-black/40 border-white/5 text-green-400"
+              )}>
+                {selectedTx?.checksum || 'PENDING_VALIDATION'}
+              </div>
+              {selectedTx?.checksum === 'ERROR_CHECKSUM_MISMATCH' && (
+                <p className="text-[9px] text-destructive flex items-center gap-1 font-bold">
+                  <AlertCircle size={10} /> SECURITY ALERT: Checksum mismatch detected!
+                </p>
+              )}
+            </div>
+
+            {selectedTx?.metadata && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Bank Meta-Data</p>
+                <div className="p-3 rounded-lg bg-white/5 border border-white/5 text-xs font-mono space-y-1">
+                  {Object.entries(selectedTx.metadata).map(([key, val]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="text-muted-foreground">{key}:</span>
+                      <span>{String(val)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button className="w-full bg-primary font-bold" onClick={() => setSelectedTx(null)}>Close Audit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Payout Dialog */}
       <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>

@@ -10,7 +10,9 @@ import {
   Bell,
   Rocket,
   Lock,
-  Key
+  Key,
+  Activity,
+  History
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +21,7 @@ import { runCopilot, CopilotOutput } from '@/ai/flows/copilot-workspace';
 import { getPredictiveInsights, PredictiveOutput } from '@/ai/flows/predictive-insights';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { ArchivedMessage, Transaction } from '@/lib/types';
+import { ArchivedMessage, Transaction, SystemLog } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from '@/components/ui/progress';
@@ -41,6 +43,7 @@ export default function MissionControlCenter() {
   const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
+  const [logs, setLogs] = useState<SystemLog[]>([]);
 
   const transactionsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -63,7 +66,21 @@ export default function MissionControlCenter() {
     if (stored === 'completed') {
       setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED" });
     }
+
+    // Add initial system log
+    addLog('System initialized. Nexus Core handshake standby.', 'info');
   }, []);
+
+  const addLog = (message: string, type: SystemLog['type'] = 'info') => {
+    const newLog: SystemLog = {
+      id: Math.random().toString(36).substring(7),
+      type,
+      message,
+      timestamp: new Date().toISOString(),
+      module: 'NEXUS-CORE'
+    };
+    setLogs(prev => [newLog, ...prev].slice(0, 10));
+  };
 
   const handleRunGlobalIntelligence = async () => {
     try {
@@ -100,6 +117,7 @@ export default function MissionControlCenter() {
 
   const handleSmartSync = async () => {
     setIsSyncing(true);
+    addLog('Initiating autonomous fragment synchronization...', 'info');
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
       const incoming: ArchivedMessage = {
@@ -113,9 +131,11 @@ export default function MissionControlCenter() {
         tags: ['MDB-CORE', 'HSM-BRIDGE']
       };
       setMessages(prev => [incoming, ...prev]);
+      addLog('MDB Core Signal detected in Signal layer.', 'warning');
       toast({ title: "Autonomous Indexing Complete", description: "MDB Core Signal Detected." });
       handleRunGlobalIntelligence();
     } catch (error) {
+      addLog('Sync engine failed to handshake with HSM Bridge.', 'error');
       toast({ variant: "destructive", title: "Sync Error", description: "Intelligence bridge failed." });
     } finally {
       setIsSyncing(false);
@@ -124,11 +144,13 @@ export default function MissionControlCenter() {
 
   const handleRespondToHandshake = async (nodeId: string) => {
     setHandshaking(true);
+    addLog(`Verifying HSM signature for node ${nodeId}...`, 'info');
     try {
       const result = await verifyHSMHandshake(nodeId);
       if (result.success) {
         setHandshakeResult({ signature: result.signature });
         setMessages(prev => prev.filter(m => !m.tags?.includes('MDB-CORE')));
+        addLog('HSM Handshake successful. Sovereign link established.', 'success');
         toast({
           title: "Handshake Successful",
           description: "Nexus Node verified. Signature generated.",
@@ -136,6 +158,7 @@ export default function MissionControlCenter() {
         localStorage.setItem('giant_integration_step', 'completed');
       }
     } catch (error) {
+      addLog('Handshake failed: Signature mismatch or timeout.', 'error');
       toast({ variant: 'destructive', title: 'Handshake Failed', description: 'HSM Bridge connection reset.' });
     } finally {
       setHandshaking(false);
@@ -146,6 +169,7 @@ export default function MissionControlCenter() {
     setSelectedMsg(msg);
     setIsAnalyzing(true);
     setAnalysis(null);
+    addLog(`AI Copilot analyzing fragment from ${msg.sender}...`, 'info');
     try {
       const isMDB = msg.tags?.includes('MDB-CORE');
       const result = await runCopilot({ 
@@ -153,7 +177,9 @@ export default function MissionControlCenter() {
         mode: isMDB ? 'audit' : 'summarize' 
       });
       setAnalysis(result);
+      addLog(`Analysis complete for ${msg.sender}. Priority: ${result.priorityScore || 'N/A'}`, 'success');
     } catch (e) {
+      addLog('Cognitive Layer connection timeout.', 'error');
       toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not connect to Cognitive Layer.' });
     } finally {
       setIsAnalyzing(false);
@@ -295,34 +321,28 @@ export default function MissionControlCenter() {
           </CardContent>
         </Card>
 
-        <Card className={cn("ghostly-fade relative overflow-hidden group", stats.flagged > 0 ? "bg-destructive/5 border-destructive/20" : "bg-green-500/5 border-green-500/20")}>
-          <CardContent className="p-6 relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("p-2 rounded-full", stats.flagged > 0 ? "bg-destructive/20 text-destructive" : "bg-green-500/20 text-green-500")}>
-                  <ShieldAlert size={20} />
+        <Card className="bg-secondary/10 border-white/5 ghostly-fade relative overflow-hidden">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Activity size={16} className="text-primary" />
+              Live System Logs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-6 pt-2 h-[120px] overflow-y-auto scrollbar-none">
+            <div className="space-y-2">
+              {logs.map(log => (
+                <div key={log.id} className="flex gap-2 text-[10px] font-mono items-start">
+                  <span className="text-muted-foreground">{format(new Date(log.timestamp), 'HH:mm:ss')}</span>
+                  <span className={cn(
+                    "font-bold",
+                    log.type === 'success' ? "text-green-500" : 
+                    log.type === 'warning' ? "text-amber-500" : 
+                    log.type === 'error' ? "text-destructive" : "text-primary"
+                  )}>[{log.type.toUpperCase()}]</span>
+                  <span className="text-foreground/80">{log.message}</span>
                 </div>
-                <h3 className="font-bold">Fraud Monitor</h3>
-              </div>
-              <ShieldAlert size={16} className={cn("opacity-50", stats.flagged > 0 ? "text-destructive" : "text-green-500")} />
+              ))}
             </div>
-            <ul className="space-y-2">
-              {stats.flagged > 0 ? (
-                <li className="text-xs flex items-start gap-2 text-destructive font-bold">
-                  <div className="w-1.5 h-1.5 rounded-full bg-destructive mt-1.5 shrink-0 animate-pulse" />
-                  {stats.flagged} suspicious fragments detected!
-                </li>
-              ) : (
-                <li className="text-xs flex items-start gap-2 text-muted-foreground">
-                  <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                  No active threats detected in Node M400.
-                </li>
-              )}
-              <li className="text-xs flex items-start gap-2 text-muted-foreground">
-                <div className="w-1 h-1 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                Nexus Identity Trust: 100% Verified.
-              </li>
-            </ul>
           </CardContent>
         </Card>
       </div>
