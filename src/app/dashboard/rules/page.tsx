@@ -2,7 +2,7 @@
 
 import { MOCK_RULES } from '@/lib/mock-data';
 import { Zap, Plus, GripVertical, Settings2, Code, ArrowRight, Play, Database } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
