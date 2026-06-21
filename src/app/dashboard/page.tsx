@@ -19,7 +19,8 @@ import {
   Shield,
   Fingerprint,
   Globe,
-  QrCode
+  QrCode,
+  Wallet
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,7 @@ export default function MissionControlCenter() {
           let channel = 'MDB-HMAC';
           if (tx.description.includes('Nagad')) channel = 'NAGAD-RSA';
           if (tx.description.includes('Remittance')) channel = 'GLOBAL-MTO';
+          if (tx.description.includes('Cash Out')) channel = 'NAGAD-CASHOUT';
           
           const typeIcon = tx.type === 'payment' ? 'PAYMENT' : 'PAYOUT';
           addLog(`${typeIcon} Fragment detected: ${tx.currency} ${tx.amount} via ${channel}`, tx.status === 'flagged' ? 'warning' : 'success');

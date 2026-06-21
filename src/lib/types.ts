@@ -232,6 +232,25 @@ export interface RemittanceDisbursementResult {
   message: string;
 }
 
+// --- Nagad Cash Out Types ---
+
+export interface NagadCashOutPayload {
+  uddoktaNumber: string;
+  amount: number;
+  pinSecureToken: string;
+  appType: 'REGULAR_APP' | 'ISLAMIC_APP' | 'USSD_167';
+}
+
+export interface CashOutFeeResult {
+  txId: string;
+  principalAmount: number;
+  calculatedFee: number;
+  totalDeductedAmount: number;
+  status: 'Success' | 'Failed';
+  message: string;
+  timestamp: string;
+}
+
 export interface StressTestResult {
   timestamp: string;
   throughput: number; // tx/sec
