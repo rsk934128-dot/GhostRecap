@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,8 @@ import {
   RefreshCcw, Filter, BrainCircuit, 
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
   ShieldCheck, Smartphone, Zap, Search, AlertCircle,
-  Building2, MapPin, Heart, Gift, QrCode, User
+  Building2, MapPin, Heart, Gift, QrCode, User,
+  FileText, Lightbulb, GraduationCap, Wifi, Receipt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-in
 import { executeMDBPayout } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { executeNagadMerchantPay } from '@/app/lib/nagad-merchant-actions';
+import { executeNagadBillPay } from '@/app/lib/nagad-billpay-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -29,7 +31,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
 import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MOCK_NAGAD_MFI_NODES, MOCK_NAGAD_PHILANTHROPY_NODES } from '@/lib/mock-data';
+import { MOCK_NAGAD_MFI_NODES, MOCK_NAGAD_PHILANTHROPY_NODES, MOCK_NAGAD_BILLERS } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -39,8 +41,10 @@ export default function NexusLedgerPage() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [isMerchantPayDialogOpen, setIsMerchantPayDialogOpen] = useState(false);
+  const [isBillPayDialogOpen, setIsBillPayDialogOpen] = useState(false);
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [isExecutingMerchantPay, setIsExecutingMerchantPay] = useState(false);
+  const [isExecutingBillPay, setIsExecutingBillPay] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
@@ -63,6 +67,14 @@ export default function NexusLedgerPage() {
     reference: 'REF-NEXUS-01',
     pinSecureToken: 'SECURE_PIN_HASH',
     channel: 'APP_QR'
+  });
+
+  const [billPayData, setBillPayData] = useState<NagadBillPayPayload>({
+    billerCode: '',
+    accountNo: '',
+    amount: 0,
+    contactNo: '',
+    pinToken: 'SECURE_BILL_TOKEN'
   });
 
   const ledgerQuery = useMemoFirebase(() => {
@@ -90,6 +102,11 @@ export default function NexusLedgerPage() {
   const selectedPhilanthropy = useMemo(() => 
     MOCK_NAGAD_PHILANTHROPY_NODES.find(n => n.id.toString() === payoutData.philanthropyId),
     [payoutData.philanthropyId]
+  );
+
+  const selectedBiller = useMemo(() => 
+    MOCK_NAGAD_BILLERS.find(b => b.code === billPayData.billerCode),
+    [billPayData.billerCode]
   );
 
   const handleSeedData = async () => {
@@ -262,6 +279,42 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handleExecuteBillPay = async () => {
+    if (!billPayData.billerCode || !billPayData.accountNo || !billPayData.amount) {
+      toast({ variant: "destructive", title: "Incomplete Details", description: "Biller, account, and amount are required." });
+      return;
+    }
+
+    setIsExecutingBillPay(true);
+    try {
+      const response: NagadBillPayResponse = await executeNagadBillPay(billPayData);
+      
+      if (response.success) {
+        const txData = {
+          amount: response.totalAmount,
+          currency: 'BDT',
+          status: 'completed' as const,
+          description: `Bill Pay: ${selectedBiller?.name} (${billPayData.accountNo})`,
+          type: 'payout' as const,
+          merchantId: user?.uid || 'GUEST',
+          timestamp: new Date().toISOString(),
+          checksum: generateNagadSignature(billPayData),
+          metadata: { ...billPayData, ...response }
+        };
+
+        addDoc(collection(db, 'transactions'), txData);
+        toast({ title: "Bill Paid Successfully", description: `Transaction ID: ${response.transactionId}` });
+        setIsBillPayDialogOpen(false);
+      } else {
+        toast({ variant: "destructive", title: "Bill Pay Failed", description: response.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gateway Reset", description: "Biller node handshake timeout." });
+    } finally {
+      setIsExecutingBillPay(false);
+    }
+  };
+
   const getStatusBadge = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Completed</Badge>;
@@ -278,7 +331,10 @@ export default function NexusLedgerPage() {
           <h1 className="text-4xl font-headline font-bold">Nexus Ledger</h1>
           <p className="text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2 border-amber-500/20 text-amber-500 hover:bg-amber-500/5" onClick={() => setIsBillPayDialogOpen(true)}>
+            <Receipt size={16} /> Pay Bill
+          </Button>
           <Button variant="outline" className="gap-2 border-accent/20 text-accent hover:bg-accent/5" onClick={() => setIsMerchantPayDialogOpen(true)}>
             <QrCode size={16} /> Simulate QR Pay
           </Button>
@@ -373,6 +429,111 @@ export default function NexusLedgerPage() {
         </CardContent>
       </Card>
 
+      {/* Bill Pay Dialog */}
+      <Dialog open={isBillPayDialogOpen} onOpenChange={setIsBillPayDialogOpen}>
+        <DialogContent className="bg-card/95 backdrop-blur-xl border-amber-500/20 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+              <Receipt className="text-amber-500" /> Bill Pay Node
+            </DialogTitle>
+            <DialogDescription>Utility & Education fee settlement via Nagad.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                <FileText size={10} /> Select Biller / Institute
+              </Label>
+              <Select 
+                value={billPayData.billerCode} 
+                onValueChange={(v) => setBillPayData({...billPayData, billerCode: v})}
+              >
+                <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                  <SelectValue placeholder="Search Biller Directory..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] uppercase tracking-widest text-primary">Utility</SelectLabel>
+                    {MOCK_NAGAD_BILLERS.filter(b => b.category === 'Utility').map(b => (
+                      <SelectItem key={b.code} value={b.code} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <Lightbulb size={12} className="text-amber-400" /> {b.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] uppercase tracking-widest text-accent">Education</SelectLabel>
+                    {MOCK_NAGAD_BILLERS.filter(b => b.category === 'Education').map(b => (
+                      <SelectItem key={b.code} value={b.code} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap size={12} className="text-blue-400" /> {b.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">Others</SelectLabel>
+                    {MOCK_NAGAD_BILLERS.filter(b => b.category !== 'Utility' && b.category !== 'Education').map(b => (
+                      <SelectItem key={b.code} value={b.code} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <Wifi size={12} className="text-muted-foreground" /> {b.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Account / Meter No</Label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11 font-mono" 
+                  placeholder="ID Number"
+                  value={billPayData.accountNo}
+                  onChange={(e) => setBillPayData({...billPayData, accountNo: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 h-11" 
+                  value={billPayData.amount || ''}
+                  onChange={(e) => setBillPayData({...billPayData, amount: parseFloat(e.target.value)})}
+                />
+              </div>
+            </div>
+
+            {selectedBiller && (
+              <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 space-y-2">
+                <div className="flex justify-between text-[10px] font-bold uppercase">
+                  <span className="text-muted-foreground">Service Charge ({selectedBiller.chargeType})</span>
+                  <span className="text-amber-500">BDT {selectedBiller.chargeValue} (Base)</span>
+                </div>
+                <p className="text-[9px] text-muted-foreground italic leading-relaxed">
+                  * Final charge may vary based on slab-based utility routing.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsBillPayDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-amber-600 text-white font-bold px-8 shadow-lg shadow-amber-500/20"
+              onClick={handleExecuteBillPay}
+              disabled={isExecutingBillPay}
+            >
+              {isExecutingBillPay ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <Zap className="mr-2" size={16} />}
+              Authorize Bill
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Merchant Pay Simulator Dialog */}
       <Dialog open={isMerchantPayDialogOpen} onOpenChange={setIsMerchantPayDialogOpen}>
         <DialogContent className="bg-card/95 backdrop-blur-xl border-accent/20 sm:max-w-md">
@@ -409,7 +570,7 @@ export default function NexusLedgerPage() {
                 <Input 
                   type="number"
                   className="bg-black/20 border-white/10 h-11" 
-                  value={merchantPayData.amount}
+                  value={merchantPayData.amount || ''}
                   onChange={(e) => setMerchantPayData({...merchantPayData, amount: parseFloat(e.target.value)})}
                 />
               </div>

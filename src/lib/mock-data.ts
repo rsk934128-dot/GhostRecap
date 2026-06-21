@@ -1,4 +1,4 @@
-import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild } from './types';
+import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild, NagadBiller } from './types';
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
@@ -148,6 +148,25 @@ export const NAGAD_BANK_NODES = [
   "Union Bank",
   "United Commercial Bank",
   "Uttara Bank",
+];
+
+export const MOCK_NAGAD_BILLERS: NagadBiller[] = [
+  // Utility
+  { id: 'b1', name: 'DPDC (Postpaid)', code: '1001', category: 'Utility', chargeType: 'Slab', chargeValue: 5 },
+  { id: 'b2', name: 'DESCO (Prepaid)', code: '1002', category: 'Utility', chargeType: 'Fixed', chargeValue: 0 },
+  { id: 'b3', name: 'Titas Gas (Postpaid)', code: '1003', category: 'Utility', chargeType: 'Fixed', chargeValue: 10 },
+  { id: 'b4', name: 'WASA Dhaka', code: '1004', category: 'Utility', chargeType: 'Slab', chargeValue: 2 },
+  { id: 'b5', name: 'Palli Bidyut (Prepaid)', code: '1005', category: 'Utility', chargeType: 'Fixed', chargeValue: 0 },
+  
+  // Education - Sirajganj Focus
+  { id: 'e1', name: 'BL Govt High School, Sirajganj', code: '5001', category: 'Education', chargeType: 'Fixed', chargeValue: 10 },
+  { id: 'e2', name: 'Collectorate School, Sirajganj', code: '5002', category: 'Education', chargeType: 'Fixed', chargeValue: 10 },
+  { id: 'e3', name: 'Sirajganj Govt College', code: '5003', category: 'Education', chargeType: 'Fixed', chargeValue: 15 },
+  { id: 'e4', name: 'North Bengal Medical College', code: '5004', category: 'Education', chargeType: 'Slab', chargeValue: 20 },
+  
+  // Internet
+  { id: 'i1', name: 'Amber IT', code: '3001', category: 'Internet', chargeType: 'Fixed', chargeValue: 0 },
+  { id: 'i2', name: 'Carnival Internet', code: '3002', category: 'Internet', chargeType: 'Fixed', chargeValue: 5 },
 ];
 
 export const MOCK_TEST_RESULTS: TestLabResult[] = [

@@ -176,6 +176,35 @@ export interface NagadMerchantPayResponse {
   metadata?: Record<string, any>;
 }
 
+// --- Nagad Bill Pay Types ---
+
+export interface NagadBiller {
+  id: string;
+  name: string;
+  code: string;
+  category: 'Utility' | 'Education' | 'Internet' | 'Other';
+  chargeType: 'Fixed' | 'Slab';
+  chargeValue: number; // For fixed or base slab
+}
+
+export interface NagadBillPayPayload {
+  billerCode: string;
+  accountNo: string;
+  amount: number;
+  contactNo: string;
+  pinToken: string;
+  metadata?: Record<string, any>;
+}
+
+export interface NagadBillPayResponse {
+  success: boolean;
+  transactionId?: string;
+  message: string;
+  charge: number;
+  totalAmount: number;
+  timestamp: string;
+}
+
 export interface StressTestResult {
   timestamp: string;
   throughput: number; // tx/sec
