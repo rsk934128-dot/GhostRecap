@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -40,7 +41,8 @@ export async function executeNagadPayout(input: Omit<NagadPayoutPayload, 'signat
     await new Promise(resolve => setTimeout(resolve, 3500));
 
     // Simulation of success (92% success rate for sandbox testing)
-    const isSuccess = Math.random() > 0.08;
+    const random = Math.random();
+    const isSuccess = random > 0.08;
 
     if (isSuccess) {
       return {
@@ -50,7 +52,12 @@ export async function executeNagadPayout(input: Omit<NagadPayoutPayload, 'signat
         timestamp: new Date().toISOString(),
       };
     } else {
-      throw new Error('Nagad Gateway: RSA Signature Verification Failed (Error 401)');
+      // Specific RSA/Cryptographic simulation errors
+      if (random < 0.04) {
+        throw new Error('Nagad Gateway: RSA Decryption Error (Invalid Padding)');
+      } else {
+        throw new Error('Nagad Gateway: Challenge Expired or Signature Mismatch');
+      }
     }
   } catch (error: any) {
     return {

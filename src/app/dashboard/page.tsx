@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { 
@@ -44,6 +45,8 @@ export default function MissionControlCenter() {
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
   const [logs, setLogs] = useState<SystemLog[]>([]);
+  
+  const processedTxIds = useRef<Set<string>>(new Set());
 
   const transactionsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -57,20 +60,6 @@ export default function MissionControlCenter() {
 
   const { data: recentTransactions, loading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
-  useEffect(() => {
-    setMounted(true);
-    handleRunGlobalIntelligence();
-    
-    // Restore handshake state from local storage
-    const stored = localStorage.getItem('giant_integration_step');
-    if (stored === 'completed') {
-      setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED" });
-    }
-
-    // Add initial system log
-    addLog('System initialized. Nexus Core handshake standby.', 'info');
-  }, []);
-
   const addLog = (message: string, type: SystemLog['type'] = 'info') => {
     const newLog: SystemLog = {
       id: Math.random().toString(36).substring(7),
@@ -79,8 +68,33 @@ export default function MissionControlCenter() {
       timestamp: new Date().toISOString(),
       module: 'NEXUS-CORE'
     };
-    setLogs(prev => [newLog, ...prev].slice(0, 10));
+    setLogs(prev => [newLog, ...prev].slice(0, 15));
   };
+
+  useEffect(() => {
+    setMounted(true);
+    handleRunGlobalIntelligence();
+    
+    const stored = localStorage.getItem('giant_integration_step');
+    if (stored === 'completed') {
+      setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED" });
+    }
+
+    addLog('System initialized. Nexus Core handshake standby.', 'info');
+  }, []);
+
+  // Live Watcher for new transactions
+  useEffect(() => {
+    if (recentTransactions) {
+      recentTransactions.forEach(tx => {
+        if (tx.id && !processedTxIds.current.has(tx.id)) {
+          processedTxIds.current.add(tx.id);
+          const channel = tx.description.includes('Nagad') ? 'NAGAD-RSA' : 'MDB-HMAC';
+          addLog(`Fragment detected: ${tx.type.toUpperCase()} | ${tx.currency} ${tx.amount} via ${channel}`, tx.status === 'flagged' ? 'warning' : 'success');
+        }
+      });
+    }
+  }, [recentTransactions]);
 
   const handleRunGlobalIntelligence = async () => {
     try {

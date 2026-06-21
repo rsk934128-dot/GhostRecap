@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -13,7 +14,8 @@ import {
   ArrowRight,
   Droplets,
   Timer,
-  Smartphone
+  Smartphone,
+  CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,9 +31,15 @@ export default function OceanMixingPage() {
   const [isTesting, setIsTesting] = useState(false);
   const [testProgress, setTestProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [nagadSync, setNagadSync] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+    // Periodically pulse the Nagad Sync
+    const interval = setInterval(() => {
+      setNagadSync(prev => !prev);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const nodes: LiquidityNode[] = [
@@ -116,7 +124,7 @@ export default function OceanMixingPage() {
                 )}>
                   {node.status}
                 </Badge>
-                {node.type === 'nagad' ? <Smartphone size={14} className="text-accent" /> : <Server size={14} className="text-muted-foreground" />}
+                {node.type === 'nagad' ? <Smartphone size={14} className={cn("transition-colors duration-500", nagadSync ? "text-accent" : "text-muted-foreground")} /> : <Server size={14} className="text-muted-foreground" />}
               </div>
               <CardTitle className="text-lg mt-2">{node.name}</CardTitle>
               <CardDescription className="font-mono text-xs">
@@ -198,7 +206,9 @@ export default function OceanMixingPage() {
                 <span className="text-muted-foreground flex items-center gap-2">
                   <Smartphone size={12} /> Nagad Node Sync
                 </span>
-                <Badge variant="outline" className="text-[10px] text-green-500">LIVE</Badge>
+                <Badge variant="outline" className={cn("text-[10px] transition-all", nagadSync ? "text-green-500" : "text-amber-500")}>
+                  {nagadSync ? 'LIVE' : 'SYNCING'}
+                </Badge>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground flex items-center gap-2">
