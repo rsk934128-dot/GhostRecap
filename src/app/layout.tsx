@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { initializeFirebase, FirebaseClientProvider } from '@/firebase';
 import './globals.css';
 
@@ -9,7 +10,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { firebaseApp, firestore, auth } = initializeFirebase();
+  const { firebaseApp, firestore, auth, analytics } = initializeFirebase();
+
+  useEffect(() => {
+    if (analytics) {
+      console.log('Firebase Analytics initialized for Mission 400.');
+    }
+  }, [analytics]);
 
   return (
     <html lang="en" className="dark">

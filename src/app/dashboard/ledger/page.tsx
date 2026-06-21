@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useCollection, useMemoFirebase, logAnalyticsEvent } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
 import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse, InboundRemittancePayload, RemittanceDisbursementResult, NagadCashOutPayload, CashOutFeeResult } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -227,6 +228,15 @@ export default function NexusLedgerPage() {
           };
           
           addDoc(collection(db, 'transactions'), txData);
+          
+          // Log GA4 Purchase event for Revenue tracking
+          logAnalyticsEvent('purchase', {
+            transaction_id: response.transactionId,
+            value: parseFloat(payoutData.amount),
+            currency: 'BDT',
+            items: [{ item_id: 'mdb_payout', item_name: 'MDB Core Payout' }]
+          });
+
           toast({ title: "MDB Payout Authorized", description: `TX ID: ${response.transactionId}` });
           setIsPayoutDialogOpen(false);
         }
@@ -270,6 +280,15 @@ export default function NexusLedgerPage() {
           };
 
           addDoc(collection(db, 'transactions'), txData);
+
+          // Log GA4 Purchase event
+          logAnalyticsEvent('purchase', {
+            transaction_id: response.transactionId,
+            value: parseFloat(payoutData.amount),
+            currency: 'BDT',
+            items: [{ item_id: `nagad_${nagadMode}`, item_name: `Nagad ${nagadMode.toUpperCase()}` }]
+          });
+
           toast({ title: "Nagad Authorized", description: `Transferred to ${nagadMode.toUpperCase()}` });
           setIsPayoutDialogOpen(false);
         }
@@ -305,6 +324,15 @@ export default function NexusLedgerPage() {
         };
 
         addDoc(collection(db, 'transactions'), txData);
+
+        // Log GA4 Purchase event for Revenue tracking
+        logAnalyticsEvent('purchase', {
+          transaction_id: response.transactionId,
+          value: merchantPayData.amount,
+          currency: 'BDT',
+          items: [{ item_id: 'merchant_qr_pay', item_name: 'Merchant QR Payment' }]
+        });
+
         toast({ title: "Payment Successful", description: response.message });
         setIsMerchantPayDialogOpen(false);
       } else {
@@ -341,6 +369,15 @@ export default function NexusLedgerPage() {
         };
 
         addDoc(collection(db, 'transactions'), txData);
+
+        // Log GA4 Purchase event
+        logAnalyticsEvent('purchase', {
+          transaction_id: response.transactionId,
+          value: response.totalAmount,
+          currency: 'BDT',
+          items: [{ item_id: `bill_${billPayData.billerCode}`, item_name: selectedBiller?.name }]
+        });
+
         toast({ title: "Bill Paid Successfully", description: `Transaction ID: ${response.transactionId}` });
         setIsBillPayDialogOpen(false);
       } else {
@@ -386,6 +423,15 @@ export default function NexusLedgerPage() {
         };
 
         addDoc(collection(db, 'transactions'), txData);
+
+        // Log GA4 Purchase event
+        logAnalyticsEvent('purchase', {
+          transaction_id: result.txId,
+          value: result.totalCreditedAmount,
+          currency: 'BDT',
+          items: [{ item_id: 'remittance', item_name: 'Inbound Remittance' }]
+        });
+
         toast({ title: "Remittance Disbursed", description: result.message });
         setIsRemittanceDialogOpen(false);
       } else {
@@ -422,6 +468,15 @@ export default function NexusLedgerPage() {
         };
 
         addDoc(collection(db, 'transactions'), txData);
+
+        // Log GA4 event
+        logAnalyticsEvent('purchase', {
+          transaction_id: result.txId,
+          value: result.totalDeductedAmount,
+          currency: 'BDT',
+          items: [{ item_id: 'cash_out', item_name: 'Nagad Cash Out' }]
+        });
+
         toast({ title: "Cash Out Successful", description: result.message });
         setIsCashOutDialogOpen(false);
       } else {
