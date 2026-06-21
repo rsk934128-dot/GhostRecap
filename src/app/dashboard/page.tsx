@@ -8,7 +8,9 @@ import {
   Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, CheckCircle2,
   SignalHigh,
   Bell,
-  Rocket
+  Rocket,
+  Lock,
+  Key
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,9 +40,8 @@ export default function MissionControlCenter() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
   const [handshaking, setHandshaking] = useState(false);
-  const [handshakeComplete, setHandshakeComplete] = useState(false);
+  const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
 
-  // Real-time Ledger Data for Executive Dashboard
   const transactionsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -56,6 +57,12 @@ export default function MissionControlCenter() {
   useEffect(() => {
     setMounted(true);
     handleRunGlobalIntelligence();
+    
+    // Restore handshake state from local storage
+    const stored = localStorage.getItem('giant_integration_step');
+    if (stored === 'completed') {
+      setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED" });
+    }
   }, []);
 
   const handleRunGlobalIntelligence = async () => {
@@ -65,11 +72,7 @@ export default function MissionControlCenter() {
       });
       setGlobalInsights(results);
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Intelligence Failure",
-        description: "Global predictive analysis could not be completed."
-      });
+      console.error(e);
     }
   };
 
@@ -99,8 +102,7 @@ export default function MissionControlCenter() {
     setIsSyncing(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const isMDB = Math.random() > 0.5;
-      const incoming: ArchivedMessage = isMDB ? {
+      const incoming: ArchivedMessage = {
         id: Math.random().toString(36).substring(7),
         sender: 'Midland Bank HSM',
         content: 'HSM Node Alpha Handshake Request. Waiting for secure signature verification.',
@@ -109,19 +111,9 @@ export default function MissionControlCenter() {
         category: 'Urgent',
         priorityScore: 100,
         tags: ['MDB-CORE', 'HSM-BRIDGE']
-      } : {
-        id: Math.random().toString(36).substring(7),
-        sender: 'Investor Alpha',
-        content: 'I reviewed the proposal. Let’s discuss the equity split tomorrow morning.',
-        timestamp: new Date().toISOString(),
-        app: 'WhatsApp',
-        category: 'Urgent',
-        priorityScore: 98,
-        opportunityScore: 95,
-        decisionPending: true,
       };
       setMessages(prev => [incoming, ...prev]);
-      toast({ title: "Autonomous Indexing Complete", description: isMDB ? "MDB Core Signal Detected." : "New High-Value Opportunity detected." });
+      toast({ title: "Autonomous Indexing Complete", description: "MDB Core Signal Detected." });
       handleRunGlobalIntelligence();
     } catch (error) {
       toast({ variant: "destructive", title: "Sync Error", description: "Intelligence bridge failed." });
@@ -135,13 +127,12 @@ export default function MissionControlCenter() {
     try {
       const result = await verifyHSMHandshake(nodeId);
       if (result.success) {
-        setHandshakeComplete(true);
+        setHandshakeResult({ signature: result.signature });
         setMessages(prev => prev.filter(m => !m.tags?.includes('MDB-CORE')));
         toast({
           title: "Handshake Successful",
-          description: `Nexus Node ${nodeId} is now verified. Signature: ${result.signature}`,
+          description: "Nexus Node verified. Signature generated.",
         });
-        // Update local status for the session
         localStorage.setItem('giant_integration_step', 'completed');
       }
     } catch (error) {
@@ -156,7 +147,11 @@ export default function MissionControlCenter() {
     setIsAnalyzing(true);
     setAnalysis(null);
     try {
-      const result = await runCopilot({ messageContent: msg.content, mode: 'summarize' });
+      const isMDB = msg.tags?.includes('MDB-CORE');
+      const result = await runCopilot({ 
+        messageContent: msg.content, 
+        mode: isMDB ? 'audit' : 'summarize' 
+      });
       setAnalysis(result);
     } catch (e) {
       toast({ variant: 'destructive', title: 'Analysis Failed', description: 'Could not connect to Cognitive Layer.' });
@@ -193,7 +188,7 @@ export default function MissionControlCenter() {
       </header>
 
       {/* Nexus Inbound Signal Alert */}
-      {mdbSignal && !handshakeComplete && (
+      {mdbSignal && !handshakeResult && (
         <Card className="bg-primary/10 border-primary/20 border-l-4 border-l-primary overflow-hidden ghostly-fade animate-pulse">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -224,19 +219,27 @@ export default function MissionControlCenter() {
         </Card>
       )}
 
-      {handshakeComplete && (
+      {handshakeResult && (
         <Card className="bg-green-500/10 border-green-500/20 border-l-4 border-l-green-500 overflow-hidden ghostly-fade">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
                 <CheckCircle2 size={24} />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-green-500 mb-1">Handshake Verified</p>
                 <h4 className="text-sm font-bold text-foreground">Sovereign Link Established with MDB Core HSM</h4>
-                <p className="text-[10px] text-muted-foreground font-mono mt-1">Status: SECURE | Step 3: 100% COMPLETE</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="bg-black/20 border-green-500/20 text-green-500 text-[9px] font-mono">
+                    SIG: {handshakeResult.signature.substring(0, 16)}...
+                  </Badge>
+                  <p className="text-[10px] text-muted-foreground font-mono">Status: SECURE | Integration: 100%</p>
+                </div>
               </div>
             </div>
+            <Button variant="ghost" size="sm" className="text-green-500 hover:bg-green-500/10 text-xs font-bold gap-2">
+              <Key size={12} /> View Certificate
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -427,11 +430,16 @@ export default function MissionControlCenter() {
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <Sparkles size={14} className="text-primary" />
-                      Nexus Summary
+                      {selectedMsg?.tags?.includes('MDB-CORE') ? 'HSM Audit Report' : 'Nexus Summary'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <p className="text-sm leading-relaxed">{analysis.analysis}</p>
+                    {analysis.securityProtocol && (
+                      <div className="mt-4 p-2 rounded bg-black/40 border border-white/10 font-mono text-[10px] text-green-400">
+                        Protocol: {analysis.securityProtocol}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
