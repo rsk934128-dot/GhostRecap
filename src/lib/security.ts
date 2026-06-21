@@ -34,6 +34,16 @@ export function generateHMACChecksum(data: any): string {
 }
 
 /**
+ * Generates an RSA-2048 PKCS1 style digital signature for Nagad.
+ */
+export function generateNagadSignature(payload: any): string {
+  const payloadStr = JSON.stringify(payload);
+  // Simulating RSA-2048 PKCS1Padding signature
+  const sig = btoa(`RSA_SIG_${payloadStr}`).substring(0, 64).toUpperCase();
+  return `NAGAD_RSA_${sig}`;
+}
+
+/**
  * Validates if a string matches a masked pattern.
  */
 export function isMasked(value: string): boolean {

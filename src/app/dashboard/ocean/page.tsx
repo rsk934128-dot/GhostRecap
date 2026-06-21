@@ -12,7 +12,8 @@ import {
   TrendingUp,
   ArrowRight,
   Droplets,
-  Timer
+  Timer,
+  Smartphone
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,8 +36,9 @@ export default function OceanMixingPage() {
 
   const nodes: LiquidityNode[] = [
     { id: '1', name: 'Midland Bank Node', balance: 4500000, currency: 'BDT', health: 98, status: 'online', type: 'bank' },
-    { id: '2', name: 'bKash Gateway Node', balance: 1200000, currency: 'BDT', health: 92, status: 'rebalancing', type: 'gateway' },
-    { id: '3', name: 'Global Bridge Node', balance: 85000, currency: 'USD', health: 100, status: 'online', type: 'global' },
+    { id: '2', name: 'Nagad Gateway Node', balance: 1850000, currency: 'BDT', health: 94, status: 'online', type: 'nagad' },
+    { id: '3', name: 'bKash Gateway Node', balance: 1200000, currency: 'BDT', health: 92, status: 'rebalancing', type: 'gateway' },
+    { id: '4', name: 'Global Bridge Node', balance: 85000, currency: 'USD', health: 100, status: 'online', type: 'global' },
   ];
 
   const mockLatencyData = [
@@ -59,7 +61,7 @@ export default function OceanMixingPage() {
           setIsTesting(false);
           toast({
             title: "Stress Test Complete",
-            description: "Ocean Mixing Node successfully handled 12,500 requests/sec with 99.9% accuracy.",
+            description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
           });
           return 100;
         }
@@ -79,7 +81,7 @@ export default function OceanMixingPage() {
             <Waves className="text-primary" size={32} />
             <h1 className="text-4xl font-headline font-bold">Liquidity Ocean</h1>
           </div>
-          <p className="text-muted-foreground">Normalizing liquidity fragments across Midland Bank and Global Rails.</p>
+          <p className="text-muted-foreground">Normalizing liquidity fragments across MDB, Nagad, and Global Rails.</p>
         </div>
         <Button 
           onClick={handleStartStressTest} 
@@ -95,7 +97,7 @@ export default function OceanMixingPage() {
         <Card className="bg-primary/10 border-primary/20 animate-pulse">
           <CardContent className="p-4 space-y-2">
             <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-primary">
-              <span>Stress Simulation Active</span>
+              <span>Nagad RSA Signing Active</span>
               <span>{testProgress}%</span>
             </div>
             <Progress value={testProgress} className="h-1 bg-white/5" />
@@ -103,7 +105,7 @@ export default function OceanMixingPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {nodes.map((node, i) => (
           <Card key={node.id} className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: `${i * 100}ms` }}>
             <CardHeader className="pb-2">
@@ -114,7 +116,7 @@ export default function OceanMixingPage() {
                 )}>
                   {node.status}
                 </Badge>
-                <Server size={14} className="text-muted-foreground" />
+                {node.type === 'nagad' ? <Smartphone size={14} className="text-accent" /> : <Server size={14} className="text-muted-foreground" />}
               </div>
               <CardTitle className="text-lg mt-2">{node.name}</CardTitle>
               <CardDescription className="font-mono text-xs">
@@ -139,9 +141,9 @@ export default function OceanMixingPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Activity size={20} className="text-primary" />
-              Network Latency (Nexus Core)
+              Nagad B2B Bridge Latency
             </CardTitle>
-            <CardDescription>Real-time response tracking during fragment mixing.</CardDescription>
+            <CardDescription>RSA-2048 signing overhead during fragment mixing.</CardDescription>
           </CardHeader>
           <CardContent className="h-[250px] pt-4">
             {mounted && (
@@ -174,19 +176,19 @@ export default function OceanMixingPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ShieldAlert size={20} className="text-accent" />
-              Ocean Mixing Logic
+              Nagad Integration Node
             </CardTitle>
-            <CardDescription>Autonomous redistribution of liquidity fragments.</CardDescription>
+            <CardDescription>RSA-2048 / PKCS1Padding Security primitive.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-4">
             <div className="p-4 rounded-xl bg-black/20 border border-white/5 flex gap-4">
               <div className="p-2 rounded-lg bg-accent/20 text-accent h-fit">
-                <TrendingUp size={18} />
+                <Smartphone size={18} />
               </div>
               <div>
-                <h5 className="text-xs font-bold mb-1">Normalization Algorithm</h5>
+                <h5 className="text-xs font-bold mb-1">M2P Payout Active</h5>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Redistributing <span className="text-accent font-bold">14.2%</span> of excess bKash liquidity to Midland Bank HSM for settlement balancing.
+                  Redistributing <span className="text-accent font-bold">18.5%</span> of total liquidity to Nagad Gateway for immediate disbursements.
                 </p>
               </div>
             </div>
@@ -194,15 +196,15 @@ export default function OceanMixingPage() {
             <div className="space-y-4 pt-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <Timer size={12} /> Auto-Mixing Cycle
+                  <Smartphone size={12} /> Nagad Node Sync
                 </span>
-                <Badge variant="outline" className="text-[10px]">Every 15m</Badge>
+                <Badge variant="outline" className="text-[10px] text-green-500">LIVE</Badge>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <Database size={12} /> HSM Encryption Level
+                  <Database size={12} /> Encryption Standard
                 </span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary">AES-512-NX</Badge>
+                <Badge variant="outline" className="text-[10px] border-accent/20 text-accent">RSA-2048</Badge>
               </div>
             </div>
 

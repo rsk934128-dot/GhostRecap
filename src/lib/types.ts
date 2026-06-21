@@ -95,7 +95,7 @@ export interface LiquidityNode {
   currency: string;
   health: number; // 0-100
   status: 'online' | 'rebalancing' | 'offline';
-  type: 'bank' | 'gateway' | 'global' | 'core';
+  type: 'bank' | 'gateway' | 'global' | 'core' | 'nagad';
 }
 
 // --- Midland Payout Types ---
@@ -111,6 +111,25 @@ export interface MDBPayoutPayload {
 }
 
 export interface MDBPayoutResponse {
+  success: boolean;
+  transactionId?: string;
+  message: string;
+  timestamp: string;
+}
+
+// --- Nagad Payout Types ---
+
+export interface NagadPayoutPayload {
+  merchantId: string;
+  orderId: string;
+  customerMsisdn: string;
+  amount: number;
+  currency: "BDT";
+  challenge: string;
+  signature: string;
+}
+
+export interface NagadPayoutResponse {
   success: boolean;
   transactionId?: string;
   message: string;

@@ -3,24 +3,30 @@
 import { useState } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet, Eye, Key, ShieldCheck } from 'lucide-react';
+import { 
+  RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, 
+  ShieldAlert, CheckCircle2, DatabaseZap, Send, Landmark, Wallet, Eye, Key, 
+  ShieldCheck, Smartphone, Zap
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
 import { executeMDBPayout } from '@/app/lib/midland-actions';
+import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
-import { generateHMACChecksum } from '@/lib/security';
+import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -33,6 +39,7 @@ export default function NexusLedgerPage() {
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
 
   // Payout Form State
   const [payoutData, setPayoutData] = useState({
@@ -96,10 +103,10 @@ export default function NexusLedgerPage() {
         amount: 12000, 
         currency: 'BDT', 
         status: 'pending', 
-        description: 'Visa Compliance Fee', 
+        description: 'Nagad B2B Payout standby', 
         type: 'payout', 
         timestamp: new Date(Date.now() - 14400000).toISOString(),
-        checksum: generateHMACChecksum({ amount: 12000, source: 'VISA' })
+        checksum: generateNagadSignature({ amount: 12000, source: 'NAGAD' })
       },
     ];
 
@@ -141,40 +148,63 @@ export default function NexusLedgerPage() {
     }
     setIsExecutingPayout(true);
     try {
-      const payloadBase = {
-        sourceAccountNumber: 'MDB-NEXUS-778899',
-        destinationAccountNumber: payoutData.destAccount,
-        routingNumber: payoutData.routing || '000111222',
-        amount: parseFloat(payoutData.amount),
-        narration: payoutData.narration
-      };
-
-      const response: MDBPayoutResponse = await executeMDBPayout(payloadBase);
-
-      if (response.success) {
-        toast({ title: "Payout Successful", description: `Transaction ID: ${response.transactionId}` });
-        
-        // Log to ledger with Checksum
-        const checksum = generateHMACChecksum(payloadBase);
-        addDoc(collection(db, 'transactions'), {
+      if (payoutMethod === 'mdb') {
+        const payloadBase = {
+          sourceAccountNumber: 'MDB-NEXUS-778899',
+          destinationAccountNumber: payoutData.destAccount,
+          routingNumber: payoutData.routing || '000111222',
           amount: parseFloat(payoutData.amount),
-          currency: 'BDT',
-          status: 'completed',
-          description: `Payout to ${payoutData.destAccount}: ${payoutData.narration}`,
-          type: 'payout',
-          merchantId: user?.uid,
-          timestamp: new Date().toISOString(),
-          checksum,
-          metadata: {
-            destAccount: payoutData.destAccount,
-            routing: payoutData.routing,
-            narration: payoutData.narration,
-            transactionId: response.transactionId
-          }
-        });
-        setIsPayoutDialogOpen(false);
+          narration: payoutData.narration
+        };
+
+        const response: MDBPayoutResponse = await executeMDBPayout(payloadBase);
+
+        if (response.success) {
+          toast({ title: "MDB Payout Successful", description: `Transaction ID: ${response.transactionId}` });
+          const checksum = generateHMACChecksum(payloadBase);
+          addDoc(collection(db, 'transactions'), {
+            amount: parseFloat(payoutData.amount),
+            currency: 'BDT',
+            status: 'completed',
+            description: `MDB Payout to ${payoutData.destAccount}: ${payoutData.narration}`,
+            type: 'payout',
+            merchantId: user?.uid,
+            timestamp: new Date().toISOString(),
+            checksum,
+            metadata: { ...payloadBase, transactionId: response.transactionId }
+          });
+          setIsPayoutDialogOpen(false);
+        } else {
+          toast({ variant: "destructive", title: "MDB Payout Failed", description: response.message });
+        }
       } else {
-        toast({ variant: "destructive", title: "Payout Failed", description: response.message });
+        // Nagad Payout
+        const nagadPayload = {
+          customerMsisdn: payoutData.destAccount,
+          amount: parseFloat(payoutData.amount),
+          orderId: `NEXUS-NGD-${Date.now()}`
+        };
+
+        const response: NagadPayoutResponse = await executeNagadPayout(nagadPayload);
+
+        if (response.success) {
+          toast({ title: "Nagad Payout Successful", description: `Order ID: ${response.transactionId}` });
+          const signature = generateNagadSignature(nagadPayload);
+          addDoc(collection(db, 'transactions'), {
+            amount: parseFloat(payoutData.amount),
+            currency: 'BDT',
+            status: 'completed',
+            description: `Nagad Transfer to ${payoutData.destAccount}: ${payoutData.narration}`,
+            type: 'payout',
+            merchantId: user?.uid,
+            timestamp: new Date().toISOString(),
+            checksum: signature,
+            metadata: { ...nagadPayload, transactionId: response.transactionId }
+          });
+          setIsPayoutDialogOpen(false);
+        } else {
+          toast({ variant: "destructive", title: "Nagad Payout Failed", description: response.message });
+        }
       }
     } catch (e) {
       toast({ variant: "destructive", title: "Nexus Core Reset", description: "Fund transfer aborted." });
@@ -306,7 +336,7 @@ export default function NexusLedgerPage() {
 
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                <Key size={12} className="text-primary" /> HMAC Checksum (SHA-256)
+                <Key size={12} className="text-primary" /> HSM / RSA Digital Signature
               </p>
               <div className={cn(
                 "p-3 rounded-lg border font-mono text-[10px] break-all",
@@ -323,12 +353,12 @@ export default function NexusLedgerPage() {
 
             {selectedTx?.metadata && (
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase text-muted-foreground">Bank Meta-Data</p>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Bank / Gateway Meta-Data</p>
                 <div className="p-3 rounded-lg bg-white/5 border border-white/5 text-xs font-mono space-y-1">
                   {Object.entries(selectedTx.metadata).map(([key, val]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-muted-foreground">{key}:</span>
-                      <span>{String(val)}</span>
+                      <span className="text-right">{String(val)}</span>
                     </div>
                   ))}
                 </div>
@@ -346,65 +376,81 @@ export default function NexusLedgerPage() {
         <DialogContent className="bg-card/95 backdrop-blur-xl border-white/10 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
-              <Landmark className="text-primary" /> Midland Fund Transfer
+              <Landmark className="text-primary" /> Funds Disbursement
             </DialogTitle>
-            <DialogDescription>Execute NPSB/BEFTN transfer from MDB Core Nexus.</DialogDescription>
+            <DialogDescription>Execute secure transfers via MDB Core or Nagad B2B Gateway.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Source Account</Label>
-              <div className="p-3 rounded-lg bg-black/40 border border-white/5 text-sm font-mono flex items-center gap-2">
-                <Wallet size={14} className="text-primary" /> MDB-NEXUS-778899 (COMMISSION)
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Destination Account</Label>
-              <Input 
-                className="bg-black/20 border-white/10 h-11" 
-                placeholder="Account Number (e.g. 10223344)"
-                value={payoutData.destAccount}
-                onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          
+          <Tabs value={payoutMethod} onValueChange={(v) => setPayoutMethod(v as any)} className="w-full mt-4">
+            <TabsList className="grid w-full grid-cols-2 bg-black/40">
+              <TabsTrigger value="mdb" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Landmark size={14} className="mr-2" /> MDB Core
+              </TabsTrigger>
+              <TabsTrigger value="nagad" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+                <Smartphone size={14} className="mr-2" /> Nagad M2P
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Routing Number</Label>
+                <Label className="text-[10px] font-bold uppercase text-muted-foreground">
+                  {payoutMethod === 'mdb' ? 'Destination Account' : 'Nagad Recipient Number'}
+                </Label>
                 <Input 
                   className="bg-black/20 border-white/10 h-11" 
-                  placeholder="000111222"
-                  value={payoutData.routing}
-                  onChange={(e) => setPayoutData({...payoutData, routing: e.target.value})}
+                  placeholder={payoutMethod === 'mdb' ? "Account Number (e.g. 10223344)" : "017XXXXXXXX"}
+                  value={payoutData.destAccount}
+                  onChange={(e) => setPayoutData({...payoutData, destAccount: e.target.value})}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
-                <Input 
-                  type="number"
-                  className="bg-black/20 border-white/10 h-11" 
-                  placeholder="0.00"
-                  value={payoutData.amount}
-                  onChange={(e) => setPayoutData({...payoutData, amount: e.target.value})}
-                />
+
+              {payoutMethod === 'mdb' && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Routing Number</Label>
+                  <Input 
+                    className="bg-black/20 border-white/10 h-11" 
+                    placeholder="000111222"
+                    value={payoutData.routing}
+                    onChange={(e) => setPayoutData({...payoutData, routing: e.target.value})}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
+                  <Input 
+                    type="number"
+                    className="bg-black/20 border-white/10 h-11" 
+                    placeholder="0.00"
+                    value={payoutData.amount}
+                    onChange={(e) => setPayoutData({...payoutData, amount: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Narration</Label>
+                  <Input 
+                    className="bg-black/20 border-white/10 h-11" 
+                    value={payoutData.narration}
+                    onChange={(e) => setPayoutData({...payoutData, narration: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Narration</Label>
-              <Input 
-                className="bg-black/20 border-white/10 h-11" 
-                value={payoutData.narration}
-                onChange={(e) => setPayoutData({...payoutData, narration: e.target.value})}
-              />
-            </div>
-          </div>
+          </Tabs>
+
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsPayoutDialogOpen(false)}>Cancel</Button>
             <Button 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 shadow-lg shadow-primary/20"
+              className={cn(
+                "font-bold px-8 shadow-lg",
+                payoutMethod === 'mdb' ? "bg-primary text-primary-foreground shadow-primary/20" : "bg-accent text-accent-foreground shadow-accent/20"
+              )}
               onClick={handleExecutePayout}
               disabled={isExecutingPayout}
             >
-              {isExecutingPayout ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <ShieldAlert className="mr-2" size={16} />}
-              {isExecutingPayout ? "Processing..." : "Authorize Transfer"}
+              {isExecutingPayout ? <RefreshCcw className="animate-spin mr-2" size={16} /> : <Zap className="mr-2" size={16} />}
+              {isExecutingPayout ? "RSA Signing..." : "Authorize Transfer"}
             </Button>
           </DialogFooter>
         </DialogContent>
