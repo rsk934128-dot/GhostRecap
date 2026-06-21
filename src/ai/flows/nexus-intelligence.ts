@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Genkit flow for Nexus Financial Intelligence.
@@ -49,13 +50,18 @@ Transactions:
 - {{this.timestamp}} | {{this.type}} | {{this.currency}} {{this.amount}} | {{this.status}} | {{this.description}}
 {{/each}}
 
-Tasks:
-1. **Fraud Detection**: Look for rapid-fire transactions, unusual amounts, or suspicious descriptions.
-2. **Compliance**: Evaluate if the transactions align with standard business merchant profiles.
-3. **Summary**: Provide a concise executive summary of the node's financial health.
-4. **Scoring**: Assign a 0-100 compliance score.
+Context:
+- MDB Core Nexus operates with Midland Bank and bKash APIs.
+- Look for "High Velocity" transactions or unusual descriptions like "Suspicious".
+- Evaluate the merchant's stability and risk exposure.
 
-Ensure the output strictly follows the defined schema.`,
+Tasks:
+1. **Fraud Detection**: Look for rapid-fire transactions, unusual amounts, or suspicious descriptions. Set riskLevel and findings.
+2. **Compliance**: Evaluate if the transactions align with standard business merchant profiles for MDB/bKash.
+3. **Summary**: Provide a concise executive summary of the node's financial health.
+4. **Scoring**: Assign a 0-100 compliance score. 100 is perfect, below 60 is critical.
+
+Ensure the output strictly follows the defined schema and provides actionable insights.`,
 });
 
 const nexusIntelligenceFlow = ai.defineFlow(

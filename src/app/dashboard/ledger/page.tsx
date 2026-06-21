@@ -1,19 +1,22 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
 import { Transaction } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { RefreshCcw, Filter, ArrowUpRight, ArrowDownLeft, AlertCircle, BrainCircuit, ShieldAlert, CheckCircle2, DatabaseZap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -21,6 +24,7 @@ export default function NexusLedgerPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isAuditing, setIsAuditing] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
 
   const ledgerQuery = useMemoFirebase(() => {
@@ -33,29 +37,62 @@ export default function NexusLedgerPage() {
       limit(50)
     );
 
-    if (statusFilter !== 'all') {
-      q = query(q, where('status', '==', statusFilter));
-    }
-    
-    if (typeFilter !== 'all') {
-      q = query(q, where('type', '==', typeFilter));
-    }
-
     return q;
-  }, [db, user, statusFilter, typeFilter]);
+  }, [db, user]);
 
   const { data: transactions, loading } = useCollection<Transaction>(ledgerQuery);
 
+  // Filtering transactions locally for better UI responsiveness since compound index might not be ready
+  const filteredTransactions = transactions?.filter(t => {
+    const statusMatch = statusFilter === 'all' || t.status === statusFilter;
+    const typeMatch = typeFilter === 'all' || t.type === typeFilter;
+    return statusMatch && typeMatch;
+  });
+
+  const handleSeedData = async () => {
+    if (!db || !user) return;
+    setIsSeeding(true);
+    
+    const mockTxs = [
+      { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString() },
+      { amount: 2500, currency: 'BDT', status: 'completed', description: 'bKash Merchant Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString() },
+      { amount: 45000, currency: 'BDT', status: 'flagged', description: 'High Velocity Transfer - Suspicious', type: 'payment', timestamp: new Date(Date.now() - 10800000).toISOString() },
+      { amount: 12000, currency: 'BDT', status: 'pending', description: 'Visa Compliance Fee', type: 'payout', timestamp: new Date(Date.now() - 14400000).toISOString() },
+      { amount: 500, currency: 'BDT', status: 'completed', description: 'Nagad Gateway Test', type: 'payment', timestamp: new Date(Date.now() - 18000000).toISOString() },
+    ];
+
+    try {
+      for (const tx of mockTxs) {
+        addDoc(collection(db, 'transactions'), {
+          ...tx,
+          merchantId: user.uid,
+        }).catch(async (err) => {
+          const permError = new FirestorePermissionError({
+            path: 'transactions',
+            operation: 'create',
+            requestResourceData: tx
+          });
+          errorEmitter.emit('permission-error', permError);
+        });
+      }
+      toast({ title: "Nexus Node Seeded", description: "Mock transaction fragments pushed to your node." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Seeding Failed", description: "Could not push data to Node Nexus." });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   const handleRunAIAudit = async () => {
-    if (!transactions || transactions.length === 0) {
-      toast({ variant: "destructive", title: "Empty Ledger", description: "No transaction fragments found to analyze." });
+    if (!filteredTransactions || filteredTransactions.length === 0) {
+      toast({ variant: "destructive", title: "Empty Ledger", description: "No transaction fragments found to analyze. Try seeding data first." });
       return;
     }
 
     setIsAuditing(true);
     try {
       const result = await analyzeNexusLedger({
-        transactions: transactions.map(t => ({
+        transactions: filteredTransactions.map(t => ({
           amount: t.amount,
           currency: t.currency,
           status: t.status,
@@ -90,16 +127,22 @@ export default function NexusLedgerPage() {
         </div>
         <div className="flex gap-2">
           <Button 
+            variant="outline" 
+            className="gap-2 border-primary/20 hover:bg-primary/5 text-primary"
+            onClick={handleSeedData}
+            disabled={isSeeding || loading}
+          >
+            {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />}
+            Seed Test Node
+          </Button>
+          <Button 
             variant="default" 
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
             onClick={handleRunAIAudit}
             disabled={isAuditing || loading}
           >
             {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} />}
             {isAuditing ? "Auditing Node..." : "Run AI Audit"}
-          </Button>
-          <Button variant="outline" className="gap-2 border-white/10">
-            <RefreshCcw size={16} /> Force Sync
           </Button>
         </div>
       </header>
@@ -185,11 +228,11 @@ export default function NexusLedgerPage() {
                       Streaming from Node Nexus...
                     </TableCell>
                   </TableRow>
-                ) : transactions && transactions.length > 0 ? (
-                  transactions.map((tx) => (
+                ) : filteredTransactions && filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((tx) => (
                     <TableRow key={tx.id} className="hover:bg-white/5 transition-colors border-white/5">
                       <TableCell className="text-xs font-mono text-muted-foreground">
-                        {format(new Date(tx.timestamp), 'MMM d, HH:mm:ss')}
+                        {tx.timestamp ? format(new Date(tx.timestamp), 'MMM d, HH:mm:ss') : '...'}
                       </TableCell>
                       <TableCell className="font-medium text-sm">{tx.description}</TableCell>
                       <TableCell>
@@ -210,6 +253,7 @@ export default function NexusLedgerPage() {
                       <div className="flex flex-col items-center gap-2">
                         <AlertCircle size={32} className="opacity-20" />
                         <p>No transaction fragments found in this node.</p>
+                        <p className="text-xs">Click 'Seed Test Node' to populate dummy data.</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -233,7 +277,7 @@ export default function NexusLedgerPage() {
           </DialogHeader>
           
           <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="bg-primary/5 border-primary/20">
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -295,4 +339,3 @@ export default function NexusLedgerPage() {
     </div>
   );
 }
-
