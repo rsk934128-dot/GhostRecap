@@ -7,7 +7,7 @@ import { Transaction, MDBPayoutResponse, NagadPayoutResponse } from '@/lib/types
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger, SelectGroup } from '@/components/ui/select';
 import { 
   RefreshCcw, Filter, BrainCircuit, 
   CheckCircle2, DatabaseZap, Send, Landmark, Key, 
@@ -252,15 +252,12 @@ export default function NexusLedgerPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectValue placeholder="All Status" />
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="flagged">Flagged</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="flagged">Flagged</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
