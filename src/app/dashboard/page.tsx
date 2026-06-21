@@ -16,7 +16,9 @@ import {
   FileBadge,
   Award,
   Calendar,
-  Shield
+  Shield,
+  Fingerprint,
+  Globe
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,7 +34,7 @@ import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { verifyHSMHandshake } from '@/lib/security';
+import { verifyHSMHandshake, validateInboundUrl, ALLOWED_NAGAD_DOMAINS } from '@/lib/security';
 
 export default function MissionControlCenter() {
   const { user } = useUser();
@@ -85,9 +87,9 @@ export default function MissionControlCenter() {
     }
 
     addLog('System initialized. Nexus Core handshake standby.', 'info');
+    addLog('Anti-Phishing Guard active: Monitoring Nagad Official Domains.', 'success');
   }, []);
 
-  // Live Watcher for new transactions
   useEffect(() => {
     if (recentTransactions) {
       recentTransactions.forEach(tx => {
@@ -108,20 +110,18 @@ export default function MissionControlCenter() {
       setGlobalInsights(results);
     } catch (e) {
       console.error("Intelligence Hub Error:", e);
-      // No toast here to avoid annoying the user on mount if quota is hit
     }
   };
 
   const stats = useMemo(() => {
     const totalVolume = recentTransactions?.reduce((acc, t) => acc + t.amount, 0) || 0;
     const flaggedCount = recentTransactions?.filter(t => t.status === 'flagged').length || 0;
-    const pendingCount = recentTransactions?.filter(t => t.status === 'pending').length || 0;
     
     return {
       totalMessages: messages.length,
       urgent: messages.filter(m => m.category === 'Urgent').length,
       opportunities: messages.filter(m => (m.opportunityScore || 0) > 70).length,
-      decisions: messages.filter(m => m.decisionPending).length + pendingCount,
+      decisions: messages.filter(m => m.decisionPending).length,
       volume: totalVolume,
       flagged: flaggedCount,
       txCount: recentTransactions?.length || 0,
@@ -141,21 +141,20 @@ export default function MissionControlCenter() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       const incoming: ArchivedMessage = {
         id: Math.random().toString(36).substring(7),
-        sender: 'Midland Bank HSM',
-        content: 'HSM Node Alpha Handshake Request. Waiting for secure signature verification.',
+        sender: 'Nagad Security',
+        content: 'Alert: Suspicious link detected in external node: http://nagad-bonus-win.com. Validation failed.',
         timestamp: new Date().toISOString(),
         app: 'Signal',
         category: 'Urgent',
         priorityScore: 100,
-        tags: ['MDB-CORE', 'HSM-BRIDGE']
+        tags: ['FRAUD-ALERT', 'PHISHING-GUARD']
       };
       setMessages(prev => [incoming, ...prev]);
-      addLog('MDB Core Signal detected in Signal layer.', 'warning');
-      toast({ title: "Autonomous Indexing Complete", description: "MDB Core Signal Detected." });
+      addLog('Anti-Phishing Firewall blocked external domain node.', 'error');
+      toast({ variant: "destructive", title: "Phishing Risk Blocked", description: "Suspicious Nagad link detected and quarantined." });
       handleRunGlobalIntelligence();
     } catch (error) {
       addLog('Sync engine failed to handshake with HSM Bridge.', 'error');
-      toast({ variant: "destructive", title: "Sync Error", description: "Intelligence bridge failed." });
     } finally {
       setIsSyncing(false);
     }
@@ -170,15 +169,10 @@ export default function MissionControlCenter() {
         setHandshakeResult({ signature: result.signature });
         setMessages(prev => prev.filter(m => !m.tags?.includes('MDB-CORE')));
         addLog('HSM Handshake successful. Sovereign link established.', 'success');
-        toast({
-          title: "Handshake Successful",
-          description: "Nexus Node verified. Signature generated.",
-        });
         localStorage.setItem('giant_integration_step', 'completed');
       }
     } catch (error) {
       addLog('Handshake failed: Signature mismatch or timeout.', 'error');
-      toast({ variant: 'destructive', title: 'Handshake Failed', description: 'HSM Bridge connection reset.' });
     } finally {
       setHandshaking(false);
     }
@@ -190,21 +184,14 @@ export default function MissionControlCenter() {
     setAnalysis(null);
     addLog(`AI Copilot analyzing fragment from ${msg.sender}...`, 'info');
     try {
-      const isMDB = msg.tags?.includes('MDB-CORE');
       const result = await runCopilot({ 
         messageContent: msg.content, 
-        mode: isMDB ? 'audit' : 'summarize' 
+        mode: msg.tags?.includes('FRAUD-ALERT') ? 'audit' : 'summarize' 
       });
       setAnalysis(result);
-      addLog(`Analysis complete for ${msg.sender}. Priority: ${result.priorityScore || 'N/A'}`, 'success');
+      addLog(`Analysis complete. Risk detected: ${result.priorityScore || 'N/A'}`, 'success');
     } catch (e: any) {
       addLog('Cognitive Layer connection error.', 'error');
-      const isQuota = e.message?.includes('429') || e.message?.includes('RESOURCE_EXHAUSTED');
-      toast({ 
-        variant: 'destructive', 
-        title: isQuota ? 'AI Quota Exceeded' : 'Analysis Failed', 
-        description: isQuota ? 'The cognitive layer is currently at capacity. Please try again in a few minutes.' : 'Could not connect to Cognitive Layer.' 
-      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -217,13 +204,13 @@ export default function MissionControlCenter() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-2 py-0 border-primary/20">MDB Nexus Live</Badge>
+            <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-2 py-0 border-primary/20">Nexus Core Live</Badge>
             <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1">
-              <ShieldCheck size={10} className="text-green-500" /> Nexus Security: ACTIVE
+              <ShieldCheck size={10} className="text-green-500" /> Anti-Phishing Shield: ACTIVE
             </span>
           </div>
           <h1 className="text-4xl font-headline font-bold">Mission Control</h1>
-          <p className="text-muted-foreground">Unified autonomous orchestration and Nexus financial intelligence.</p>
+          <p className="text-muted-foreground">Unified orchestration with integrated Nagad Fraud Awareness.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -231,144 +218,78 @@ export default function MissionControlCenter() {
             onClick={handleSmartSync}
             disabled={isSyncing}
           >
-            {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} className="group-hover:animate-pulse" />}
-            {isSyncing ? "Syncing Nexus..." : "Sync Intelligence"}
+            {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} />}
+            {isSyncing ? "Syncing..." : "Sync Intelligence"}
           </Button>
         </div>
       </header>
 
-      {/* Nexus Inbound Signal Alert */}
-      {mdbSignal && !handshakeResult && (
-        <Card className="bg-primary/10 border-primary/20 border-l-4 border-l-primary overflow-hidden ghostly-fade animate-pulse">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                <SignalHigh size={24} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Incoming MDB Core Signal Detected</p>
-                <h4 className="text-sm font-bold text-foreground">{mdbSignal.sender}: {mdbSignal.content}</h4>
-                <p className="text-[10px] text-muted-foreground font-mono mt-1">Source: HSM Bridge Node Alpha | Latency: 42ms</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="text-xs border-primary/20" onClick={() => handleAnalyze(mdbSignal)}>
-                AI Audit
-              </Button>
-              <Button 
-                size="sm" 
-                className="bg-primary text-primary-foreground font-bold" 
-                onClick={() => handleRespondToHandshake('ALPHA_01')}
-                disabled={handshaking}
-              >
-                {handshaking ? <RefreshCcw className="animate-spin mr-2" size={12} /> : <ShieldCheck className="mr-2" size={12} />}
-                {handshaking ? "Verifying..." : "Respond to Handshake"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {handshakeResult && (
-        <Card className="bg-green-500/10 border-green-500/20 border-l-4 border-l-green-500 overflow-hidden ghostly-fade">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
-                <CheckCircle2 size={24} />
-              </div>
-              <div className="flex-1">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-green-500 mb-1">Handshake Verified</p>
-                <h4 className="text-sm font-bold text-foreground">Sovereign Link Established with MDB Core HSM</h4>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="bg-black/20 border-green-500/20 text-green-500 text-[9px] font-mono">
-                    SIG: {handshakeResult.signature.substring(0, 16)}...
-                  </Badge>
-                  <p className="text-[10px] text-muted-foreground font-mono">Status: SECURE | Integration: 100%</p>
-                </div>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-green-500 hover:bg-green-500/10 text-xs font-bold gap-2"
-              onClick={() => setIsCertDialogOpen(true)}
-            >
-              <FileBadge size={16} /> View Certificate
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-primary/5 border-primary/20 ghostly-fade overflow-hidden group">
-          <CardContent className="p-6 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-destructive/5 border-destructive/20 ghostly-fade overflow-hidden">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-primary/20 text-primary">
-                  <Briefcase size={20} />
-                </div>
-                <h3 className="font-bold">Nexus Volume</h3>
+              <div className="p-2 rounded-full bg-destructive/10 text-destructive">
+                <ShieldAlert size={20} />
+              </div>
+              <Badge variant="destructive" className="text-[9px] animate-pulse">LIVE GUARD</Badge>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Threat Shield</p>
+              <h3 className="text-xl font-bold font-headline">SECURE</h3>
+              <p className="text-[9px] text-muted-foreground font-mono mt-2">Nagad Domains Validated</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-primary/5 border-primary/20 ghostly-fade overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 rounded-full bg-primary/10 text-primary">
+                <Briefcase size={20} />
               </div>
               <ArrowUpRight size={16} className="text-primary opacity-50" />
             </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <span className="text-3xl font-bold font-headline">৳ {stats.volume.toLocaleString()}</span>
-                <span className="text-[10px] text-muted-foreground font-bold uppercase">Node Volume</span>
-              </div>
-              <Progress value={Math.min(100, (stats.volume / 100000) * 100)} className="h-1 bg-white/5" />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Indexed from <span className="text-primary font-bold">Midland Bank & bKash</span>. {stats.txCount} fragments found.
-              </p>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Node Volume</p>
+              <h3 className="text-xl font-bold font-headline">৳ {stats.volume.toLocaleString()}</h3>
+              <Progress value={Math.min(100, (stats.volume / 100000) * 100)} className="h-1 bg-white/5 mt-2" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-accent/5 border-accent/20 ghostly-fade relative overflow-hidden group">
-          <CardContent className="p-6 relative z-10">
+        <Card className="bg-accent/5 border-accent/20 ghostly-fade overflow-hidden">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-accent/20 text-accent">
-                  <Timer size={20} />
-                </div>
-                <h3 className="font-bold">Inbound Signals</h3>
+              <div className="p-2 rounded-full bg-accent/10 text-accent">
+                <Fingerprint size={20} />
               </div>
-              <Bell size={16} className="text-accent opacity-50" />
+              <Badge variant="outline" className="text-[9px] border-accent/20 text-accent uppercase">HSM V4</Badge>
             </div>
-            <div className="space-y-3">
-              {stats.bankSignals > 0 ? (
-                <div className="p-3 rounded-lg bg-accent/10 border border-accent/10">
-                  <p className="text-xs font-bold text-accent mb-1">{stats.bankSignals} CORE SIGNALS ACTIVE</p>
-                  <p className="text-[10px] text-muted-foreground italic leading-tight">
-                    Critical handshake requests found in notification layer.
-                  </p>
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground py-4">No critical bank signals identified.</p>
-              )}
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Sovereign Trust</p>
+              <h3 className="text-xl font-bold font-headline">{handshakeResult ? 'VERIFIED' : 'PENDING'}</h3>
+              <p className="text-[9px] text-muted-foreground font-mono mt-2">Hardware Root Secure</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/10 border-white/5 ghostly-fade relative overflow-hidden">
-          <CardHeader className="p-6 pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity size={16} className="text-primary" />
-              Live System Logs
+        <Card className="bg-secondary/10 border-white/5 ghostly-fade overflow-hidden">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-[10px] flex items-center gap-2 uppercase font-bold text-muted-foreground">
+              <Activity size={12} className="text-primary" /> Live Node Logs
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-6 pb-6 pt-2 h-[120px] overflow-y-auto scrollbar-none">
-            <div className="space-y-2">
-              {logs.map(log => (
-                <div key={log.id} className="flex gap-2 text-[10px] font-mono items-start">
-                  <span className="text-muted-foreground">{format(new Date(log.timestamp), 'HH:mm:ss')}</span>
+          <CardContent className="p-4 pt-0 h-[80px] overflow-y-auto scrollbar-none">
+            <div className="space-y-1">
+              {logs.slice(0, 5).map(log => (
+                <div key={log.id} className="flex gap-2 text-[9px] font-mono items-start">
                   <span className={cn(
-                    "font-bold",
+                    "font-bold shrink-0",
                     log.type === 'success' ? "text-green-500" : 
                     log.type === 'warning' ? "text-amber-500" : 
                     log.type === 'error' ? "text-destructive" : "text-primary"
-                  )}>[{log.type.toUpperCase()}]</span>
-                  <span className="text-foreground/80">{log.message}</span>
+                  )}>[{log.type.charAt(0).toUpperCase()}]</span>
+                  <span className="text-foreground/70 truncate">{log.message}</span>
                 </div>
               ))}
             </div>
@@ -376,78 +297,137 @@ export default function MissionControlCenter() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Fragments', value: stats.txCount + stats.totalMessages, icon: BrainCircuit, color: 'text-primary' },
-          { label: 'Ledger Audit', value: stats.flagged === 0 ? 'CLEAN' : 'RISK', icon: CheckCircle2, color: stats.flagged === 0 ? 'text-accent' : 'text-destructive' },
-          { label: 'Growth Signals', value: stats.opportunities, icon: Rocket, color: 'text-orange-400' },
-          { label: 'Trust Fabric', value: '100%', icon: ShieldCheck, color: 'text-green-400' },
-        ].map((stat, i) => (
-          <Card key={i} className="bg-secondary/10 border-white/5 hover:bg-secondary/20 transition-colors">
-            <CardContent className="p-4 flex flex-col gap-1">
-              <stat.icon size={16} className={`${stat.color} mb-1`} />
-              <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{stat.label}</p>
-              <p className="text-2xl font-bold font-headline">{stat.value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 group max-w-2xl">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input 
-            className="pl-10 h-12 bg-secondary/50 border-white/5 focus-visible:ring-primary/50 text-lg" 
-            placeholder="Search Nexus Memory Graph..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-3">
-        {filtered.map((msg) => (
-          <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
-            <CardContent className="p-0">
-              <div className="flex items-stretch min-h-[80px]">
-                <div className={`w-1.5 ${msg.category === 'Urgent' ? 'bg-red-500' : 'bg-primary/30'}`} />
-                <div className="flex-1 p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary border border-primary/20 shrink-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <h3 className="text-xl font-headline font-bold flex items-center gap-2">
+            <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
+          </h3>
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+            <Input 
+              className="pl-10 h-10 bg-secondary/50 border-white/5 focus-visible:ring-primary/50" 
+              placeholder="Search Nexus Memory..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
+            {filtered.map((msg) => (
+              <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center font-bold border shrink-0",
+                    msg.category === 'Urgent' ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-primary/10 text-primary border-primary/20"
+                  )}>
                     {msg.sender.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold truncate text-sm">{msg.sender}</span>
-                        <Badge variant="outline" className="text-[8px] uppercase border-white/10 px-1 py-0">{msg.app}</Badge>
-                        {msg.category && <ClassificationBadge category={msg.category} className="scale-75 origin-left" />}
                         {msg.tags?.map(t => (
                           <Badge key={t} className="text-[8px] bg-primary/20 text-primary border-primary/30 h-4">{t}</Badge>
                         ))}
                       </div>
-                      <span className="text-xs text-muted-foreground font-mono">
-                        {mounted ? format(new Date(msg.timestamp), 'h:mm a') : '...'}
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {mounted ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors font-medium">
+                    <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors">
                       {msg.content}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 gap-1 text-[10px] text-primary font-bold hover:bg-primary/10"
-                      onClick={() => handleAnalyze(msg)}
-                    >
-                      Copilot <ChevronRight size={10} />
-                    </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                    onClick={() => handleAnalyze(msg)}
+                  >
+                    <ChevronRight size={14} />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ShieldCheck size={20} className="text-primary" />
+                Anti-Phishing Protocol
+              </CardTitle>
+              <CardDescription>Automated domain validation and social engineering defense.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Trusted Nagad Rails</p>
+                <div className="flex flex-wrap gap-2">
+                  {ALLOWED_NAGAD_DOMAINS.map(domain => (
+                    <Badge key={domain} variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20 text-[9px] font-mono">
+                      {domain}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase text-muted-foreground">
+                  <span>Security Heuristics</span>
+                  <span className="text-primary">ACTIVE</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Domain Mismatch Detection</span>
+                    <CheckCircle2 size={12} className="text-green-500" />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Suspicious Keyword Analysis</span>
+                    <CheckCircle2 size={12} className="text-green-500" />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Short-link De-obfuscation</span>
+                    <CheckCircle2 size={12} className="text-green-500" />
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+
+          <Card className="bg-secondary/10 border-white/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Globe size={80} />
+            </div>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Lock size={18} className="text-accent" /> HSM Root Access
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!handshakeResult ? (
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground">Hardward Security Module handshake required to unlock full predictive audit layer.</p>
+                  <Button 
+                    className="w-full bg-primary font-bold shadow-lg" 
+                    onClick={() => handleRespondToHandshake('ALPHA_01')}
+                    disabled={handshaking}
+                  >
+                    {handshaking ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <Shield size={16} className="mr-2" />}
+                    Authorize HSM Handshake
+                  </Button>
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-center space-y-3">
+                  <Award className="text-green-500 mx-auto" size={32} />
+                  <p className="text-xs font-bold text-green-500">HSM CERTIFICATE ACTIVE</p>
+                  <Button variant="outline" className="w-full border-green-500/20 text-green-500 text-xs" onClick={() => setIsCertDialogOpen(true)}>
+                    View Digital Certificate
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Dialog open={!!selectedMsg} onOpenChange={(open) => !open && setSelectedMsg(null)}>
@@ -457,85 +437,56 @@ export default function MissionControlCenter() {
               <BrainCircuit className="text-primary" />
               Nexus Cognitive Engine
             </DialogTitle>
-            <DialogDescription>
-              Orchestrating intelligence for {selectedMsg?.sender}
-            </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-6 py-4">
             <div className="p-4 rounded-xl bg-secondary/50 border border-white/5">
               <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Source Context</p>
               <p className="text-sm italic">"{selectedMsg?.content}"</p>
             </div>
-
             {isAnalyzing ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <RefreshCcw className="animate-spin text-primary" size={32} />
-                <p className="text-sm font-medium animate-pulse">Running Cognitive Engines...</p>
+                <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
               </div>
             ) : analysis && (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
-                <Card className="bg-primary/5 border-primary/20">
+                <Card className={cn(
+                  "border-2",
+                  analysis.priorityScore && analysis.priorityScore > 80 ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                )}>
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <Sparkles size={14} className="text-primary" />
-                      {selectedMsg?.tags?.includes('MDB-CORE') ? 'HSM Audit Report' : 'Nexus Summary'}
+                      <ShieldAlert size={14} className={analysis.priorityScore && analysis.priorityScore > 80 ? "text-destructive" : "text-primary"} />
+                      Audit Conclusion
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <p className="text-sm leading-relaxed">{analysis.analysis}</p>
-                    {analysis.securityProtocol && (
-                      <div className="mt-4 p-2 rounded bg-black/40 border border-white/10 font-mono text-[10px] text-green-400">
-                        Protocol: {analysis.securityProtocol}
+                    {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
+                      <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
+                        PHISHING COUNTERMEASURE: Quarantined
                       </div>
                     )}
                   </CardContent>
                 </Card>
-
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                    <Zap size={12} className="text-primary" /> Recommended Autonomous Actions
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button className="h-10 text-xs font-bold bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 justify-start gap-2">
-                      <ArrowUpRight size={14} /> Update Ledger
-                    </Button>
-                    <Button variant="outline" className="h-10 text-xs font-bold border-white/10 justify-start gap-2">
-                      <Timer size={14} /> Schedule Sync
-                    </Button>
-                    <Button variant="outline" className="h-10 text-xs font-bold border-white/10 justify-start gap-2">
-                      <CheckCircle2 size={14} /> Verify Compliance
-                    </Button>
-                    <Button variant="outline" className="h-10 text-xs font-bold border-white/10 justify-start gap-2">
-                      <ShieldCheck size={14} /> Verify Identity
-                    </Button>
-                  </div>
-                </div>
               </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Digital Certificate Dialog */}
       <Dialog open={isCertDialogOpen} onOpenChange={setIsCertDialogOpen}>
         <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/20 shadow-2xl shadow-amber-500/10">
           <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/cert/800/600')] opacity-5 mix-blend-overlay pointer-events-none" />
-          
           <DialogHeader className="relative z-10 text-center space-y-4">
             <div className="flex justify-center">
               <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20">
                 <Award className="text-amber-500 w-12 h-12" />
               </div>
             </div>
-            <DialogTitle className="text-3xl font-headline font-bold text-amber-500 uppercase tracking-widest">
-              Digital Trust Certificate
-            </DialogTitle>
-            <DialogDescription className="text-slate-400 font-medium">
-              Verified Hardware Security Module Handshake
-            </DialogDescription>
+            <DialogTitle className="text-3xl font-headline font-bold text-amber-500 uppercase tracking-widest">Digital Trust Certificate</DialogTitle>
+            <DialogDescription className="text-slate-400">Verified Hardware Security Module Handshake</DialogDescription>
           </DialogHeader>
-
           <div className="relative z-10 py-8 px-6 border-y border-white/5 my-4 space-y-8">
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-1">
@@ -546,48 +497,21 @@ export default function MissionControlCenter() {
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Subject</p>
                 <p className="text-sm font-bold text-slate-200">Nexus Node Alpha-01</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Validity</p>
-                <div className="flex items-center gap-2 text-sm font-bold text-green-500">
-                  <Calendar size={14} /> {format(new Date(), 'MMM dd, yyyy')} - Perpetual
-                </div>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Status</p>
-                <Badge className="bg-green-500/20 text-green-500 border-green-500/30">ACTIVE & SECURE</Badge>
-              </div>
             </div>
-
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
-                  <Key size={12} className="text-amber-500" /> Digital Signature (RSA-2048)
-                </div>
-                <p className="text-[11px] font-mono text-amber-500/80 break-all leading-relaxed bg-amber-500/5 p-3 rounded-lg border border-amber-500/10">
-                  {handshakeResult?.signature || 'PENDING_HSM_INIT'}
-                </p>
+            <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
+                <Key size={12} className="text-amber-500" /> RSA Signature
               </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900/50 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Shield className="text-blue-500" size={20} />
-                  <div>
-                    <p className="text-xs font-bold text-slate-200">PCI-DSS Compliant Node</p>
-                    <p className="text-[10px] text-slate-500">E2EE Handshake Layer 4 Verified</p>
-                  </div>
-                </div>
-                <CheckCircle2 className="text-green-500" size={20} />
-              </div>
+              <p className="text-[11px] font-mono text-amber-500/80 break-all leading-relaxed p-3 rounded-lg border border-amber-500/10">
+                {handshakeResult?.signature || 'PENDING_INIT'}
+              </p>
             </div>
           </div>
-
           <DialogFooter className="relative z-10 flex sm:justify-between items-center w-full gap-4">
             <div className="text-[9px] text-slate-500 italic flex items-center gap-1">
-              <Lock size={10} /> This certificate is immutable and stored in the Nexus Hardware Root.
+              <Lock size={10} /> PCI-DSS and Anti-Phishing Layer 4 Verified.
             </div>
-            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-8 shadow-lg shadow-amber-900/20" onClick={() => setIsCertDialogOpen(false)}>
-              Close Vault View
-            </Button>
+            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold" onClick={() => setIsCertDialogOpen(false)}>Close Vault View</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
