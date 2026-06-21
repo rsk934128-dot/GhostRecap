@@ -75,3 +75,26 @@ export async function executeNagadPayout(input: Omit<NagadPayoutPayload, 'signat
     };
   }
 }
+
+/**
+ * Simulates the "Bank to Nagad" liquidity synchronization.
+ */
+export async function executeBankToNagadSync(input: { bankName: string; amount: number }): Promise<{ success: boolean; message: string; transactionId?: string }> {
+  console.log(`--- NAGAD LIQUIDITY OCEAN: SYNCING FROM ${input.bankName.toUpperCase()} ---`);
+  
+  try {
+    // Simulate inter-node RSA handshake and settlement
+    await new Promise(resolve => setTimeout(resolve, 4000));
+    
+    return {
+      success: true,
+      message: `Successfully synchronized ৳ ${input.amount.toLocaleString()} from ${input.bankName} node.`,
+      transactionId: `NGD_SYNC_${Math.random().toString(36).substring(7).toUpperCase()}`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Liquidity fragment rejected by Nagad Gateway Node.',
+    };
+  }
+}

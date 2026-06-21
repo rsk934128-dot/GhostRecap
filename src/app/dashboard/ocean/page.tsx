@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -15,14 +14,21 @@ import {
   Droplets,
   Timer,
   Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  Building2,
+  PlusCircle,
+  ArrowDownCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { LiquidityNode } from '@/lib/types';
+import { NAGAD_BANK_NODES } from '@/lib/mock-data';
+import { executeBankToNagadSync } from '@/app/lib/nagad-actions';
 import { cn } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
@@ -32,6 +38,11 @@ export default function OceanMixingPage() {
   const [testProgress, setTestProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [nagadSync, setNagadSync] = useState(true);
+  
+  // Liquidity Injection State
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedBank, setSelectedBank] = useState('');
+  const [syncAmount, setSyncAmount] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -78,6 +89,33 @@ export default function OceanMixingPage() {
     }, 200);
   };
 
+  const handleLiquiditySync = async () => {
+    if (!selectedBank || !syncAmount) {
+      toast({ variant: 'destructive', title: 'Missing Fragment', description: 'Please select a bank node and amount.' });
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const response = await executeBankToNagadSync({ 
+        bankName: selectedBank, 
+        amount: parseFloat(syncAmount) 
+      });
+
+      if (response.success) {
+        toast({
+          title: "Liquidity Synced",
+          description: response.message,
+        });
+        setSyncAmount('');
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Bridge Error', description: 'Handshake timeout during sync.' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -91,14 +129,22 @@ export default function OceanMixingPage() {
           </div>
           <p className="text-muted-foreground">Normalizing liquidity fragments across MDB, Nagad, and Global Rails.</p>
         </div>
-        <Button 
-          onClick={handleStartStressTest} 
-          disabled={isTesting}
-          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
-        >
-          {isTesting ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} />}
-          {isTesting ? "Simulating Traffic..." : "Trigger Stress Test"}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleStartStressTest} 
+            disabled={isTesting}
+            variant="outline"
+            className="gap-2 border-white/10 hover:bg-white/5"
+          >
+            {isTesting ? <RefreshCcw size={16} className="animate-spin" /> : <Activity size={16} />}
+            Stress Test
+          </Button>
+          <Link href="/dashboard/ocean/topography">
+            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
+              <Zap size={16} /> View Topography
+            </Button>
+          </Link>
+        </div>
       </header>
 
       {isTesting && (
@@ -145,6 +191,69 @@ export default function OceanMixingPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Bank to Nagad Liquidity Bridge */}
+        <Card className="bg-accent/5 border-accent/20 relative overflow-hidden ghostly-fade" style={{ animationDelay: '200ms' }}>
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <Building2 size={100} />
+          </div>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl font-headline font-bold">
+              <PlusCircle size={22} className="text-accent" />
+              Bank to Nagad Bridge
+            </CardTitle>
+            <CardDescription>Inject liquidity fragments from 34 commercial banks.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                  <Building2 size={10} /> Select Source Bank Node
+                </label>
+                <Select value={selectedBank} onValueChange={setSelectedBank}>
+                  <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
+                    <SelectValue placeholder="Search Bank Directory..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {NAGAD_BANK_NODES.map(bank => (
+                      <SelectItem key={bank} value={bank} className="text-xs">
+                        {bank}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                  <ArrowDownCircle size={10} /> Amount (BDT)
+                </label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 h-11 text-lg font-mono"
+                  placeholder="0.00"
+                  value={syncAmount}
+                  onChange={(e) => setSyncAmount(e.target.value)}
+                />
+              </div>
+
+              <Button 
+                onClick={handleLiquiditySync}
+                disabled={isSyncing}
+                className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-lg shadow-accent/20 gap-2"
+              >
+                {isSyncing ? <RefreshCcw size={18} className="animate-spin" /> : <Smartphone size={18} />}
+                {isSyncing ? "RSA Handshaking..." : "Initiate Liquidity Sync"}
+              </Button>
+            </div>
+            
+            <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
+              <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                <strong className="text-accent">Note:</strong> Liquidity synchronization utilizes the Midland Bank Core settlement node for inter-bank handshakes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -176,7 +285,9 @@ export default function OceanMixingPage() {
             )}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="bg-secondary/10 border-white/5 overflow-hidden relative">
           <div className="absolute top-0 right-0 p-8 opacity-5">
             <Droplets size={120} />
@@ -223,6 +334,34 @@ export default function OceanMixingPage() {
                 View Node Topography <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-secondary/10 border-white/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Timer size={20} className="text-primary" />
+              Real-time Settlement Queue
+            </CardTitle>
+            <CardDescription>Status of pending inter-node liquidity fragments.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[
+              { label: 'Midland Bank Node', status: 'Settled', time: '2m ago' },
+              { label: 'Nagad Gateway Node', status: 'Active', time: 'Live' },
+              { label: 'bKash Node', status: 'Pending', time: '14s' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-primary">{item.status}</p>
+                  <p className="text-[10px] text-muted-foreground">{item.time}</p>
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
