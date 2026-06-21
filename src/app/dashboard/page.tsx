@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,7 +5,9 @@ import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { 
   Search, Sparkles, RefreshCcw, BrainCircuit, ShieldAlert, 
-  Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, MousePointerClick, Rocket, CheckCircle2
+  Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, MousePointerClick, Rocket, CheckCircle2,
+  SignalHigh,
+  Bell
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,7 @@ export default function MissionControlCenter() {
       volume: totalVolume,
       flagged: flaggedCount,
       txCount: recentTransactions?.length || 0,
+      bankSignals: messages.filter(m => m.sender.toLowerCase().includes('bank') || m.content.toLowerCase().includes('hsm') || m.content.toLowerCase().includes('nexus')).length
     };
   }, [messages, recentTransactions]);
 
@@ -128,6 +130,8 @@ export default function MissionControlCenter() {
     }
   };
 
+  const mdbSignal = messages.find(m => m.sender.includes('Bank') || m.tags?.includes('MDB-CORE'));
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -152,6 +156,27 @@ export default function MissionControlCenter() {
           </Button>
         </div>
       </header>
+
+      {/* NEW: Nexus Inbound Signal Alert */}
+      {mdbSignal && (
+        <Card className="bg-primary/10 border-primary/20 border-l-4 border-l-primary overflow-hidden ghostly-fade animate-pulse">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                <SignalHigh size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Incoming MDB Core Signal Detected</p>
+                <h4 className="text-sm font-bold text-foreground">{mdbSignal.sender}: {mdbSignal.content}</h4>
+                <p className="text-[10px] text-muted-foreground font-mono mt-1">Source: HSM Bridge Node Alpha | Latency: 42ms</p>
+              </div>
+            </div>
+            <Button size="sm" className="bg-primary text-primary-foreground font-bold" onClick={() => handleAnalyze(mdbSignal)}>
+              Respond to Handshake
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-primary/5 border-primary/20 ghostly-fade overflow-hidden group">
@@ -185,20 +210,20 @@ export default function MissionControlCenter() {
                 <div className="p-2 rounded-full bg-accent/20 text-accent">
                   <Timer size={20} />
                 </div>
-                <h3 className="font-bold">Decision Engine</h3>
+                <h3 className="font-bold">Inbound Signals</h3>
               </div>
-              <MousePointerClick size={16} className="text-accent opacity-50" />
+              <Bell size={16} className="text-accent opacity-50" />
             </div>
             <div className="space-y-3">
-              {stats.decisions > 0 ? (
+              {stats.bankSignals > 0 ? (
                 <div className="p-3 rounded-lg bg-accent/10 border border-accent/10">
-                  <p className="text-xs font-bold text-accent mb-1">{stats.decisions} DECISIONS REQUIRED</p>
+                  <p className="text-xs font-bold text-accent mb-1">{stats.bankSignals} CORE SIGNALS ACTIVE</p>
                   <p className="text-[10px] text-muted-foreground italic leading-tight">
-                    Includes {recentTransactions?.filter(t => t.status === 'pending').length || 0} pending transactions.
+                    Critical handshake requests found in notification layer.
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground py-4">No critical pending decisions identified.</p>
+                <p className="text-xs text-muted-foreground py-4">No critical bank signals identified.</p>
               )}
             </div>
           </CardContent>
@@ -281,6 +306,9 @@ export default function MissionControlCenter() {
                         <span className="font-bold truncate text-sm">{msg.sender}</span>
                         <Badge variant="outline" className="text-[8px] uppercase border-white/10 px-1 py-0">{msg.app}</Badge>
                         {msg.category && <ClassificationBadge category={msg.category} className="scale-75 origin-left" />}
+                        {msg.tags?.map(t => (
+                          <Badge key={t} className="text-[8px] bg-primary/20 text-primary border-primary/30 h-4">{t}</Badge>
+                        ))}
                       </div>
                       <span className="text-xs text-muted-foreground font-mono">
                         {mounted ? format(new Date(msg.timestamp), 'h:mm a') : '...'}

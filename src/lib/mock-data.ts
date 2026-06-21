@@ -2,6 +2,16 @@ import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem } from './ty
 
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
+    id: 'signal-mdb-1',
+    sender: 'Midland Bank IT',
+    content: 'Nexus Node Handshake: Authentication keys for HSM Bridge generated. Waiting for merchant signature.',
+    timestamp: new Date().toISOString(),
+    app: 'Signal',
+    category: 'Urgent',
+    priorityScore: 99,
+    tags: ['MDB-CORE', 'HSM-BRIDGE'],
+  },
+  {
     id: '1',
     sender: 'Alex Rivera',
     content: 'Can you send the draft by tonight? It is pretty critical for the meeting.',

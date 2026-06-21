@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for categorizing messages using AI.
+ * Updated to recognize MDB Core and Nexus specific signals.
  *
  * - smartMessageCategorization - A function that categorizes message content.
  * - SmartMessageCategorizationInput - The input type for the smartMessageCategorization function.
@@ -21,8 +22,8 @@ export type SmartMessageCategorizationInput = z.infer<
 
 const SmartMessageCategorizationOutputSchema = z.object({
   category: z
-    .enum(['Urgent', 'Transactional', 'OTP', 'Other'])
-    .describe("The category of the message ('Urgent', 'Transactional', 'OTP', or 'Other')."),
+    .enum(['Urgent', 'Transactional', 'OTP', 'Other', 'MDB-Signal'])
+    .describe("The category of the message ('Urgent', 'Transactional', 'OTP', 'MDB-Signal', or 'Other')."),
 });
 export type SmartMessageCategorizationOutput = z.infer<
   typeof SmartMessageCategorizationOutputSchema
@@ -38,11 +39,12 @@ const prompt = ai.definePrompt({
   name: 'messageCategorizationPrompt',
   input: { schema: SmartMessageCategorizationInputSchema },
   output: { schema: SmartMessageCategorizationOutputSchema },
-  prompt: `You are an AI assistant tasked with categorizing messages into one of the following types:
-- 'Urgent': For time-sensitive, critical, or immediate action-required messages.
-- 'Transactional': For automated notifications, receipts, order updates, or system alerts.
-- 'OTP': For one-time passwords, verification codes, or security tokens.
-- 'Other': If none of the above categories fit.
+  prompt: `You are an AI assistant for GhostRecap Intelligence OS. Categorize messages into:
+- 'Urgent': Critical action-required messages.
+- 'Transactional': Receipts, orders, or system alerts.
+- 'OTP': Verification codes.
+- 'MDB-Signal': Communication from Midland Bank, Nexus, or HSM Bridge regarding API keys, handshake, or approvals.
+- 'Other': None of the above.
 
 Categorize the following message content:
 
