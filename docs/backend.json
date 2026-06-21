@@ -1,0 +1,63 @@
+
+{
+  "entities": {
+    "MerchantProfile": {
+      "title": "Merchant Profile",
+      "description": "Information about a merchant in the Nexus system.",
+      "type": "object",
+      "properties": {
+        "businessName": { "type": "string", "description": "Legal name of the business" },
+        "email": { "type": "string", "format": "email" },
+        "status": { "type": "string", "enum": ["active", "suspended", "pending"], "description": "Account status" },
+        "merchantId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["businessName", "email", "merchantId"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial transaction ledger entry.",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "description": "e.g., BDT, USD" },
+        "status": { "type": "string", "enum": ["pending", "completed", "flagged"] },
+        "merchantId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["payment", "refund", "payout"] }
+      },
+      "required": ["amount", "currency", "status", "merchantId", "timestamp"]
+    },
+    "VisaCompliance": {
+      "title": "Visa Compliance Document",
+      "description": "Document tracking for visa compliance scores.",
+      "type": "object",
+      "properties": {
+        "merchantId": { "type": "string" },
+        "score": { "type": "number", "description": "AI calculated compliance score (0-100)" },
+        "status": { "type": "string", "enum": ["valid", "expired", "needs_review"] },
+        "lastReviewed": { "type": "string", "format": "date-time" },
+        "documentUrl": { "type": "string" }
+      },
+      "required": ["merchantId", "score", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/merchants/{merchantId}": {
+      "schema": "#/backend/entities/MerchantProfile",
+      "description": "Merchant profiles."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "#/backend/entities/Transaction",
+      "description": "Transaction ledger."
+    },
+    "/visa-compliance/{docId}": {
+      "schema": "#/backend/entities/VisaCompliance",
+      "description": "Visa compliance documents and AI scores."
+    }
+  }
+}
