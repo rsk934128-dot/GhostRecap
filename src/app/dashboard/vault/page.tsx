@@ -1,3 +1,4 @@
+
 "use client";
 
 import { MOCK_VAULT } from '@/lib/mock-data';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 export default function SecureIntelligenceVault() {
   const [locked, setLocked] = useState(true);
@@ -43,7 +45,7 @@ export default function SecureIntelligenceVault() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-end justify-between">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-4">
             <ShieldCheck className="text-primary" size={32} />
@@ -51,9 +53,16 @@ export default function SecureIntelligenceVault() {
           </div>
           <p className="text-muted-foreground">Isolated storage for OTPs, sensitive documents, and financial fragments.</p>
         </div>
-        <Button variant="outline" className="border-white/10 hover:bg-destructive/10 hover:text-destructive h-10 gap-2" onClick={() => setLocked(true)}>
-          <Lock size={16} /> Lock Vault
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/dashboard/vault/recovery">
+            <Button variant="outline" className="border-white/10 hover:bg-primary/10 hover:text-primary h-10 gap-2">
+              <Key size={16} /> Manage Keys
+            </Button>
+          </Link>
+          <Button variant="outline" className="border-white/10 hover:bg-destructive/10 hover:text-destructive h-10 gap-2" onClick={() => setLocked(true)}>
+            <Lock size={16} /> Lock Vault
+          </Button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -112,7 +121,9 @@ export default function SecureIntelligenceVault() {
             <Smartphone className="text-accent" size={32} />
             <h4 className="font-bold">Device Trust System</h4>
             <p className="text-[11px] text-muted-foreground">This vault is locked to your hardware signature. Data cannot be accessed from new devices without recovery keys.</p>
-            <Button size="sm" variant="link" className="text-accent text-xs">Manage Recovery Keys</Button>
+            <Link href="/dashboard/vault/recovery">
+              <Button size="sm" variant="link" className="text-accent text-xs">Manage Recovery Keys</Button>
+            </Link>
           </div>
         </div>
       </div>
