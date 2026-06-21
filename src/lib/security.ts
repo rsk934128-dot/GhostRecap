@@ -29,3 +29,18 @@ export function generateSecureToken(payload: string): string {
 export function isMasked(value: string): boolean {
   return value.includes('•');
 }
+
+/**
+ * Simulates the verification of an HSM Bridge handshake.
+ * This is used for completing Step 3: Giant Integration.
+ */
+export async function verifyHSMHandshake(nodeId: string): Promise<{ success: boolean; signature: string }> {
+  // Simulate cryptographic processing time
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  const signature = btoa(`SIG_${nodeId}_${Date.now()}`).substring(0, 32).toUpperCase();
+  return {
+    success: true,
+    signature
+  };
+}

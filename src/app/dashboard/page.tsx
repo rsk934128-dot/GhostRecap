@@ -5,9 +5,10 @@ import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { 
   Search, Sparkles, RefreshCcw, BrainCircuit, ShieldAlert, 
-  Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, MousePointerClick, Rocket, CheckCircle2,
+  Zap, ChevronRight, Briefcase, Timer, ShieldCheck, ArrowUpRight, CheckCircle2,
   SignalHigh,
-  Bell
+  Bell,
+  Rocket
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import { verifyHSMHandshake } from '@/lib/security';
 
 export default function MissionControlCenter() {
   const { user } = useUser();
@@ -35,6 +37,8 @@ export default function MissionControlCenter() {
   const [analysis, setAnalysis] = useState<CopilotOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [globalInsights, setGlobalInsights] = useState<PredictiveOutput | null>(null);
+  const [handshaking, setHandshaking] = useState(false);
+  const [handshakeComplete, setHandshakeComplete] = useState(false);
 
   // Real-time Ledger Data for Executive Dashboard
   const transactionsQuery = useMemoFirebase(() => {
@@ -95,7 +99,17 @@ export default function MissionControlCenter() {
     setIsSyncing(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const incoming: ArchivedMessage = {
+      const isMDB = Math.random() > 0.5;
+      const incoming: ArchivedMessage = isMDB ? {
+        id: Math.random().toString(36).substring(7),
+        sender: 'Midland Bank HSM',
+        content: 'HSM Node Alpha Handshake Request. Waiting for secure signature verification.',
+        timestamp: new Date().toISOString(),
+        app: 'Signal',
+        category: 'Urgent',
+        priorityScore: 100,
+        tags: ['MDB-CORE', 'HSM-BRIDGE']
+      } : {
         id: Math.random().toString(36).substring(7),
         sender: 'Investor Alpha',
         content: 'I reviewed the proposal. Let’s discuss the equity split tomorrow morning.',
@@ -107,12 +121,33 @@ export default function MissionControlCenter() {
         decisionPending: true,
       };
       setMessages(prev => [incoming, ...prev]);
-      toast({ title: "Autonomous Indexing Complete", description: "New High-Value Opportunity detected." });
+      toast({ title: "Autonomous Indexing Complete", description: isMDB ? "MDB Core Signal Detected." : "New High-Value Opportunity detected." });
       handleRunGlobalIntelligence();
     } catch (error) {
       toast({ variant: "destructive", title: "Sync Error", description: "Intelligence bridge failed." });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleRespondToHandshake = async (nodeId: string) => {
+    setHandshaking(true);
+    try {
+      const result = await verifyHSMHandshake(nodeId);
+      if (result.success) {
+        setHandshakeComplete(true);
+        setMessages(prev => prev.filter(m => !m.tags?.includes('MDB-CORE')));
+        toast({
+          title: "Handshake Successful",
+          description: `Nexus Node ${nodeId} is now verified. Signature: ${result.signature}`,
+        });
+        // Update local status for the session
+        localStorage.setItem('giant_integration_step', 'completed');
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Handshake Failed', description: 'HSM Bridge connection reset.' });
+    } finally {
+      setHandshaking(false);
     }
   };
 
@@ -130,7 +165,7 @@ export default function MissionControlCenter() {
     }
   };
 
-  const mdbSignal = messages.find(m => m.sender.includes('Bank') || m.tags?.includes('MDB-CORE'));
+  const mdbSignal = messages.find(m => m.tags?.includes('MDB-CORE'));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -157,8 +192,8 @@ export default function MissionControlCenter() {
         </div>
       </header>
 
-      {/* NEW: Nexus Inbound Signal Alert */}
-      {mdbSignal && (
+      {/* Nexus Inbound Signal Alert */}
+      {mdbSignal && !handshakeComplete && (
         <Card className="bg-primary/10 border-primary/20 border-l-4 border-l-primary overflow-hidden ghostly-fade animate-pulse">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -171,9 +206,37 @@ export default function MissionControlCenter() {
                 <p className="text-[10px] text-muted-foreground font-mono mt-1">Source: HSM Bridge Node Alpha | Latency: 42ms</p>
               </div>
             </div>
-            <Button size="sm" className="bg-primary text-primary-foreground font-bold" onClick={() => handleAnalyze(mdbSignal)}>
-              Respond to Handshake
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="text-xs border-primary/20" onClick={() => handleAnalyze(mdbSignal)}>
+                AI Audit
+              </Button>
+              <Button 
+                size="sm" 
+                className="bg-primary text-primary-foreground font-bold" 
+                onClick={() => handleRespondToHandshake('ALPHA_01')}
+                disabled={handshaking}
+              >
+                {handshaking ? <RefreshCcw className="animate-spin mr-2" size={12} /> : <ShieldCheck className="mr-2" size={12} />}
+                {handshaking ? "Verifying..." : "Respond to Handshake"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {handshakeComplete && (
+        <Card className="bg-green-500/10 border-green-500/20 border-l-4 border-l-green-500 overflow-hidden ghostly-fade">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
+                <CheckCircle2 size={24} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-green-500 mb-1">Handshake Verified</p>
+                <h4 className="text-sm font-bold text-foreground">Sovereign Link Established with MDB Core HSM</h4>
+                <p className="text-[10px] text-muted-foreground font-mono mt-1">Status: SECURE | Step 3: 100% COMPLETE</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
