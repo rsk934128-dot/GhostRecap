@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -9,6 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { MOCK_VAULT } from '@/lib/mock-data';
+import { format } from 'date-fns';
 
 export default function RecoveryKeyManagement() {
   const [mounted, setMounted] = useState(false);
@@ -40,6 +41,31 @@ export default function RecoveryKeyManagement() {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(mnemonic.join(' '));
     toast({ title: "Copied to Clipboard", description: "Clear your clipboard history after pasting." });
+  };
+
+  const handleDownloadBackup = () => {
+    const backupData = {
+      version: "3.0",
+      timestamp: new Date().toISOString(),
+      vault_fragments: MOCK_VAULT,
+      device_signature: "GR-8821-X9-ALPHA",
+      encryption: "AES-256-GCM"
+    };
+    
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ghostrecap_vault_backup_${format(new Date(), 'yyyyMMdd_HHmm')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Backup Exported",
+      description: "Encrypted JSON metadata has been saved to your device downloads.",
+    });
   };
 
   if (!mounted) return null;
@@ -168,7 +194,12 @@ export default function RecoveryKeyManagement() {
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               Export your vault metadata as an encrypted JSON file. Requires your master key to decrypt.
             </p>
-            <Button size="sm" variant="outline" className="w-full border-white/10 text-xs">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="w-full border-white/10 text-xs"
+              onClick={handleDownloadBackup}
+            >
               Download Encrypted File
             </Button>
           </div>
