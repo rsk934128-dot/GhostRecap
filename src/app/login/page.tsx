@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Ghost, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { ShieldCheck, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -49,8 +50,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-md w-full bg-secondary/10 border-white/5 ghostly-fade">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
-            <Ghost className="text-primary-foreground" size={32} />
+          <div className="flex justify-center mb-6">
+            <Logo size={80} />
           </div>
           <CardTitle className="text-2xl font-headline font-bold">Nexus Merchant Guard</CardTitle>
           <CardDescription>Secure access to MDB Core & Mission 400 Node.</CardDescription>

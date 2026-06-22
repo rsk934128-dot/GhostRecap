@@ -43,7 +43,6 @@ export default function MissionControlCenter() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
-  const [isCertDialogOpen, setIsCertDialogOpen] = useState(false);
   const [logs, setLogs] = useState<SystemLog[]>([]);
   
   const processedTxIds = useRef<Set<string>>(new Set());
@@ -199,7 +198,7 @@ export default function MissionControlCenter() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12" suppressHydrationWarning>
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -420,9 +419,6 @@ export default function MissionControlCenter() {
                 <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-center space-y-3">
                   <Award className="text-green-500 mx-auto" size={32} />
                   <p className="text-xs font-bold text-green-500">HSM CERTIFICATE ACTIVE</p>
-                  <Button variant="outline" className="w-full border-green-500/20 text-green-500 text-xs" onClick={() => setIsCertDialogOpen(true)}>
-                    View Digital Certificate
-                  </Button>
                 </div>
               )}
             </CardContent>
@@ -450,8 +446,7 @@ export default function MissionControlCenter() {
                   <RefreshCcw className="animate-spin text-primary" size={32} />
                   <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
                 </div>
-              ) : (
-                analysis && (
+              ) : analysis ? (
                   <div className="animate-in fade-in slide-in-from-bottom-2">
                     <Card className={cn(
                       "border-2",
@@ -473,8 +468,7 @@ export default function MissionControlCenter() {
                       </CardContent>
                     </Card>
                   </div>
-                )
-              )}
+              ) : null}
             </div>
           </div>
         </DialogContent>

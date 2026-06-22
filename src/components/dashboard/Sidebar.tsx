@@ -1,9 +1,9 @@
+
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Ghost, 
   LayoutDashboard, 
   History, 
   Zap, 
@@ -18,12 +18,12 @@ import {
   Globe,
   Waves,
   Music,
-  FlaskConical,
   GitBranch
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -50,10 +50,8 @@ export function Sidebar() {
       collapsed ? "w-20" : "w-64"
     )}>
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/40">
-          <Ghost size={20} />
-        </div>
-        {!collapsed && <span className="font-headline font-bold text-xl tracking-tight">GhostRecap</span>}
+        <Logo size={collapsed ? 32 : 40} />
+        {!collapsed && <span className="font-headline font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">GhostRecap</span>}
       </div>
 
       <nav className="flex-1 px-3 space-y-1">

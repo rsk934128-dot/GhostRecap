@@ -17,6 +17,12 @@
       "description": "Cryptographic Architecture",
       "imageUrl": "https://picsum.photos/seed/ghost3/800/450",
       "imageHint": "abstract network"
+    },
+    {
+      "id": "logo-fallback",
+      "description": "GhostRecap Stylized Logo",
+      "imageUrl": "https://picsum.photos/seed/logo4/200/200",
+      "imageHint": "ghost logo"
     }
   ]
 }
