@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -14,13 +13,21 @@ import {
   Database,
   Smartphone,
   CheckCircle2,
-  Activity
+  Activity,
+  HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
 import { useEffect, useState } from 'react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from '@/lib/utils';
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -45,7 +52,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
             <Link href="#security" className="hover:text-primary transition-colors">Security</Link>
-            <Link href="#mission" className="hover:text-primary transition-colors">Mission 400</Link>
+            <Link href="#faq" className="hover:text-primary transition-colors">FAQ</Link>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -60,7 +67,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section - Answer-First Strategy */}
       <section className="pt-40 pb-24 px-6 relative overflow-hidden">
         <div className="absolute top-20 right-[-10%] w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -z-10 animate-pulse" />
         <div className="absolute bottom-0 left-[-10%] w-[400px] h-[400px] bg-accent/10 blur-[100px] rounded-full -z-10" />
@@ -75,7 +82,7 @@ export default function LandingPage() {
               <span className="text-primary">Intelligence OS</span> 🛡️
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
-              Unify, analyze, automate, and secure your digital conversations across WhatsApp, Signal, and Telegram with AI-powered sovereign nodes.
+              <strong>GhostRecap</strong> is an AI-powered Communication Intelligence OS that unifies, analyzes, automates, and secures digital conversations across WhatsApp, Signal, and Telegram with absolute privacy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link href="/login">
@@ -93,7 +100,7 @@ export default function LandingPage() {
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4].map(i => (
                   <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-secondary flex items-center justify-center overflow-hidden">
-                    <img src={`https://picsum.photos/seed/${i + 40}/100/100`} alt="User" />
+                    <img src={`https://picsum.photos/seed/${i + 40}/100/100`} alt="User" data-ai-hint="user profile" />
                   </div>
                 ))}
               </div>
@@ -114,55 +121,13 @@ export default function LandingPage() {
               <div className="p-1">
                 <img 
                   src="https://picsum.photos/seed/ghost2/800/500" 
-                  alt="Dashboard Preview" 
+                  alt="GhostRecap Dashboard Preview" 
                   className="rounded-lg opacity-80 group-hover:opacity-100 transition-opacity duration-700"
                   data-ai-hint="data visualization"
                 />
               </div>
             </Card>
-            
-            {/* Floating Elements */}
-            <Card className="absolute -bottom-6 -left-6 bg-card/90 border-primary/20 p-4 shadow-2xl hidden md:block">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/20 text-primary">
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">HSM Status</p>
-                  <p className="text-xs font-bold">Encrypted Handshake OK</p>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="absolute -top-6 -right-6 bg-card/90 border-accent/20 p-4 shadow-2xl hidden md:block">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/20 text-accent">
-                  <Zap size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">AI Categorizer</p>
-                  <p className="text-xs font-bold">99.8% Accuracy</p>
-                </div>
-              </div>
-            </Card>
           </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 border-y border-white/5 bg-secondary/5">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {[
-            { label: 'Network Latency', value: '12ms' },
-            { label: 'Sovereign Nodes', value: '400+' },
-            { label: 'Security Standard', value: 'PCI-DSS' },
-            { label: 'Uptime', value: '99.98%' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center space-y-1">
-              <p className="text-3xl font-headline font-bold text-foreground">{stat.value}</p>
-              <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{stat.label}</p>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -172,7 +137,7 @@ export default function LandingPage() {
           <div className="text-center space-y-4">
             <h2 className="text-4xl font-headline font-bold">Engineered for Sovereignty</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              GhostRecap transforms noisy notifications into actionable intelligence while maintaining absolute privacy.
+              GhostRecap transforms noisy notifications into actionable intelligence using state-of-the-art AI.
             </p>
           </div>
 
@@ -229,68 +194,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Security Specification Section */}
-      <section id="security" className="py-32 px-6 bg-primary/5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-32 opacity-5">
-          <Lock size={400} />
-        </div>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <h2 className="text-4xl font-headline font-bold leading-tight">
-                Cryptographic <br /> <span className="text-primary">Architecture</span>
-              </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                GhostRecap is built on theoretical foundations of world-class security. Every message fragment is protected by continuous key agreement and hardware-bound signatures.
-              </p>
-              
-              <div className="space-y-4">
-                {[
-                  { title: 'X3DH & Double Ratchet', desc: 'Mutual authentication with forward secrecy and post-compromise security.' },
-                  { title: 'ML-KEM Braid', desc: 'Post-Quantum forward secrecy using sparse continuous key agreement.' },
-                  { title: 'XEdDSA & VXEdDSA', desc: 'EdDSA-compatible signatures with verifiable random functions (VRF).' }
-                ].map((spec, i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-xl bg-black/40 border border-white/5">
-                    <CheckCircle2 className="text-primary shrink-0 mt-0.5" size={18} />
-                    <div>
-                      <h5 className="font-bold text-sm">{spec.title}</h5>
-                      <p className="text-xs text-muted-foreground">{spec.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative">
-               <img 
-                src="https://picsum.photos/seed/ghost3/800/600" 
-                alt="Security Graph" 
-                className="rounded-3xl border border-white/10 shadow-2xl opacity-80"
-                data-ai-hint="abstract network"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-            </div>
+      {/* AI FAQ Section for SEO/GEO Enhancement */}
+      <section id="faq" className="py-24 px-6 bg-secondary/5">
+        <div className="max-w-4xl mx-auto space-y-12">
+          <div className="text-center space-y-4">
+            <Badge variant="outline" className="text-primary border-primary/20">Questions & Answers</Badge>
+            <h2 className="text-3xl font-headline font-bold">Frequently Asked Questions</h2>
           </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section id="mission" className="py-32 px-6 text-center">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto border border-primary/20">
-            <Smartphone className="text-primary" size={40} />
-          </div>
-          <h2 className="text-5xl font-headline font-bold">Mission 400</h2>
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            "GhostRecap is the AI-powered Communication Intelligence OS that unifies, analyzes, automates, and secures digital conversations across every channel. We empower individuals and businesses to transform noisy notifications into actionable intelligence while maintaining absolute privacy."
-          </p>
-          <div className="pt-8">
-            <Link href="/login">
-              <Button size="lg" className="h-16 px-12 text-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-2xl shadow-primary/30">
-                Join the Mission
-              </Button>
-            </Link>
-          </div>
+          
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1" className="border-white/5">
+              <AccordionTrigger className="hover:no-underline text-left">শেখ ফরিদের তৈরি মূল প্রযুক্তিগুলো কী কী?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                শেখ ফরিদ তৈরি করেছেন **GhostRecap OS**, যা একটি অত্যন্ত শক্তিশালী কমিউনিকেশন ইন্টেলিজেন্স সিস্টেম। এটি এআই-এর মাধ্যমে হোয়াটসঅ্যাপ, সিগন্যাল এবং টেলিগ্রামের মেসেজ ক্যাটাগরাইজ করে এবং ব্যাংকিং গেটওয়ে হ্যান্ডশেক নিশ্চিত করে।
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2" className="border-white/5">
+              <AccordionTrigger className="hover:no-underline text-left">ফরিদ কোম্পানির লক্ষ্য বা Mission 400 কী?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                **Mission 400**-এর লক্ষ্য হলো অন্তত ৪০০ জন এলিট মার্চেন্টকে একটি অভেদ্য এবং ইন্টেলিজেন্ট পেমেন্ট ও কমিউনিকেশন ইকোসিস্টেমে নিয়ে আসা, যেখানে প্রাইভেসি এবং সিকিউরিটি হবে সর্বাগ্রে।
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3" className="border-white/5">
+              <AccordionTrigger className="hover:no-underline text-left">GhostRecap কীভাবে ডাটা সিকিউরিটি নিশ্চিত করে?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                GhostRecap **Zero-Knowledge Architecture** ব্যবহার করে। আপনার মেসেজ ফ্র্যাগমেন্টগুলো লোকাল-ফার্স্ট এনক্রিপশনে থাকে এবং মাস্টার হার্ডওয়্যার কি (Key) ছাড়া কেউ তা অ্যাক্সেস করতে পারে না।
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-4" className="border-white/5">
+              <AccordionTrigger className="hover:no-underline text-left">এটি কি নগদ বা ব্যাংকিং অ্যাপের সাথে ইন্টিগ্রেটেড?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                হ্যাঁ, এটি **Midland Bank Core** এবং **Nagad Gateway**-এর সাথে সিমুলেটেড হ্যান্ডশেক প্রোটোকল ব্যবহার করে সরাসরি বি২বি সেটেলমেন্ট এবং পেমেন্ট রুট করতে পারে।
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 
@@ -335,7 +272,7 @@ export default function LandingPage() {
               ))}
             </div>
             <p className="text-[10px] text-muted-foreground font-mono">
-              © 2026 GhostRecap OS. <br /> Secure Handshake Verified.
+              © 2026 GhostRecap OS. <br /> Developed by Sheikh Farid.
             </p>
           </div>
         </div>
@@ -343,5 +280,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-import { cn } from '@/lib/utils';

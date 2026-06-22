@@ -1,0 +1,20 @@
+# GhostRecap OS - Communication Intelligence System
+
+## Overview
+GhostRecap is an AI-powered Communication Intelligence OS designed to unify, analyze, automate, and secure digital conversations across WhatsApp, Signal, and Telegram. Built for Mission 400, it empowers individuals and businesses to transform noisy notifications into actionable intelligence with zero-knowledge privacy.
+
+## Key Technologies
+- AI Engine: Google Gemini 2.5 Flash via Genkit
+- Backend: Firebase (Auth, Firestore, App Check)
+- Security Protocols: X3DH, Double Ratchet, ML-KEM Braid, PQXDH, RSA-2048
+- Framework: Next.js 15 (App Router), Tailwind CSS, ShadCN UI
+
+## Core Capabilities
+1. Unified Intelligence: Automatic categorization of messages (Urgent, OTP, Transactional).
+2. Anti-Phishing Shield: Real-time domain validation and social engineering defense.
+3. Financial Bridge: inter-node settlement simulation via MDB Core and Nagad.
+4. Secure Intel Vault: Local-first encrypted storage for sensitive fragments.
+5. Relationship Intelligence: AI interaction scores and health metrics.
+
+## Vision
+To provide a sovereign communication layer for the next generation of commerce, ensuring data security and actionable insights in a fragmented digital landscape.
