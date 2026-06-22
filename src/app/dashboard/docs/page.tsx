@@ -21,7 +21,8 @@ import {
   Database,
   Search,
   ExternalLink,
-  Code
+  Code,
+  Wallet
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,7 +65,7 @@ export default function StrategicDocsPage() {
         <p className="text-muted-foreground italic">"এক এর ভিতর সব" - Mission 400 Strategic Governance.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -96,6 +97,17 @@ export default function StrategicDocsPage() {
           <CardContent>
             <p className="text-2xl font-bold font-headline text-green-500">STABLE</p>
             <p className="text-[10px] text-muted-foreground uppercase mt-1">ইনফ্রাস্ট্রাকচার রেডি</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-500/5 border-green-500/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Wallet size={18} className="text-green-500" /> খরচ ট্র্যাকার (Budget)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-headline text-green-500">সাশ্রয়ী</p>
+            <p className="text-[10px] text-muted-foreground uppercase mt-1">Rubel Bank Module Active</p>
           </CardContent>
         </Card>
       </div>
@@ -148,21 +160,22 @@ export default function StrategicDocsPage() {
             </Card>
             <Card className="bg-primary/5 border-primary/20">
               <CardHeader>
-                <CardTitle>টিম মেম্বারদের রোল</CardTitle>
+                <CardTitle>সাশ্রয়ী ইনফ্রাস্ট্রাকচার (Architecture)</CardTitle>
+                <CardDescription>বাজেট প্ল্যান অনুযায়ী আমাদের সিস্টেম সেটআপ:</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
-                  { role: 'System Architect', count: '01', desc: 'পুরো সিস্টেমের ডিজাইন ও গাইডলাইন (ফরিদ ভাই)' },
-                  { role: 'Backend/Fintech Expert', count: '02', desc: 'এপিআই ইন্টিগ্রেশন এবং সিকিউরিটি হ্যান্ডলিং' },
-                  { role: 'Frontend Engineer', count: '01', desc: 'স্মুথ ইউজার ইন্টারফেস এবং ড্যাশবোর্ড' },
-                  { role: 'AI/ML Specialist', count: '01', desc: 'জেমিনি এবং প্রিকডিক্টিভ অ্যানালিটিক্স' },
+                  { role: 'Hosting', count: 'Free', desc: 'Vercel / Netlify - খরচ ০ টাকা' },
+                  { role: 'Database', count: 'Free', desc: 'Firebase Free Tier - খরচ ০ টাকা' },
+                  { role: 'Authentication', count: 'Free', desc: 'Firebase Auth - খরচ ০ টাকা' },
+                  { role: 'APIs', count: 'SaaS', desc: 'Pay-as-you-go (শুধুমাত্র ব্যবহারে খরচ)' },
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-start border-b border-white/5 pb-2">
                     <div>
                       <p className="text-sm font-bold">{item.role}</p>
                       <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                     </div>
-                    <Badge variant="outline" className="text-primary border-primary/30">{item.count}</Badge>
+                    <Badge variant="outline" className="text-green-500 border-green-500/30">{item.count}</Badge>
                   </div>
                 ))}
               </CardContent>

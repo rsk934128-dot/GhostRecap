@@ -1,7 +1,7 @@
 
 "use client";
 
-import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu, BarChart3 } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu, BarChart3, Wallet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -18,7 +18,53 @@ export default function IntelligenceOSVision() {
         <p className="text-muted-foreground">Unifying, analyzing, and securing your communication ecosystem for the next generation of commerce.</p>
       </header>
 
-      {/* Discussion Section: What can we do? */}
+      {/* Cost-Effective Strategy Section */}
+      <Card className="bg-green-500/5 border-green-500/20 ghostly-fade">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-green-500 font-headline">
+              <Wallet size={24} /> সাশ্রয়ী রোডম্যাপ (Cost-effective Strategy)
+            </CardTitle>
+            <Badge className="bg-green-500 text-black">BUDGET FRIENDLY</Badge>
+          </div>
+          <CardDescription>বাজেট-ফ্রেন্ডলি উপায়ে পুরো সেটআপ দাঁড় করানোর পরিকল্পনা।</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <div className="space-y-4">
+            <div className="flex gap-4 p-4 rounded-xl bg-black/40 border border-white/5">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shrink-0">১</div>
+              <div>
+                <h5 className="font-bold text-sm">ফ্রি ইনফ্রাস্ট্রাকচার</h5>
+                <p className="text-xs text-muted-foreground">Vercel হোস্টিং এবং Firebase Free Tier ব্যবহার করে ১ টাকাও খরচ না করে সার্ভার রেডি রাখা।</p>
+              </div>
+            </div>
+            <div className="flex gap-4 p-4 rounded-xl bg-black/40 border border-white/5">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shrink-0">২</div>
+              <div>
+                <h5 className="font-bold text-sm">Pay-as-you-go এপিআই</h5>
+                <p className="text-xs text-muted-foreground">কোনো ফিক্সড মান্থলি ফি নেই, শুধুমাত্র সফল ট্রানজ্যাকশনের ওপর ছোট কমিশন মডেল।</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex gap-4 p-4 rounded-xl bg-black/40 border border-white/5">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shrink-0">৩</div>
+              <div>
+                <h5 className="font-bold text-sm">লিগ্যাল ও পেপারওয়ার্ক</h5>
+                <p className="text-xs text-muted-foreground">পৌরসভা থেকে অল্প খরচে বেসিক ট্রেড লাইসেন্স নিয়ে ব্যবসায়িক বৈধতা নিশ্চিত করা।</p>
+              </div>
+            </div>
+            <div className="flex gap-4 p-4 rounded-xl bg-black/40 border border-white/5">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 shrink-0">৪</div>
+              <div>
+                <h5 className="font-bold text-sm">বাজেট ট্র্যাকিং</h5>
+                <p className="text-xs text-muted-foreground">Rubel Bank Super App-এর বাজেট ট্র্যাকার দিয়ে প্রজেক্টের প্রতিটি খরচ নিখুঁতভাবে ট্র্যাক করা।</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
