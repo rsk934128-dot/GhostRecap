@@ -300,7 +300,7 @@ export default function MissionControlCenter() {
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
           </h3>
-          <div className="relative group" suppressHydrationWarning>
+          <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <Input 
               className="pl-10 h-10 bg-secondary/50 border-white/5 focus-visible:ring-primary/50" 
@@ -441,34 +441,36 @@ export default function MissionControlCenter() {
             </div>
             
             <div className="space-y-4">
-              {isAnalyzing ? (
+              {isAnalyzing && (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   <RefreshCcw className="animate-spin text-primary" size={32} />
                   <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
                 </div>
-              ) : analysis ? (
-                  <div className="animate-in fade-in slide-in-from-bottom-2">
-                    <Card className={cn(
-                      "border-2",
-                      (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
-                    )}>
-                      <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
-                          Audit Conclusion
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <p className="text-sm leading-relaxed">{analysis.analysis}</p>
-                        {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
-                          <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
-                            PHISHING COUNTERMEASURE: Quarantined
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-              ) : null}
+              )}
+
+              {!isAnalyzing && analysis && (
+                <div className="animate-in fade-in slide-in-from-bottom-2">
+                  <Card className={cn(
+                    "border-2",
+                    (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                  )}>
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
+                        Audit Conclusion
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="text-sm leading-relaxed">{analysis.analysis}</p>
+                      {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
+                        <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
+                          PHISHING COUNTERMEASURE: Quarantined
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

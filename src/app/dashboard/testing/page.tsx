@@ -72,10 +72,10 @@ export default function CICDMonitorPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-secondary/10 border-white/5 ghostly-fade">
           <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-headline font-bold">98.2%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <Activity size={12} className="text-primary" /> Active Pipeline Health
             </CardDescription>
-            <CardTitle className="text-3xl font-headline font-bold">98.2%</CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={98.2} className="h-1 bg-white/5" />
@@ -85,10 +85,10 @@ export default function CICDMonitorPage() {
 
         <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '100ms' }}>
           <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-headline font-bold">85%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <FlaskConical size={12} className="text-accent" /> Test Lab Coverage
             </CardDescription>
-            <CardTitle className="text-3xl font-headline font-bold">85%</CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={85} className="h-1 bg-white/5 bg-accent" />
@@ -98,10 +98,10 @@ export default function CICDMonitorPage() {
 
         <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '200ms' }}>
           <CardHeader className="pb-2">
+            <CardTitle className="text-3xl font-headline font-bold">Stable</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <ShieldCheck size={12} className="text-green-500" /> Security Sharding
             </CardDescription>
-            <CardTitle className="text-3xl font-headline font-bold">Stable</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-1">
