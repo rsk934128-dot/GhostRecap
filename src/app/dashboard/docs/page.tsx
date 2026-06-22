@@ -96,7 +96,7 @@ export default function StrategicDocsPage() {
             <CardTitle className="text-lg flex items-center gap-2">
               <ShieldCheck size={18} className="text-green-500" /> স্ট্যাটাস (Status)
             </CardTitle>
-          </Header>
+          </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-headline text-green-500">STABLE</p>
             <p className="text-[10px] text-muted-foreground uppercase mt-1">ইনফ্রাস্ট্রাকচার রেডি</p>
