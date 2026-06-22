@@ -11,10 +11,8 @@ import {
   Terminal, 
   RefreshCcw,
   Smartphone,
-  Cpu,
   ShieldCheck,
   ExternalLink,
-  ChevronRight,
   Monitor
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

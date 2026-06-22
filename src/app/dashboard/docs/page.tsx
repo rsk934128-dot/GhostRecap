@@ -3,33 +3,23 @@
 import { useState, useEffect } from 'react';
 import { 
   FileText, 
-  Users, 
-  GitMerge, 
   ShieldCheck, 
-  Cpu, 
-  BarChart, 
-  ArrowRight,
-  CheckCircle2,
-  Lock,
-  UserCheck,
-  Zap,
-  Network,
-  Download,
-  AlertCircle,
-  Globe2,
-  Database,
-  Search,
-  ExternalLink,
-  Code,
+  Zap, 
+  Archive, 
   Wallet,
-  Archive,
-  RefreshCcw,
-  Monitor
+  Monitor,
+  AlertCircle,
+  BarChart,
+  Search,
+  CheckCircle2,
+  ExternalLink,
+  Globe2,
+  Network,
+  Cpu
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';

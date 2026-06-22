@@ -9,8 +9,7 @@ import {
   Server, 
   Building2, 
   PlusCircle, 
-  Smartphone,
-  CheckCircle2
+  Smartphone
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,6 @@ import { LiquidityNode } from '@/lib/types';
 import { NAGAD_BANK_NODES } from '@/lib/mock-data';
 import { executeBankToNagadSync } from '@/app/lib/nagad-actions';
 import { cn } from '@/lib/utils';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
