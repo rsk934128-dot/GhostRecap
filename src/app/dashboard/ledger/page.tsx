@@ -237,6 +237,26 @@ export default function NexusLedgerPage() {
               </TableBody>
             </Table>
           </div>
+          {/* Mobile Card View */}
+          <div className="md:hidden grid gap-4 p-4">
+            {filteredTransactions.map((tx) => (
+              <div key={tx.id} className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold leading-tight">{tx.description}</p>
+                    <p className="text-[10px] font-mono text-muted-foreground">{format(new Date(tx.timestamp), 'MMM d, HH:mm')}</p>
+                  </div>
+                  {getStatusBadge(tx.status)}
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Value</span>
+                  <span className={cn("font-mono font-bold", tx.type === 'payment' ? 'text-green-500' : 'text-red-400')}>
+                    {tx.type === 'payment' ? '+' : '-'} {tx.amount.toLocaleString()} BDT
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
           {loading && (
             <div className="p-12 flex flex-col items-center justify-center text-muted-foreground gap-4">
               <RefreshCcw className="animate-spin" size={32} />
@@ -248,7 +268,7 @@ export default function NexusLedgerPage() {
 
       <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
-          <DialogHeader><DialogTitle className="font-headline">Initiate Settlement</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-headline text-2xl">Initiate Settlement</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <Tabs value={payoutMethod} onValueChange={(val: any) => setPayoutMethod(val)}>
               <TabsList className="grid grid-cols-2 w-full bg-black/20">
@@ -274,21 +294,30 @@ export default function NexusLedgerPage() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Account Number</Label>
-              <Input className="bg-black/20 border-white/10" placeholder="01XXXXXXXXX" value={payoutData.destAccount} onChange={(e) => setPayoutData(p => ({ ...p, destAccount: e.target.value }))} />
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Destination Account Number</Label>
+              <Input className="bg-black/20 border-white/10 h-11" placeholder="e.g. 01712345678 or AC-123456" value={payoutData.destAccount} onChange={(e) => setPayoutData(p => ({ ...p, destAccount: e.target.value }))} />
+              <p className="text-[10px] text-muted-foreground italic">টাকা সরাসরি এই অ্যাকাউন্টে ক্রেডিট হবে।</p>
             </div>
+
+            {payoutMethod === 'mdb' && (
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Routing Number (Optional)</Label>
+                <Input className="bg-black/20 border-white/10 h-11" placeholder="9-digit code" value={payoutData.routing} onChange={(e) => setPayoutData(p => ({ ...p, routing: e.target.value }))} />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold text-muted-foreground">Amount (BDT)</Label>
-              <Input type="number" className="bg-black/20 border-white/10 font-mono" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
+              <Input type="number" className="bg-black/20 border-white/10 font-mono h-11 text-lg" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
             </div>
           </div>
           <DialogFooter>
             <Button 
-              className="w-full bg-primary font-bold gap-2" 
+              className="w-full bg-primary font-bold gap-2 h-12" 
               onClick={handlePayout} 
               disabled={isExecuting}
             >
-              {isExecuting ? <RefreshCcw className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+              {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <ShieldCheck size={20} />}
               {isExecuting ? "Authorizing RSA..." : "Authorize RSA Sign"}
             </Button>
           </DialogFooter>
