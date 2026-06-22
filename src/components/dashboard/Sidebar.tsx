@@ -20,7 +20,8 @@ import {
   Music,
   GitBranch,
   Copy,
-  User as UserIcon
+  User as UserIcon,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -28,11 +29,12 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { useUser } from '@/firebase';
 import { toast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useUser();
+  const { user, isAdmin } = useUser();
 
   const navItems = [
     { name: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
@@ -61,7 +63,7 @@ export function Sidebar() {
 
   return (
     <aside className={cn(
-      "h-screen flex flex-col border-r border-border transition-all duration-300 bg-card/40 backdrop-blur-xl sticky top-0",
+      "h-screen flex flex-col border-r border-border transition-all duration-300 bg-card/40 backdrop-blur-xl sticky top-0 z-40",
       collapsed ? "w-20" : "w-64"
     )}>
       <div className="p-6 flex items-center gap-3">
@@ -96,10 +98,17 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-border flex flex-col gap-2">
         {user && !collapsed && (
-          <div className="px-3 py-2 mb-2 rounded-lg bg-black/20 border border-white/5 space-y-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-              <UserIcon size={10} /> Profile ID
-            </p>
+          <div className="px-3 py-2 mb-2 rounded-lg bg-black/20 border border-white/5 space-y-2">
+            <div className="flex items-center justify-between">
+               <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                <UserIcon size={10} /> Profile ID
+              </p>
+              {isAdmin && (
+                <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[8px] h-4 py-0 px-1 font-bold">
+                  <ShieldCheck size={8} className="mr-0.5" /> ADMIN
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-mono text-primary truncate">
                 {user.uid.substring(0, 12)}...

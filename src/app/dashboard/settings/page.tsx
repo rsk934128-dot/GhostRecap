@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   User, 
   Smartphone, 
@@ -16,7 +16,10 @@ import {
   FileSpreadsheet,
   RefreshCcw,
   Lock,
-  Copy
+  Copy,
+  Terminal,
+  Server,
+  Zap
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,11 +48,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useUser } from '@/firebase';
+import { Badge } from '@/components/ui/badge';
 
 export default function SettingsPage() {
-  const { user } = useUser();
+  const { user, isAdmin } = useUser();
   const [loading, setLoading] = useState(false);
   const [purging, setPurging] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSave = () => {
     setLoading(true);
@@ -71,7 +80,6 @@ export default function SettingsPage() {
 
   const handlePurge = () => {
     setPurging(true);
-    // Simulate a secure wipe process
     setTimeout(() => {
       setPurging(false);
       toast({
@@ -92,14 +100,52 @@ export default function SettingsPage() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-12 animate-in fade-in duration-500">
-      <header>
-        <h1 className="text-4xl font-headline font-bold mb-2">Platform Controls</h1>
-        <p className="text-muted-foreground">Manage your communication intelligence, auditing, and privacy preferences.</p>
+      <header className="flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-headline font-bold mb-2">Platform Controls</h1>
+          <p className="text-muted-foreground">Manage your communication intelligence, auditing, and privacy preferences.</p>
+        </div>
+        {isAdmin && (
+          <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 mb-1 px-4 py-1">
+            <ShieldCheck size={14} className="mr-2" /> System Superuser
+          </Badge>
+        )}
       </header>
 
       <div className="grid gap-8">
+        {/* Admin Controls Section */}
+        {isAdmin && (
+          <Card className="bg-amber-500/5 border-amber-500/20 ghostly-fade">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-500">
+                <Terminal size={20} /> Root Node Controls
+              </CardTitle>
+              <CardDescription>Advanced system-wide orchestrations for administrative nodes.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button variant="outline" className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold">
+                  <Server size={18} /> Global Sync Force
+                </Button>
+                <Button variant="outline" className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold">
+                  <Zap size={18} /> Flush AI Memory
+                </Button>
+              </div>
+              <div className="p-4 rounded-xl bg-black/40 border border-amber-500/10 space-y-2">
+                <p className="text-[10px] font-bold text-amber-500 uppercase">Admin Handshake Status</p>
+                <div className="flex items-center gap-2 text-xs font-mono">
+                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                   <span>NODE_ALPHA_ROOT: VERIFIED_GR8821</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
@@ -121,6 +167,10 @@ export default function SettingsPage() {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground">This ID is used for inter-node handshakes and settlement verification.</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground uppercase">Linked Identity</Label>
+              <p className="text-sm font-mono text-foreground">{user?.email}</p>
             </div>
           </CardContent>
         </Card>

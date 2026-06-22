@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { useAuth } from '../provider';
 
+/**
+ * Hook to manage Firebase User state and Admin role mapping.
+ * System Admin: rubels1k994@gmail.com
+ */
 export function useUser() {
   const auth = useAuth();
   const [user, setUser] = useState<User | null>(null);
@@ -17,5 +21,7 @@ export function useUser() {
     });
   }, [auth]);
 
-  return { user, loading };
+  const isAdmin = user?.email === 'rubels1k994@gmail.com';
+
+  return { user, loading, isAdmin };
 }

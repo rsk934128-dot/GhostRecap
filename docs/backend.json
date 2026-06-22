@@ -10,6 +10,7 @@
         "email": { "type": "string", "format": "email" },
         "status": { "type": "string", "enum": ["active", "suspended", "pending"], "description": "Account status" },
         "merchantId": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "merchant"], "description": "System access level" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["businessName", "email", "merchantId"]
