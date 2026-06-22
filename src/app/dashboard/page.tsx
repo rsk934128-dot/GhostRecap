@@ -442,14 +442,14 @@ export default function MissionControlCenter() {
               <p className="text-sm italic">"{selectedMsg?.content}"</p>
             </div>
             
-            {isAnalyzing ? (
-              <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                <RefreshCcw className="animate-spin text-primary" size={32} />
-                <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
-              </div>
-            ) : (
-              analysis && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+            <div className="space-y-4">
+              {isAnalyzing ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <RefreshCcw className="animate-spin text-primary" size={32} />
+                  <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
+                </div>
+              ) : analysis ? (
+                <div className="animate-in fade-in slide-in-from-bottom-2">
                   <Card className={cn(
                     "border-2",
                     (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
@@ -470,8 +470,8 @@ export default function MissionControlCenter() {
                     </CardContent>
                   </Card>
                 </div>
-              )
-            )}
+              ) : null}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

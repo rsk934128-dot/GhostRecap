@@ -42,7 +42,7 @@ export default function IntelligenceOSVision() {
               </li>
               <li className="flex gap-2 items-start bg-black/20 p-2 rounded-lg">
                 <Lock size={16} className="text-accent mt-0.5" />
-                <span><strong>Secure Intel Vault:</strong> আপনার সব ওটিপি (OTP) এবং সেনসি티브 ফাইল লোকাল-ফার্স্ট এনক্রিপশনে রাখা।</span>
+                <span><strong>Secure Intel Vault:</strong> আপনার সব ওটিপি (OTP) এবং সেনসিティブ ফাইল লোকাল-ফার্স্ট এনক্রিপশনে রাখা।</span>
               </li>
             </ul>
           </CardContent>
