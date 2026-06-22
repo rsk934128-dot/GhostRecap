@@ -307,7 +307,6 @@ export default function MissionControlCenter() {
               placeholder="Search Nexus Memory..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              suppressHydrationWarning
             />
           </div>
           <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
@@ -452,11 +451,11 @@ export default function MissionControlCenter() {
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                 <Card className={cn(
                   "border-2",
-                  analysis.priorityScore && analysis.priorityScore > 80 ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                  (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
                 )}>
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
-                      <ShieldAlert size={14} className={analysis.priorityScore && analysis.priorityScore > 80 ? "text-destructive" : "text-primary"} />
+                      <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
                       Audit Conclusion
                     </CardTitle>
                   </CardHeader>

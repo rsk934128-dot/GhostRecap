@@ -1,20 +1,93 @@
 "use client";
 
-import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
 export default function IntelligenceOSVision() {
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <header>
         <div className="flex items-center gap-3 mb-4">
           <BrainCircuit className="text-primary" size={32} />
           <h1 className="text-4xl font-headline font-bold">Intelligence OS v2 Roadmap</h1>
         </div>
-        <p className="text-muted-foreground">Unifying, analyzing, and securing your communication ecosystem.</p>
+        <p className="text-muted-foreground">Unifying, analyzing, and securing your communication ecosystem for the next generation of commerce.</p>
       </header>
+
+      {/* Discussion Section: What can we do? */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles size={20} className="text-primary" />
+              GhostRecap কী কী করতে পারে?
+            </CardTitle>
+            <CardDescription>আপনার বর্তমান সক্ষমতা এক নজরে।</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm leading-relaxed">
+            <p className="text-muted-foreground">
+              GhostRecap এখন একটি <span className="text-primary font-bold">Communication Intelligence Layer</span> হিসেবে কাজ করছে। এটি হোয়াটসঅ্যাপ বা সিগন্যাল থেকে আসা মেসেজগুলোকে অটোমেটিক ক্যাটাগরাইজ করে জরুরি মেসেজগুলো আলাদা করে।
+            </p>
+            <ul className="grid grid-cols-1 gap-2">
+              <li className="flex gap-2 items-start bg-black/20 p-2 rounded-lg">
+                <ShieldCheck size={16} className="text-green-500 mt-0.5" />
+                <span><strong>Security Guard:</strong> নগদ (Nagad) বা ব্যাংকিং ফিশিং লিঙ্ক অটোমেটিক ব্লক করা।</span>
+              </li>
+              <li className="flex gap-2 items-start bg-black/20 p-2 rounded-lg">
+                <Database size={16} className="text-primary mt-0.5" />
+                <span><strong>Financial Bridge:</strong> মিডল্যান্ড ব্যাংক কোর এবং নগদ গেটওয়ের মাধ্যমে সরাসরি বি২বি পে-আউট।</span>
+              </li>
+              <li className="flex gap-2 items-start bg-black/20 p-2 rounded-lg">
+                <Lock size={16} className="text-accent mt-0.5" />
+                <span><strong>Secure Intel Vault:</strong> আপনার সব ওটিপি (OTP) এবং সেনসিটিভ ফাইল লোকাল-ফার্স্ট এনক্রিপশনে রাখা।</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-accent/5 border-accent/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins size={20} className="text-accent" />
+              টাকা ইনকাম হবে কিভাবে?
+            </CardTitle>
+            <CardDescription>GhostRecap-এর মোনেটাইজেশন স্ট্র্যাটেজি।</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm leading-relaxed">
+            <div className="space-y-4">
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
+                  <Zap size={18} className="text-accent" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-foreground">SaaS Subscription (Pro/Business)</h5>
+                  <p className="text-muted-foreground text-xs">টিম কোল্যাবোরেশন এবং আনলিমিটেড ইন্টেলিজেন্স মেমোরির জন্য মাসিক চার্জ।</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <TrendingUp size={18} className="text-primary" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-foreground">Transaction Bridge Fees</h5>
+                  <p className="text-muted-foreground text-xs">প্রতিটি বি২বি (B2B) পে-আউট বা সেটেলমেন্টের উপর ক্ষুদ্র কমিশন।</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                  <BrainCircuit size={18} className="text-muted-foreground" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-foreground">AI Action Credits</h5>
+                  <p className="text-muted-foreground text-xs">অটোমেটিক রিপ্লাই জেনারেশন বা ডিভি অ্যানালাইসিসের জন্য টোকেন ভিত্তিক চার্জ।</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Monetization Tiers */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
