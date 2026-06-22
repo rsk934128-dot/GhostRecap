@@ -74,7 +74,7 @@ export default function MissionControlCenter() {
     setMounted(true);
     setMessages(MOCK_MESSAGES);
     
-    const stored = localStorage.getItem('giant_integration_step');
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('giant_integration_step') : null;
     if (stored === 'completed') {
       setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED_GR8821" });
     }
@@ -307,7 +307,6 @@ export default function MissionControlCenter() {
               placeholder="Search Nexus Memory..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              suppressHydrationWarning
             />
           </div>
           <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
@@ -328,7 +327,7 @@ export default function MissionControlCenter() {
                           <Badge key={t} className="text-[8px] bg-primary/20 text-primary border-primary/30 h-4">{t}</Badge>
                         ))}
                       </div>
-                      <span className="text-[10px] text-muted-foreground font-mono">
+                      <span className="text-sm text-muted-foreground font-mono">
                         {mounted && msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
                       </span>
                     </div>
@@ -450,11 +449,11 @@ export default function MissionControlCenter() {
                 <div className="animate-in fade-in slide-in-from-bottom-2">
                   <Card className={cn(
                     "border-2",
-                    (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                    ((analysis?.priorityScore ?? 0) > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
                   )}>
                     <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
+                        <ShieldAlert size={14} className={((analysis?.priorityScore ?? 0) > 80) ? "text-destructive" : "text-primary"} />
                         Audit Conclusion
                       </CardTitle>
                     </CardHeader>

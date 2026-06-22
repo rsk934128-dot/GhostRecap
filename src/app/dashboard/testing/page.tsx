@@ -139,7 +139,7 @@ export default function CICDMonitorPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-muted-foreground">{mounted && build.timestamp ? format(new Date(build.timestamp), 'MMM d, HH:mm') : '...'}</p>
+                  <p className="text-sm text-muted-foreground">{mounted && build.timestamp ? format(new Date(build.timestamp), 'MMM d, HH:mm') : '...'}</p>
                   <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
                     <ExternalLink size={12} />
                   </Button>
@@ -193,7 +193,7 @@ export default function CICDMonitorPage() {
                   <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <Clock size={10} /> Duration: {test.duration}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
+                  <span className="text-sm text-muted-foreground font-mono">
                     {mounted && test.timestamp ? format(new Date(test.timestamp), 'MMM d, HH:mm') : '...'}
                   </span>
                 </div>
