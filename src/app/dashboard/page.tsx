@@ -38,7 +38,7 @@ export default function MissionControlCenter() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selectedMsg, setSelectedMsg] = useState<ArchivedMessage | null>(null);
-  const [analysis, setAnalysis] = useState<CopilotOutput | null>(null);
+  const [analysis, setAnalysis] = useState<CopilotOutput | null>(analysisResult => analysisResult);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
@@ -296,20 +296,21 @@ export default function MissionControlCenter() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-4">
+        <div className="space-y-4" suppressHydrationWarning>
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
           </h3>
-          <div className="relative group">
+          <div className="relative group" suppressHydrationWarning>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <Input 
               className="pl-10 h-10 bg-secondary/50 border-white/5 focus-visible:ring-primary/50" 
               placeholder="Search Nexus Memory..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              suppressHydrationWarning
             />
           </div>
-          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none" suppressHydrationWarning>
+          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
             {filtered.map((msg) => (
               <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-4">
@@ -468,7 +469,7 @@ export default function MissionControlCenter() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

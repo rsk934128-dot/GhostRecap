@@ -58,14 +58,14 @@ export default function CICDMonitorPage() {
           <p className="text-muted-foreground">Monitoring build pipelines and Firebase Test Lab Robo-crawlers.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <button 
             onClick={handleManualTrigger} 
             disabled={isSyncing}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
           >
             {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Terminal size={16} />}
             Trigger Build Flow
-          </Button>
+          </button>
         </div>
       </header>
 
@@ -213,9 +213,9 @@ export default function CICDMonitorPage() {
               Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. Current execution time reduced by <span className="text-green-500 font-bold">72%</span> compared to serial testing.
             </p>
           </div>
-          <Button variant="outline" className="relative z-10 border-primary/20 hover:bg-primary/10 hover:text-primary gap-2 h-9">
+          <button className="relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary/20 hover:bg-primary/10 hover:text-primary h-9 px-3">
             Manage Shard Policy <ChevronRight size={14} />
-          </Button>
+          </button>
         </Card>
 
         <Card className="bg-secondary/10 border-white/5">
