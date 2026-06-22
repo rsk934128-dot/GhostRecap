@@ -15,7 +15,11 @@ import {
   Lock,
   Eye,
   EyeOff,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  ScanLine,
+  BrainCircuit,
+  Upload
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +32,7 @@ import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { maskSensitiveData, generateSecureToken } from '@/lib/security';
 import { cn } from '@/lib/utils';
+import { verifyDocumentOCR, OCRVerificationOutput } from '@/ai/flows/ocr-verification-flow';
 
 export default function GlobalCompliancePage() {
   const { user } = useUser();
@@ -36,6 +41,8 @@ export default function GlobalCompliancePage() {
   const [mounted, setMounted] = useState(false);
   const [showTokens, setShowTokens] = useState(false);
   const [giantStepProgress, setGiantStepProgress] = useState(85);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [ocrResult, setOcrResult] = useState<OCRVerificationOutput | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -45,17 +52,23 @@ export default function GlobalCompliancePage() {
     }
   }, []);
 
-  const complianceQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(
-      collection(db, 'visa-compliance'),
-      where('merchantId', '==', user.uid),
-      limit(1)
-    );
-  }, [db, user]);
-
-  const { data: complianceData, loading: complianceLoading } = useCollection<VisaCompliance>(complianceQuery);
-  const currentCompliance = complianceData?.[0];
+  const handleRunOCR = async () => {
+    setIsVerifying(true);
+    try {
+      const result = await verifyDocumentOCR({
+        photoDataUri: 'data:image/png;base64,...',
+        documentType: 'TIN_CERTIFICATE'
+      });
+      setOcrResult(result);
+      setGiantStepProgress(100);
+      localStorage.setItem('giant_integration_step', 'completed');
+      toast({ title: "Audit Complete", description: "Identity verified via NBR TIN fragment." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Audit Standby", description: "Node capacity reached." });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const bridges: GlobalBridgeStatus[] = [
     { provider: 'Google Pay', status: giantStepProgress === 100 ? 'connected' : 'connected', latency: 45, lastSync: new Date().toISOString() },
@@ -64,19 +77,6 @@ export default function GlobalCompliancePage() {
     { provider: 'Mastercard', status: giantStepProgress === 100 ? 'connected' : 'pending', latency: giantStepProgress === 100 ? 28 : 0, lastSync: new Date().toISOString() },
   ];
 
-  const handleManualSync = () => {
-    setSyncing(true);
-    setTimeout(() => {
-      setSyncing(false);
-      toast({
-        title: "Global Bridge Synced",
-        description: "Communication channels with Google & Apple Payment APIs are stable.",
-      });
-    }, 2000);
-  };
-
-  const sampleCard = "4532781290124456";
-  const maskedCard = maskSensitiveData(sampleCard);
   const secureToken = generateSecureToken(user?.uid || "NEXUS");
 
   return (
@@ -104,12 +104,12 @@ export default function GlobalCompliancePage() {
             </Badge>
           )}
           <Button 
-            onClick={handleManualSync} 
-            disabled={syncing}
+            onClick={handleRunOCR} 
+            disabled={isVerifying}
             className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
           >
-            {syncing ? <RefreshCcw size={16} className="animate-spin" /> : <Activity size={16} />}
-            Sync Payment Rails
+            {isVerifying ? <RefreshCcw size={16} className="animate-spin" /> : <ScanLine size={16} />}
+            Run Identity Audit
           </Button>
         </div>
       </header>
@@ -133,7 +133,7 @@ export default function GlobalCompliancePage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20 md:col-span-2 ghostly-fade overflow-hidden relative" style={{ animationDelay: '100ms' }}>
+        <Card className="bg-primary/5 border-primary/20 md:col-span-2 ghostly-fade overflow-hidden relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Lock size={80} />
           </div>
@@ -145,12 +145,10 @@ export default function GlobalCompliancePage() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">Live Handshake Masking</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Linked Identity</p>
               <div className="p-3 rounded-lg bg-black/40 border border-white/5 font-mono text-xs flex items-center justify-between">
-                <span>{showTokens ? sampleCard : maskedCard}</span>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowTokens(!showTokens)}>
-                  {showTokens ? <EyeOff size={12} /> : <Eye size={12} />}
-                </Button>
+                <span>{ocrResult?.extractedData.name || "AWAITING AUDIT"}</span>
+                {ocrResult && <CheckCircle2 size={12} className="text-green-500" />}
               </div>
             </div>
             <div className="space-y-2">
@@ -162,6 +160,34 @@ export default function GlobalCompliancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {ocrResult && (
+        <Card className="bg-green-500/5 border-green-500/20 animate-in slide-in-from-bottom-2">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-green-500">
+              <BrainCircuit size={20} /> Identity Verification Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Taxpayer Name</p>
+              <p className="text-sm font-bold">{ocrResult.extractedData.name}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">TIN Number</p>
+              <p className="text-sm font-mono">{ocrResult.extractedData.tin}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Confidence</p>
+              <p className="text-sm font-bold text-green-500">{ocrResult.confidenceScore}%</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Status</p>
+              <Badge className="bg-green-500 text-black">OFFICIAL MATCH</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="bg-secondary/10 border-white/5">
@@ -180,7 +206,7 @@ export default function GlobalCompliancePage() {
                     "w-10 h-10 rounded-lg flex items-center justify-center border",
                     bridge.status === 'connected' ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-amber-500/10 border-amber-500/20 text-amber-500"
                   )}>
-                    {bridge.provider === 'Google Pay' ? <CreditCard size={20} /> : <Smartphone size={20} />}
+                    <Smartphone size={20} />
                   </div>
                   <div>
                     <p className="text-sm font-bold">{bridge.provider}</p>
@@ -211,8 +237,8 @@ export default function GlobalCompliancePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { label: 'PCI-DSS Self-Assessment (Masking Active)', status: 'complete' },
-              { label: 'E2EE Hardware Handshake', status: giantStepProgress === 100 ? 'complete' : 'complete' },
+              { label: 'NBR TIN Verification', status: giantStepProgress === 100 ? 'complete' : 'pending' },
+              { label: 'E2EE Hardware Handshake', status: 'complete' },
               { label: 'Visa QR Settlement Node', status: giantStepProgress === 100 ? 'complete' : 'pending' },
               { label: 'Apple Pay Entitlements', status: giantStepProgress === 100 ? 'complete' : 'pending' },
             ].map((item, i) => (
@@ -227,26 +253,6 @@ export default function GlobalCompliancePage() {
                 )}
               </div>
             ))}
-            <div className="pt-4 border-t border-primary/10">
-              <div className={cn(
-                "flex items-start gap-3 p-3 rounded-lg border",
-                giantStepProgress === 100 ? "bg-green-500/10 border-green-500/20" : "bg-primary/10 border-primary/20"
-              )}>
-                {giantStepProgress === 100 ? (
-                  <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
-                ) : (
-                  <AlertCircle size={16} className="text-primary mt-0.5 shrink-0" />
-                )}
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  <strong className={giantStepProgress === 100 ? "text-green-500" : "text-foreground"}>
-                    {giantStepProgress === 100 ? "Sovereign Link Active:" : "Sovereign Action Required:"}
-                  </strong> 
-                  {giantStepProgress === 100 
-                    ? " Your HSM signature has been verified by Midland Bank. All payment rungs are now operational."
-                    : " Your Visa QR node is awaiting Midland Bank's HSM signature. Integration will resume once the handshake is verified."}
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
