@@ -113,7 +113,7 @@ export const MOCK_NAGAD_PHILANTHROPY_NODES: NagadPhilanthropyNode[] = [
 ];
 
 export const NAGAD_BANK_NODES = [
-  "Midland Bank", "AB Bank", "Al-Arafah Islami Bank", "Bank Asia", "Brac Bank", "City Bank", "Dhaka Bank", "Dutch-Bangla Bank", "Eastern Bank", "EXIM Bank", "First Security Islami Bank", "IFIC Bank", "Islami Bank Bangladesh", "Jamuna Bank", "Meghna Bank", "Mercantile Bank", "Modhumoti Bank", "Mutual Trust Bank", "National Bank", "NCC Bank", "NRB Bank", "NRB Commercial Bank", "One Bank", "Padma Bank", "Prime Bank", "Pubali Bank", "SBAC Bank", "Shahjalal Islami Bank", "Shimanto Bank", "Social Islami Bank", "South East Bank", "Standard Bank", "Trust Bank", "Union Bank", "United Commercial Bank", "Uttara Bank",
+  "Midland Bank", "AB Bank PLC", "Agrani Bank PLC", "Al-Arafah Islami Bank PLC", "Bank Asia", "Brac Bank", "City Bank", "Dhaka Bank", "Dutch-Bangla Bank", "Eastern Bank", "EXIM Bank", "First Security Islami Bank", "IFIC Bank", "Islami Bank Bangladesh", "Jamuna Bank", "Meghna Bank", "Mercantile Bank", "Modhumoti Bank", "Mutual Trust Bank", "National Bank", "NCC Bank", "NRB Bank", "NRB Commercial Bank", "One Bank", "Padma Bank", "Prime Bank", "Pubali Bank", "SBAC Bank", "Shahjalal Islami Bank", "Shimanto Bank", "Social Islami Bank", "South East Bank", "Standard Bank", "Trust Bank", "Union Bank", "United Commercial Bank", "Uttara Bank", "Sonali Bank PLC", "Janata Bank PLC", "Rupali Bank PLC", "Basic Bank Limited"
 ];
 
 export const MOCK_NAGAD_BILLERS: NagadBiller[] = [

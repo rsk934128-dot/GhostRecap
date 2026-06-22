@@ -15,7 +15,9 @@ import {
   Zap,
   Network,
   Download,
-  AlertCircle
+  AlertCircle,
+  Globe2,
+  Database
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -87,9 +89,10 @@ export default function StrategicDocsPage() {
       </Alert>
 
       <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-black/20 h-12 p-1 mb-8">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-black/20 h-12 p-1 mb-8">
           <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black">কাজ ভাগ করা</TabsTrigger>
           <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black">ইন্টিগ্রেশন</TabsTrigger>
+          <TabsTrigger value="openbanking" className="data-[state=active]:bg-primary data-[state=active]:text-black">ওপেন ব্যাংকিং</TabsTrigger>
           <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-black">এডমিন রোল</TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black">অ্যাপ্লিকেশন লগ</TabsTrigger>
         </TabsList>
@@ -144,6 +147,49 @@ export default function StrategicDocsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="openbanking" className="space-y-6">
+          <Card className="bg-secondary/10 border-white/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe2 size={20} className="text-primary" /> Open Banking Tracker (Bangladesh)
+              </CardTitle>
+              <CardDescription>Strategic connectivity analysis for 118+ banks via Apideck & Nexus Core.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/5">
+                    <h5 className="font-bold text-sm mb-2 text-primary">Midland Bank PLC Status</h5>
+                    <ul className="space-y-2 text-xs text-muted-foreground">
+                      <li className="flex justify-between"><span>Open Banking APIs</span> <Badge variant="outline" className="h-5">Profiling Active</Badge></li>
+                      <li className="flex justify-between"><span>MCP Integration</span> <Badge variant="outline" className="h-5 text-accent border-accent/20">Standby</Badge></li>
+                      <li className="flex justify-between"><span>PSD2 Compliance</span> <Badge variant="outline" className="h-5 text-green-500 border-green-500/20">Ready</Badge></li>
+                    </ul>
+                  </div>
+                  <Alert className="bg-accent/5 border-accent/20">
+                    <Zap className="h-4 w-4 text-accent" />
+                    <AlertTitle className="text-accent">Agentic Banking & MCP</AlertTitle>
+                    <AlertDescription className="text-[10px]">
+                      Model Context Protocol (MCP) servers are being mapped to allow AI assistants to perform permissioned banking actions directly within GhostRecap OS.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+                <div className="space-y-4">
+                  <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Connected Node Network</h5>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['AB Bank PLC', 'Agrani Bank', 'Al-Arafah', 'City Bank', 'Brac Bank', 'Prime Bank'].map(bank => (
+                      <div key={bank} className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px] font-medium flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {bank}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-muted-foreground italic">Data Source: Open Banking Directory & PSD2 API Tracker 2026.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">

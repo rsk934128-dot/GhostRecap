@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Search, RefreshCcw, Briefcase, ArrowUpRight, CheckCircle2,
   SignalHigh, Zap, Lock, Activity, Award, ShieldCheck, ShieldAlert,
-  ChevronRight, Globe, QrCode, TrendingUp, MessageSquare
+  ChevronRight, Globe, QrCode, TrendingUp, MessageSquare, Bot
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +56,7 @@ export default function MissionControlCenter() {
     if (stored === 'completed') setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED_GR8821" });
     addLog('System initialized. Nexus Core handshake standby.', 'info');
     addLog('Anti-Phishing Guard active: Monitoring Official Rails.', 'success');
+    addLog('Agentic Banking Node (MCP): STANDBY.', 'info');
   }, []);
 
   useEffect(() => {
@@ -133,6 +134,22 @@ export default function MissionControlCenter() {
           </CardContent>
         </Card>
 
+        <Card className="bg-accent/5 border-accent/20 ghostly-fade">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 rounded-full bg-accent/10 text-accent"><Bot size={20} /></div>
+              <Badge variant="outline" className="text-[8px] border-accent/20 text-accent">AGENTIC BANKING</Badge>
+            </div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">MCP Node Status</p>
+            <h3 className="text-xl font-bold font-headline uppercase">Standby</h3>
+            <div className="flex gap-1 mt-2">
+              <div className="h-1 flex-1 bg-accent rounded-full" />
+              <div className="h-1 flex-1 bg-white/5 rounded-full" />
+              <div className="h-1 flex-1 bg-white/5 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-primary/5 border-primary/20 ghostly-fade">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -146,7 +163,7 @@ export default function MissionControlCenter() {
         </Card>
 
         {/* Live Logs - Only 3 lines on mobile */}
-        <Card className="bg-secondary/10 border-white/5 sm:col-span-2 overflow-hidden">
+        <Card className="bg-secondary/10 border-white/5 overflow-hidden">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] uppercase font-bold flex items-center gap-2"><Activity size={12} className="text-primary"/> Node Pulse</CardTitle>
           </CardHeader>

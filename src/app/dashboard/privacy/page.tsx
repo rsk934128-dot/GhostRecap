@@ -1,6 +1,6 @@
 "use client";
 
-import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -51,20 +51,25 @@ export default function IntelligenceOSVision() {
         <Card className="bg-accent/5 border-accent/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Coins size={20} className="text-accent" />
-              টাকা ইনকাম হবে কিভাবে?
+              <BarChart3 size={20} className="text-accent" />
+              Market Opportunity 2026
             </CardTitle>
-            <CardDescription>GhostRecap-এর মোনেটাইজেশন স্ট্র্যাটেজি।</CardDescription>
+            <CardDescription>B2B Embedded Finance & Open Banking scale.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm leading-relaxed">
+            <div className="p-4 rounded-xl bg-black/40 border border-accent/20">
+              <p className="text-2xl font-bold font-headline text-accent">$185B</p>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground">Embedded Finance Opportunity</p>
+              <Progress value={75} className="h-1 bg-white/5 mt-2" />
+            </div>
             <div className="space-y-4">
               <div className="flex gap-4 items-start">
                 <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
                   <Zap size={18} className="text-accent" />
                 </div>
                 <div>
-                  <h5 className="font-bold text-foreground">SaaS Subscription (Pro/Business)</h5>
-                  <p className="text-muted-foreground text-xs">টিম কোল্যাবোরেশন এবং আনলিমিটেড ইন্টেলিজেন্স মেমোরির জন্য মাসিক চার্জ।</p>
+                  <h5 className="font-bold text-foreground">Agentic Banking Integration</h5>
+                  <p className="text-muted-foreground text-xs">এআই এজেন্টদের মাধ্যমে সরাসরি ব্যাংকিং ট্রানজেকশন প্রসেস করার সুবিধা।</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start">
@@ -74,15 +79,6 @@ export default function IntelligenceOSVision() {
                 <div>
                   <h5 className="font-bold text-foreground">Transaction Bridge Fees</h5>
                   <p className="text-muted-foreground text-xs">প্রতিটি বি২বি (B2B) পে-আউট বা সেটেলমেন্টের উপর ক্ষুদ্র কমিশন।</p>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                  <BrainCircuit size={18} className="text-muted-foreground" />
-                </div>
-                <div>
-                  <h5 className="font-bold text-foreground">AI Action Credits</h5>
-                  <p className="text-muted-foreground text-xs">অটোমেটিক রিপ্লাই জেনারেশন বা থ্রেট অ্যানালাইসিসের জন্য টোকেন ভিত্তিক চার্জ।</p>
                 </div>
               </div>
             </div>
