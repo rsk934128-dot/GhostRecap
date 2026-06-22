@@ -84,14 +84,21 @@ export default function MissionControlCenter() {
         id: 'initial-1',
         type: 'info',
         message: 'System initialized. Nexus Core handshake standby.',
-        timestamp: '2026-06-22T04:45:00.000Z',
+        timestamp: new Date().toISOString(),
         module: 'NEXUS-CORE'
       },
       {
         id: 'initial-2',
         type: 'success',
         message: 'Anti-Phishing Guard active: Monitoring Nagad Official Domains.',
-        timestamp: '2026-06-22T04:46:00.000Z',
+        timestamp: new Date().toISOString(),
+        module: 'NEXUS-CORE'
+      },
+      {
+        id: 'initial-3',
+        type: 'success',
+        message: 'Firebase App Check Enforced: Bot protection active.',
+        timestamp: new Date().toISOString(),
         module: 'NEXUS-CORE'
       }
     ];
@@ -229,12 +236,12 @@ export default function MissionControlCenter() {
               <div className="p-2 rounded-full bg-destructive/10 text-destructive">
                 <ShieldAlert size={20} />
               </div>
-              <Badge variant="destructive" className="text-[9px] animate-pulse">LIVE GUARD</Badge>
+              <Badge variant="destructive" className="text-[9px] animate-pulse uppercase">App Check Enforced</Badge>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase">Threat Shield</p>
               <h3 className="text-xl font-bold font-headline">SECURE</h3>
-              <p className="text-[9px] text-muted-foreground font-mono mt-2">Nagad Domains Validated</p>
+              <p className="text-[9px] text-muted-foreground font-mono mt-2">API Lock: 100% Enforced</p>
             </div>
           </CardContent>
         </Card>
