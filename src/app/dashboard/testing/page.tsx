@@ -209,7 +209,7 @@ export default function CICDMonitorPage() {
           <div className="relative z-10">
             <h3 className="text-xl font-headline font-bold">Parallel Sharding Active</h3>
             <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2 leading-relaxed">
-              Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. current execution time reduced by <span className="text-green-500 font-bold">72%</span>.
+              Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. Current execution time reduced by <span className="text-green-500 font-bold">72%</span>.
             </p>
           </div>
           <button className="relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary/20 hover:bg-primary/10 hover:text-primary h-9 px-4">

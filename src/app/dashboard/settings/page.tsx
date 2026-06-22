@@ -54,6 +54,8 @@ export default function SettingsPage() {
   const { user, isAdmin } = useUser();
   const [loading, setLoading] = useState(false);
   const [purging, setPurging] = useState(false);
+  const [flushing, setFlushing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -69,6 +71,28 @@ export default function SettingsPage() {
         description: "Your communication intelligence profile has been saved.",
       });
     }, 1000);
+  };
+
+  const handleFlushAI = () => {
+    setFlushing(true);
+    setTimeout(() => {
+      setFlushing(false);
+      toast({
+        title: "AI Memory Flushed",
+        description: "Cognitive layer cache has been purged from Node Alpha Root.",
+      });
+    }, 1500);
+  };
+
+  const handleForceSync = () => {
+    setSyncing(true);
+    setTimeout(() => {
+      setSyncing(false);
+      toast({
+        title: "Global Sync Success",
+        description: "All merchant nodes have been synchronized with the HSM master key.",
+      });
+    }, 2000);
   };
 
   const handleExport = (format: 'JSON' | 'CSV') => {
@@ -157,11 +181,23 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="outline" className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold">
-                  <Server size={18} /> Global Sync Force
+                <Button 
+                  variant="outline" 
+                  className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold"
+                  onClick={handleForceSync}
+                  disabled={syncing}
+                >
+                  {syncing ? <RefreshCcw size={18} className="animate-spin" /> : <Server size={18} />}
+                  {syncing ? "Syncing Nodes..." : "Global Sync Force"}
                 </Button>
-                <Button variant="outline" className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold">
-                  <Zap size={18} /> Flush AI Memory
+                <Button 
+                  variant="outline" 
+                  className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold"
+                  onClick={handleFlushAI}
+                  disabled={flushing}
+                >
+                  {flushing ? <RefreshCcw size={18} className="animate-spin" /> : <Zap size={18} />}
+                  {flushing ? "Purging AI..." : "Flush AI Memory"}
                 </Button>
               </div>
               <div className="p-4 rounded-xl bg-black/40 border border-amber-500/10 space-y-2">
