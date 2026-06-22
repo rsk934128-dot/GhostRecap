@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -49,6 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useUser } from '@/firebase';
 import { Badge } from '@/components/ui/badge';
+import { MOCK_MESSAGES } from '@/lib/mock-data';
 
 export default function SettingsPage() {
   const { user, isAdmin } = useUser();
@@ -71,10 +71,39 @@ export default function SettingsPage() {
     }, 1000);
   };
 
-  const handleExport = (format: string) => {
+  const handleExport = (format: 'JSON' | 'CSV') => {
+    const data = MOCK_MESSAGES;
+    let content = '';
+    let fileName = '';
+    let type = '';
+
+    if (format === 'JSON') {
+      content = JSON.stringify(data, null, 2);
+      fileName = `ghostrecap_audit_${Date.now()}.json`;
+      type = 'application/json';
+    } else {
+      const headers = ["ID", "Sender", "Content", "App", "Category", "PriorityScore", "Timestamp"];
+      const rows = data.map(m => [
+        m.id, m.sender, `"${m.content.replace(/"/g, '""')}"`, m.app, m.category || 'Other', m.priorityScore, m.timestamp
+      ].join(","));
+      content = [headers.join(","), ...rows].join("\n");
+      fileName = `ghostrecap_audit_${Date.now()}.csv`;
+      type = 'text/csv';
+    }
+
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     toast({
-      title: `Export Started`,
-      description: `Your communication audit trail is being prepared in ${format} format.`,
+      title: `Export Success`,
+      description: `Your communication audit trail has been saved as ${fileName}.`,
     });
   };
 
