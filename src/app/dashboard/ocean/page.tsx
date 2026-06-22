@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Building2,
   PlusCircle,
-  ArrowDownCircle
+  ArrowDownCircle,
+  CreditCard
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ export default function OceanMixingPage() {
   
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedBank, setSelectedBank] = useState('');
+  const [sourceAccount, setSourceAccount] = useState('');
   const [syncAmount, setSyncAmount] = useState('');
 
   useEffect(() => {
@@ -94,8 +96,8 @@ export default function OceanMixingPage() {
   };
 
   const handleLiquiditySync = async () => {
-    if (!selectedBank || !syncAmount) {
-      toast({ variant: 'destructive', title: 'Missing Fragment', description: 'Please select a bank node and amount.' });
+    if (!selectedBank || !syncAmount || !sourceAccount) {
+      toast({ variant: 'destructive', title: 'Missing Fragment', description: 'Please fill in bank, account number, and amount.' });
       return;
     }
 
@@ -109,9 +111,10 @@ export default function OceanMixingPage() {
       if (response.success) {
         toast({
           title: "Liquidity Synced",
-          description: response.message,
+          description: `৳ ${syncAmount} injected from Account: ${sourceAccount}`,
         });
         setSyncAmount('');
+        setSourceAccount('');
       }
     } catch (e) {
       toast({ variant: 'destructive', title: 'Bridge Error', description: 'Handshake timeout during sync.' });
@@ -119,6 +122,8 @@ export default function OceanMixingPage() {
       setIsSyncing(false);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -206,7 +211,7 @@ export default function OceanMixingPage() {
             </CardTitle>
             <CardDescription>Inject liquidity fragments from 34 commercial banks.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
@@ -224,6 +229,18 @@ export default function OceanMixingPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                  <CreditCard size={10} /> Source Account Number
+                </label>
+                <Input 
+                  className="bg-black/20 border-white/10 h-11 font-mono text-sm"
+                  placeholder="e.g. 1234-5678-9012"
+                  value={sourceAccount}
+                  onChange={(e) => setSourceAccount(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -260,26 +277,24 @@ export default function OceanMixingPage() {
             <CardDescription>RSA-2048 signing overhead during fragment mixing.</CardDescription>
           </CardHeader>
           <CardContent className="h-[250px] pt-4">
-            {mounted && (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockLatencyData}>
-                  <defs>
-                    <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                  <XAxis dataKey="time" stroke="#ffffff30" fontSize={10} />
-                  <YAxis stroke="#ffffff30" fontSize={10} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                    itemStyle={{ color: 'hsl(var(--primary))', fontSize: '10px' }}
-                  />
-                  <Area type="monotone" dataKey="latency" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorLatency)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mockLatencyData}>
+                <defs>
+                  <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                <XAxis dataKey="time" stroke="#ffffff30" fontSize={10} />
+                <YAxis stroke="#ffffff30" fontSize={10} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                  itemStyle={{ color: 'hsl(var(--primary))', fontSize: '10px' }}
+                />
+                <Area type="monotone" dataKey="latency" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorLatency)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
