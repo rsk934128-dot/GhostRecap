@@ -38,7 +38,7 @@ export default function MissionControlCenter() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selectedMsg, setSelectedMsg] = useState<ArchivedMessage | null>(null);
-  const [analysis, setAnalysis] = useState<CopilotOutput | null>(analysisResult => analysisResult);
+  const [analysis, setAnalysis] = useState<CopilotOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [handshaking, setHandshaking] = useState(false);
   const [handshakeResult, setHandshakeResult] = useState<{signature: string} | null>(null);
@@ -296,7 +296,7 @@ export default function MissionControlCenter() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-4" suppressHydrationWarning>
+        <div className="space-y-4">
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
           </h3>
@@ -307,7 +307,6 @@ export default function MissionControlCenter() {
               placeholder="Search Nexus Memory..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              suppressHydrationWarning
             />
           </div>
           <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
@@ -316,7 +315,7 @@ export default function MissionControlCenter() {
                 <CardContent className="p-4 flex items-center gap-4">
                   <div className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center font-bold border shrink-0",
-                    msg.category === 'Urgent' ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-primary/10 text-primary border-primary/20"
+                    msg.category === 'Urgent' ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-primary/10 text-primary border-primary/20"
                   )}>
                     {msg.sender.charAt(0)}
                   </div>
@@ -447,7 +446,7 @@ export default function MissionControlCenter() {
                 <RefreshCcw className="animate-spin text-primary" size={32} />
                 <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
               </div>
-            ) : analysis && (
+            ) : analysis ? (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                 <Card className={cn(
                   "border-2",

@@ -9,6 +9,6 @@ export const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "studio-9473636133-97f16",
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "studio-9473636133-97f16.firebasestorage.app",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "9473636133",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:9473636133:web:example",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:9473636133:web:a66e4a2982d61d19",
   measurementId: "G-8ETG3NV497"
 };
