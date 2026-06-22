@@ -75,7 +75,7 @@ export default function CICDMonitorPage() {
             <CardTitle className="text-2xl md:text-3xl font-headline font-bold">98.2%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <Activity size={12} className="text-primary" /> Active Pipeline Health
-            </CardDescription>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={98.2} className="h-1 bg-white/5" />
@@ -88,7 +88,7 @@ export default function CICDMonitorPage() {
             <CardTitle className="text-2xl md:text-3xl font-headline font-bold">85%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <FlaskConical size={12} className="text-accent" /> Test Lab Coverage
-            </CardDescription>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Progress value={85} className="h-1 bg-white/5 bg-accent" />

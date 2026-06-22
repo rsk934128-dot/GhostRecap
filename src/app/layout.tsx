@@ -26,25 +26,33 @@ export default function RootLayout({
     return () => clearTimeout(timer);
   }, [analytics]);
 
+  // Logo SVG as Data URI for Favicon
+  const faviconSvg = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M50 5C30 5 15 15 15 40C15 70 50 95 50 95C50 95 85 70 85 40C85 15 70 5 50 5Z%22 fill=%22%233b82f6%22/><circle cx=%2235%22 cy=%2240%22 r=%226%22 fill=%22black%22/><circle cx=%2265%22 cy=%2240%22 r=%226%22 fill=%22black%22/></svg>`;
+
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         {/* Primary Meta Tags */}
         <title>GhostRecap - Communication Intelligence OS</title>
         <meta name="title" content="GhostRecap - Communication Intelligence OS" />
         <meta name="description" content="Unified AI-powered intelligence for secure digital conversations across WhatsApp, Signal, and Telegram." />
+        
+        {/* Favicon */}
+        <link rel="icon" type="image/svg+xml" href={faviconSvg} />
+        <link rel="apple-touch-icon" href={faviconSvg} />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="GhostRecap OS" />
+        <meta property="og:url" content="https://ghostrecap.app" />
+        <meta property="og:title" content="GhostRecap OS - Mission 400" />
         <meta property="og:description" content="Secure your digital communications with AI-powered intelligence layer 400." />
-        <meta property="og:image" content="https://picsum.photos/seed/ghost1/1200/630" />
+        <meta property="og:image" content="https://picsum.photos/seed/ghost-preview/1200/630" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:title" content="GhostRecap OS" />
         <meta property="twitter:description" content="Communication Intelligence OS for secure orchestration." />
-        <meta property="twitter:image" content="https://picsum.photos/seed/ghost1/1200/630" />
+        <meta property="twitter:image" content="https://picsum.photos/seed/ghost-preview/1200/630" />
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8ETG3NV497"
@@ -62,7 +70,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased selection:bg-primary/30 selection:text-primary overflow-x-hidden">
+      <body className="font-body antialiased selection:bg-primary/30 selection:text-primary overflow-x-hidden" suppressHydrationWarning>
         <FirebaseClientProvider firebaseApp={firebaseApp} firestore={firestore} auth={auth}>
           {isLoading && <SplashScreen />}
           <div className={isLoading ? "hidden" : "block"}>
