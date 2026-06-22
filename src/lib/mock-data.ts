@@ -1,3 +1,4 @@
+
 import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild, NagadBiller, NagadGlobalMtoNode } from './types';
 
 // Use fixed ISO strings for timestamps to prevent hydration mismatch

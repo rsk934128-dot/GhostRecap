@@ -7,7 +7,7 @@ import { useAuth } from '../provider';
 
 /**
  * Hook to manage Firebase User state and Admin role mapping.
- * System Admin: rubels1k994@gmail.com
+ * System Admin: rubels1k994@gmail.com (Root Node Commander)
  */
 export function useUser() {
   const auth = useAuth();
@@ -21,6 +21,7 @@ export function useUser() {
     });
   }, [auth]);
 
+  // Exclusive admin privilege for Farid Bhai's node
   const isAdmin = user?.email === 'rubels1k994@gmail.com';
 
   return { user, loading, isAdmin };
