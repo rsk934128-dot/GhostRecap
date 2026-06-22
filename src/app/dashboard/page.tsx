@@ -20,12 +20,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { runCopilot, CopilotOutput } from '@/ai/flows/copilot-workspace';
-import { getPredictiveInsights, PredictiveOutput } from '@/ai/flows/predictive-insights';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ArchivedMessage, Transaction, SystemLog } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
@@ -35,7 +34,7 @@ import { verifyHSMHandshake, ALLOWED_NAGAD_DOMAINS } from '@/lib/security';
 export default function MissionControlCenter() {
   const { user } = useUser();
   const db = useFirestore();
-  const [messages, setMessages] = useState<ArchivedMessage[]>(MOCK_MESSAGES);
+  const [messages, setMessages] = useState<ArchivedMessage[]>([]);
   const [search, setSearch] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -74,14 +73,30 @@ export default function MissionControlCenter() {
 
   useEffect(() => {
     setMounted(true);
+    setMessages(MOCK_MESSAGES);
     
     const stored = localStorage.getItem('giant_integration_step');
     if (stored === 'completed') {
       setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED_GR8821" });
     }
 
-    addLog('System initialized. Nexus Core handshake standby.', 'info');
-    addLog('Anti-Phishing Guard active: Monitoring Nagad Official Domains.', 'success');
+    const initialLogs: SystemLog[] = [
+      {
+        id: 'initial-1',
+        type: 'info',
+        message: 'System initialized. Nexus Core handshake standby.',
+        timestamp: new Date().toISOString(),
+        module: 'NEXUS-CORE'
+      },
+      {
+        id: 'initial-2',
+        type: 'success',
+        message: 'Anti-Phishing Guard active: Monitoring Nagad Official Domains.',
+        timestamp: new Date().toISOString(),
+        module: 'NEXUS-CORE'
+      }
+    ];
+    setLogs(initialLogs);
   }, []);
 
   useEffect(() => {
@@ -314,7 +329,7 @@ export default function MissionControlCenter() {
                         ))}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-mono">
-                        {format(new Date(msg.timestamp), 'HH:mm')}
+                        {msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors">
@@ -456,46 +471,6 @@ export default function MissionControlCenter() {
               </div>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCertDialogOpen} onOpenChange={setIsCertDialogOpen}>
-        <DialogContent className="max-w-2xl bg-slate-950 border-amber-500/20 shadow-2xl shadow-amber-500/10">
-          <DialogHeader className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="p-4 rounded-full bg-amber-500/10 border border-amber-500/20">
-                <Award className="text-amber-500 w-12 h-12" />
-              </div>
-            </div>
-            <DialogTitle className="text-3xl font-headline font-bold text-amber-500 uppercase tracking-widest">Digital Trust Certificate</DialogTitle>
-            <DialogDescription className="text-slate-400">Verified Hardware Security Module Handshake</DialogDescription>
-          </DialogHeader>
-          <div className="py-8 px-6 border-y border-white/5 my-4 space-y-8">
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Issuer</p>
-                <p className="text-sm font-bold text-slate-200">Midland Bank Core HSM Bridge</p>
-              </div>
-              <div className="space-y-1 text-right">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Subject</p>
-                <p className="text-sm font-bold text-slate-200">Nexus Node Alpha-01</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase">
-                <Lock size={12} className="text-amber-500" /> RSA Signature
-              </div>
-              <p className="text-[11px] font-mono text-amber-500/80 break-all leading-relaxed p-3 rounded-lg border border-amber-500/10">
-                {handshakeResult?.signature || 'PENDING_INIT'}
-              </p>
-            </div>
-          </div>
-          <DialogFooter className="flex sm:justify-between items-center w-full gap-4">
-            <div className="text-[9px] text-slate-500 italic flex items-center gap-1">
-              <ShieldCheck size={10} /> PCI-DSS and Anti-Phishing Layer 4 Verified.
-            </div>
-            <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold" onClick={() => setIsCertDialogOpen(false)}>Close Vault View</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
