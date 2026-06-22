@@ -105,6 +105,55 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handlePayout = async () => {
+    if (!payoutData.destAccount || !payoutData.amount) {
+      toast({ variant: 'destructive', title: 'Missing Info', description: 'Fill in account and amount.' });
+      return;
+    }
+    setIsExecuting(true);
+    try {
+      let res;
+      if (payoutMethod === 'mdb') {
+        res = await executeMDBPayout({
+          sourceAccountNumber: 'MDB_CORE_400',
+          destinationAccountNumber: payoutData.destAccount,
+          routingNumber: payoutData.routing || '012345678',
+          amount: parseFloat(payoutData.amount),
+          narration: payoutData.narration
+        });
+      } else {
+        res = await executeNagadPayout({
+          orderId: 'ORD_' + Date.now(),
+          customerMsisdn: payoutData.destAccount,
+          amount: parseFloat(payoutData.amount)
+        });
+      }
+
+      if (res.success) {
+        toast({ title: "Settlement Dispatched", description: res.message });
+        setIsPayoutDialogOpen(false);
+        // Optimistically add to ledger
+        if (db && user) {
+          addDoc(collection(db, 'transactions'), {
+            amount: parseFloat(payoutData.amount),
+            currency: 'BDT',
+            status: 'completed',
+            description: `${payoutMethod.toUpperCase()} Settlement to ${payoutData.destAccount}`,
+            type: 'payout',
+            timestamp: new Date().toISOString(),
+            merchantId: user.uid
+          });
+        }
+      } else {
+        toast({ variant: 'destructive', title: 'Handshake Failed', description: res.message });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Critical Failure', description: 'Node handshake error.' });
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   const getStatusBadge = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Settled</Badge>;
@@ -293,7 +342,16 @@ export default function NexusLedgerPage() {
               <Input type="number" className="bg-black/20 border-white/10 font-mono" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
             </div>
           </div>
-          <DialogFooter><Button className="w-full bg-primary font-bold">Authorize RSA Sign</Button></DialogFooter>
+          <DialogFooter>
+            <Button 
+              className="w-full bg-primary font-bold gap-2" 
+              onClick={handlePayout} 
+              disabled={isExecuting}
+            >
+              {isExecuting ? <RefreshCcw className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+              {isExecuting ? "Authorizing RSA..." : "Authorize RSA Sign"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
