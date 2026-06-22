@@ -449,11 +449,11 @@ export default function MissionControlCenter() {
                 <div className="animate-in fade-in slide-in-from-bottom-2">
                   <Card className={cn(
                     "border-2",
-                    ((analysis?.priorityScore ?? 0) > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                    ((analysis.priorityScore ?? 0) > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
                   )}>
                     <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <ShieldAlert size={14} className={((analysis?.priorityScore ?? 0) > 80) ? "text-destructive" : "text-primary"} />
+                        <ShieldAlert size={14} className={((analysis.priorityScore ?? 0) > 80) ? "text-destructive" : "text-primary"} />
                         Audit Conclusion
                       </CardTitle>
                     </CardHeader>
