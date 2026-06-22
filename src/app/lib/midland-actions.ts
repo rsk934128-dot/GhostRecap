@@ -17,9 +17,13 @@ export async function verifyBankAccount(bankName: string, accountNumber: string)
   
   await new Promise(resolve => setTimeout(resolve, 1500));
 
-  // Simulation logic for Sheikh Farid's associates
-  if (accountNumber === '01712345678') return { success: true, name: 'SHEIKH FARID (NEXUS ROOT)', message: 'Account verified successfully.' };
-  if (accountNumber.startsWith('2200')) return { success: true, name: 'MD. ABDUL BARIK SHEIKH', message: 'Official Paurashava Trade Node identified.' };
+  // Simulation logic for Sheikh Farid's associates and specific track IDs
+  if (accountNumber === '01712345678' || accountNumber === '300325662177') {
+    return { success: true, name: 'SHEIKH FARID (NEXUS ROOT)', message: 'Account verified via MDB Tracking Node.' };
+  }
+  if (accountNumber.startsWith('2200')) {
+    return { success: true, name: 'MD. ABDUL BARIK SHEIKH', message: 'Official Paurashava Trade Node identified.' };
+  }
   if (accountNumber.length < 8) return { success: false, message: 'Invalid Account: Format not recognized by NPSB node.' };
 
   const mockNames = ['Jassie Gill', 'Badshah', 'B Praak', 'Neha Kakkar', 'Nawazuddin Siddiqui'];

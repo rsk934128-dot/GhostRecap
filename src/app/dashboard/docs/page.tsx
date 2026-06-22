@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -14,12 +13,15 @@ import {
   Lock,
   UserCheck,
   Zap,
-  Network
+  Network,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
@@ -76,12 +78,20 @@ export default function StrategicDocsPage() {
         </Card>
       </div>
 
+      <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive-foreground ghostly-fade">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle className="font-bold">Midland Bank Account Application Alert</AlertTitle>
+        <AlertDescription className="text-xs">
+          Your Digital Account application (Track ID: 300325662177) for SHEIKH FARID has been <strong className="uppercase">Declined</strong>. Circle-009 Node awaiting re-handshake manual audit.
+        </AlertDescription>
+      </Alert>
+
       <Tabs defaultValue="tasks" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-black/20 h-12 p-1 mb-8">
           <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black">কাজ ভাগ করা</TabsTrigger>
           <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black">ইন্টিগ্রেশন</TabsTrigger>
           <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-black">এডমিন রোল</TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-primary data-[state=active]:text-black">ইউজার অ্যাক্সেস</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black">অ্যাপ্লিকেশন লগ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-6">
@@ -134,6 +144,42 @@ export default function StrategicDocsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          <Card className="bg-secondary/10 border-white/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Network size={20} className="text-primary" /> MDB Digital Account Applications
+              </CardTitle>
+              <CardDescription>Archive of bank portal application fragments.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border border-white/5 overflow-hidden">
+                <div className="grid grid-cols-6 p-3 bg-white/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className="col-span-1">Track ID</div>
+                  <div className="col-span-1">Account Title</div>
+                  <div className="col-span-1">Product</div>
+                  <div className="col-span-1">Branch</div>
+                  <div className="col-span-1">Status</div>
+                  <div className="col-span-1 text-right">Date</div>
+                </div>
+                <div className="p-3 grid grid-cols-6 items-center text-xs border-t border-white/5 hover:bg-white/5 transition-colors">
+                  <div className="col-span-1 font-mono text-primary">300325662177</div>
+                  <div className="col-span-1 font-bold">SHEIKH FARID</div>
+                  <div className="col-span-1 text-muted-foreground">Digital Savings</div>
+                  <div className="col-span-1 text-muted-foreground">Rajshahi City</div>
+                  <div className="col-span-1"><Badge variant="destructive" className="h-5 text-[9px]">DECLINED</Badge></div>
+                  <div className="col-span-1 text-right text-muted-foreground">Mar 30, 2025</div>
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button variant="ghost" size="sm" className="text-[10px] gap-2 text-muted-foreground hover:text-primary">
+                  <Download size={14} /> Download Application PDF
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="integration" className="space-y-6">
@@ -212,39 +258,6 @@ export default function StrategicDocsPage() {
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
                   "এডমিন শুধুমাত্র সিস্টেমের স্বাস্থ্য মনিটর করবে না, বরং প্রতিটি এআই ডিসিশন এবং হাই-ভ্যালু ট্রানজেকশন অডিট করার সর্বোচ্চ ক্ষমতা রাখবে।"
                 </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <Card className="bg-secondary/10 border-white/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock size={20} className="text-primary" /> ইউজার লেভেল অ্যাক্সেস (Visibility)
-              </CardTitle>
-              <CardDescription>কে কি দেখতে পারবে?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-xl bg-white/5 space-y-2">
-                  <h5 className="font-bold flex items-center gap-2"><BarChart size={14} className="text-primary" /> মার্চেন্ট ইউজার</h5>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>- নিজের ট্রানজেকশন হিস্ট্রি</li>
-                    <li>- নিজের ইনবাউন্ড মেসেজ ইন্টেলিজেন্স</li>
-                    <li>- পার্সোনাল ওয়ালেট ব্যালেন্স</li>
-                    <li>- সিকিউর ভল্ট (নিজস্ব ডেটা)</li>
-                  </ul>
-                </div>
-                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-2">
-                  <h5 className="font-bold flex items-center gap-2 text-primary"><UserCheck size={14} /> সিস্টেম সুপারইউজার (Admin)</h5>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>- গ্লোবাল ট্রানজেকশন অডিট লগ</li>
-                    <li>- সিস্টেম-ওয়াইড সিকিউরিটি স্ট্যাটাস</li>
-                    <li>- সব ইউজারের লিকুইডিটি নোড মনিটরিং</li>
-                    <li>- এআই মেমরি ফ্লাশ এবং কনফিগারেশন</li>
-                  </ul>
-                </div>
               </div>
             </CardContent>
           </Card>

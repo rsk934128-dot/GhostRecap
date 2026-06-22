@@ -57,7 +57,7 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Toast in useEffect to prevent rendering error
+  // Use Effect to handle toast notification to prevent state error
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);

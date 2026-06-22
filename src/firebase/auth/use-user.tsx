@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -21,7 +20,7 @@ export function useUser() {
     });
   }, [auth]);
 
-  // Exclusive admin privilege for Farid Bhai's node
+  // Exclusive admin privilege for Sheikh Farid's node
   const isAdmin = user?.email === 'rubels1k994@gmail.com';
 
   return { user, loading, isAdmin };
