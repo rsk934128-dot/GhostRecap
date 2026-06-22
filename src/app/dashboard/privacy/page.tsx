@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu, BarChart3 } from 'lucide-react';
@@ -77,8 +78,8 @@ export default function IntelligenceOSVision() {
                   <TrendingUp size={18} className="text-primary" />
                 </div>
                 <div>
-                  <h5 className="font-bold text-foreground">Transaction Bridge Fees</h5>
-                  <p className="text-muted-foreground text-xs">প্রতিটি বি২বি (B2B) পে-আউট বা সেটেলমেন্টের উপর ক্ষুদ্র কমিশন।</p>
+                  <h5 className="font-bold text-foreground">Open Banking Aggregation</h5>
+                  <p className="text-muted-foreground text-xs">৯,০০০+ গ্লোবাল ব্যাংকের সাথে এপিআই কানেক্টিভিটি এবং ডাটা সিঙ্ক।</p>
                 </div>
               </div>
             </div>
@@ -199,7 +200,7 @@ export default function IntelligenceOSVision() {
             <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex gap-4">
               <Database size={20} className="text-primary shrink-0" />
               <div>
-                <h5 className="text-xs font-bold mb-1">Local-First Persistence</h5>
+                <h5 className="text-xs font-bold mb-1 text-foreground">Local-First Persistence</h5>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
                   Intelligence fragments are processed and stored locally. Cloud sync is optional and end-to-end encrypted with your master hardware key.
                 </p>
@@ -208,7 +209,7 @@ export default function IntelligenceOSVision() {
             <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex gap-4">
               <ShieldCheck size={20} className="text-accent shrink-0" />
               <div>
-                <h5 className="text-xs font-bold mb-1">Audit Compliance Layer</h5>
+                <h5 className="text-xs font-bold mb-1 text-foreground">Audit Compliance Layer</h5>
                 <p className="text-[10px] text-muted-foreground leading-relaxed">
                   Automatic data retention pruning and secure one-click purge ensuring complete user control over the audit trail.
                 </p>

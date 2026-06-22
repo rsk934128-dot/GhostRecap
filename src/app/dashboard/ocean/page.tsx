@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -57,7 +58,7 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Use Effect to handle toast notification to prevent state error
+  // Use Effect to handle toast notification to prevent state error during render
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);

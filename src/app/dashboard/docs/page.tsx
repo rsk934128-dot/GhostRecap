@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -153,9 +154,9 @@ export default function StrategicDocsPage() {
           <Card className="bg-secondary/10 border-white/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Globe2 size={20} className="text-primary" /> Open Banking Tracker (Bangladesh)
+                <Globe2 size={20} className="text-primary" /> Open Banking Tracker (Global)
               </CardTitle>
-              <CardDescription>Strategic connectivity analysis for 118+ banks via Apideck & Nexus Core.</CardDescription>
+              <CardDescription>Strategic connectivity analysis for 118+ banks in BD and 9,000+ globally via BankSync & Nexus Core.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -170,18 +171,18 @@ export default function StrategicDocsPage() {
                   </div>
                   <Alert className="bg-accent/5 border-accent/20">
                     <Zap className="h-4 w-4 text-accent" />
-                    <AlertTitle className="text-accent">Agentic Banking & MCP</AlertTitle>
+                    <AlertTitle className="text-accent text-xs">Agentic Banking & MCP</AlertTitle>
                     <AlertDescription className="text-[10px]">
                       Model Context Protocol (MCP) servers are being mapped to allow AI assistants to perform permissioned banking actions directly within GhostRecap OS.
                     </AlertDescription>
                   </Alert>
                 </div>
                 <div className="space-y-4">
-                  <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Connected Node Network</h5>
+                  <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top API Aggregators 2026</h5>
                   <div className="grid grid-cols-2 gap-2">
-                    {['AB Bank PLC', 'Agrani Bank', 'Al-Arafah', 'City Bank', 'Brac Bank', 'Prime Bank'].map(bank => (
-                      <div key={bank} className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px] font-medium flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {bank}
+                    {['BankSync (9,748 Banks)', 'Plaid (9,706 Banks)', 'Lunch Flow', 'GoCardless', 'TrueLayer', 'Yapily'].map(node => (
+                      <div key={node} className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px] font-medium flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {node}
                       </div>
                     ))}
                   </div>
@@ -241,14 +242,14 @@ export default function StrategicDocsPage() {
                 <div className="flex gap-4">
                   <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent shrink-0 font-bold">১</div>
                   <div>
-                    <h5 className="font-bold">RSA-2048 হ্যান্ডশেক</h5>
+                    <h5 className="font-bold text-sm">RSA-2048 হ্যান্ডশেক</h5>
                     <p className="text-xs text-muted-foreground">নগদ এবং অন্যান্য ব্যাংক নোডের সাথে ডেটা পাঠাতে আমরা পাবলিক/প্রাইভেট কি মেকানিজম ব্যবহার করব।</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent shrink-0 font-bold">২</div>
                   <div>
-                    <h5 className="font-bold">Webhooks & Listeners</h5>
+                    <h5 className="font-bold text-sm">Webhooks & Listeners</h5>
                     <p className="text-xs text-muted-foreground">হোয়াটসঅ্যাপ বা সিগন্যাল থেকে রিয়েল-টাইম পুশ নোটিফিকেশন রিসিভ করার জন্য লিসেনার নোড সেটআপ।</p>
                   </div>
                 </div>
@@ -267,7 +268,7 @@ export default function StrategicDocsPage() {
                     <Badge className="bg-green-500/20 text-green-500">READY</Badge>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span>Global MTO Node</span>
+                    <span>Global Aggregator (Plaid)</span>
                     <Badge className="bg-accent/20 text-accent">HANDSHAKING</Badge>
                   </div>
                 </div>
