@@ -8,9 +8,10 @@ let appCheckInstance: AppCheck | undefined;
 /**
  * Initializes Firebase App Check for production security enforcement.
  * Protects Firestore, Auth, and AI nodes from unauthorized bot traffic.
- * Implements a singleton pattern to prevent re-initialization errors.
+ * Implements a singleton pattern to prevent re-initialization errors and reCAPTCHA runtime crashes.
  */
 export function initAppCheck(app: FirebaseApp) {
+  // Guard for SSR and duplicate initialization
   if (typeof window === 'undefined') return;
   if (appCheckInstance) return appCheckInstance;
 
@@ -22,10 +23,7 @@ export function initAppCheck(app: FirebaseApp) {
     return;
   }
 
-  // Ensure DOM is ready for reCAPTCHA
-  const placeholderExists = document.body;
-  if (!placeholderExists) return;
-
+  // Ensure reCAPTCHA container is not required if using Enterprise provider
   try {
     appCheckInstance = initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(siteKey),
@@ -34,7 +32,7 @@ export function initAppCheck(app: FirebaseApp) {
     console.log('--- NEXUS CORE: APP CHECK ENFORCED ---');
     return appCheckInstance;
   } catch (error) {
-    // Gracefully handle if App Check is already initialized or fails to load
+    // Gracefully handle if App Check is already initialized
     console.warn('App Check initialization skipped or failed:', error);
   }
 }

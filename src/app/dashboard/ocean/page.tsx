@@ -39,23 +39,21 @@ export default function OceanMixingPage() {
   const [mounted, setMounted] = useState(false);
   const [nagadSync, setNagadSync] = useState(true);
   
-  // Liquidity Injection State
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedBank, setSelectedBank] = useState('');
   const [syncAmount, setSyncAmount] = useState('');
 
   useEffect(() => {
     setMounted(true);
-    // Periodically pulse the Nagad Sync
     const interval = setInterval(() => {
       setNagadSync(prev => !prev);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
 
-  // Fix: Handling the toast outside the state updater to avoid "Cannot update Toaster while rendering"
+  // Handle Toast correctly outside the update cycle
   useEffect(() => {
-    if (testProgress >= 100 && isTesting) {
+    if (testProgress === 100 && isTesting) {
       setIsTesting(false);
       toast({
         title: "Stress Test Complete",
@@ -197,7 +195,6 @@ export default function OceanMixingPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Bank to Nagad Liquidity Bridge */}
         <Card className="bg-accent/5 border-accent/20 relative overflow-hidden ghostly-fade" style={{ animationDelay: '200ms' }}>
           <div className="absolute top-0 right-0 p-8 opacity-5">
             <Building2 size={100} />
@@ -251,12 +248,6 @@ export default function OceanMixingPage() {
                 {isSyncing ? "RSA Handshaking..." : "Initiate Liquidity Sync"}
               </Button>
             </div>
-            
-            <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
-              <p className="text-[10px] text-muted-foreground leading-relaxed italic">
-                <strong className="text-accent">Note:</strong> Liquidity synchronization utilizes the Midland Bank Core settlement node for inter-bank handshakes.
-              </p>
-            </div>
           </CardContent>
         </Card>
 
@@ -289,85 +280,6 @@ export default function OceanMixingPage() {
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="bg-secondary/10 border-white/5 overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <Droplets size={120} />
-          </div>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ShieldAlert size={20} className="text-accent" />
-              Nagad Integration Node
-            </CardTitle>
-            <CardDescription>RSA-2048 / PKCS1Padding Security primitive.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-4">
-            <div className="p-4 rounded-xl bg-black/20 border border-white/5 flex gap-4">
-              <div className="p-2 rounded-lg bg-accent/20 text-accent h-fit">
-                <Smartphone size={18} />
-              </div>
-              <div>
-                <h5 className="text-xs font-bold mb-1">M2P Payout Active</h5>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
-                  Redistributing <span className="text-accent font-bold">18.5%</span> of total liquidity to Nagad Gateway for immediate disbursements.
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Smartphone size={12} /> Nagad Node Sync
-                </span>
-                <Badge variant="outline" className={cn("text-[10px] transition-all", nagadSync ? "text-green-500" : "text-amber-500")}>
-                  {nagadSync ? 'LIVE' : 'SYNCING'}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Database size={12} /> Encryption Standard
-                </span>
-                <Badge variant="outline" className="text-[10px] border-accent/20 text-accent">RSA-2048</Badge>
-              </div>
-            </div>
-
-            <Link href="/dashboard/ocean/topography">
-              <Button variant="outline" className="w-full h-11 border-white/10 hover:bg-accent/10 hover:text-accent gap-2 font-bold group">
-                View Node Topography <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Timer size={20} className="text-primary" />
-              Real-time Settlement Queue
-            </CardTitle>
-            <CardDescription>Status of pending inter-node liquidity fragments.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[
-              { label: 'Midland Bank Node', status: 'Settled', time: '2m ago' },
-              { label: 'Nagad Gateway Node', status: 'Active', time: 'Live' },
-              { label: 'bKash Node', status: 'Pending', time: '14s' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-black/20 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold text-primary">{item.status}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.time}</p>
-                </div>
-              </div>
-            ))}
           </CardContent>
         </Card>
       </div>
