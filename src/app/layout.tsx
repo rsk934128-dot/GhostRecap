@@ -29,6 +29,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Primary Meta Tags */}
+        <title>GhostRecap - Communication Intelligence OS</title>
+        <meta name="title" content="GhostRecap - Communication Intelligence OS" />
+        <meta name="description" content="Unified AI-powered intelligence for secure digital conversations across WhatsApp, Signal, and Telegram." />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="GhostRecap OS" />
+        <meta property="og:description" content="Secure your digital communications with AI-powered intelligence layer 400." />
+        <meta property="og:image" content="https://picsum.photos/seed/ghost1/1200/630" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content="GhostRecap OS" />
+        <meta property="twitter:description" content="Communication Intelligence OS for secure orchestration." />
+        <meta property="twitter:image" content="https://picsum.photos/seed/ghost1/1200/630" />
+
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8ETG3NV497"
           strategy="afterInteractive"

@@ -45,7 +45,7 @@ export default function CICDMonitorPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12" suppressHydrationWarning>
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">

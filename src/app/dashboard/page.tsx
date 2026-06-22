@@ -198,7 +198,7 @@ export default function MissionControlCenter() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12" suppressHydrationWarning>
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -441,14 +441,12 @@ export default function MissionControlCenter() {
             </div>
             
             <div className="space-y-4">
-              {isAnalyzing && (
+              {isAnalyzing ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                   <RefreshCcw className="animate-spin text-primary" size={32} />
                   <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
                 </div>
-              )}
-
-              {!isAnalyzing && analysis && (
+              ) : analysis ? (
                 <div className="animate-in fade-in slide-in-from-bottom-2">
                   <Card className={cn(
                     "border-2",
@@ -470,7 +468,7 @@ export default function MissionControlCenter() {
                     </CardContent>
                   </Card>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </DialogContent>
