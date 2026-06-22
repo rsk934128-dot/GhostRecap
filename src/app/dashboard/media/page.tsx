@@ -1,6 +1,6 @@
 "use client";
 
-import { Music, Play, Disc, Star, Sparkles, TrendingUp, RefreshCcw, BrainCircuit, BarChart3, Globe } from 'lucide-react';
+import { Music, Play, Disc, Star, Sparkles, TrendingUp, RefreshCcw, BrainCircuit, BarChart3, Globe, Radio, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -85,6 +85,34 @@ export default function MediaIntelligenceHub() {
           {isAnalyzing ? "Analyzing Trends..." : "Run Sentiment Analysis"}
         </Button>
       </header>
+
+      {/* Live Fragments / Stream Section */}
+      <Card className="bg-accent/5 border-accent/20 overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-8 opacity-5"><Radio size={120} /></div>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Radio className="text-accent animate-pulse" size={24} /> Live Streaming Node
+            </CardTitle>
+            <Badge className="bg-accent text-black font-bold">LIVE PULSE</Badge>
+          </div>
+          <CardDescription>Direct interface for official media fragments and live streams.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="p-6 rounded-2xl bg-black/40 border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <h4 className="font-bold text-lg">Toffee Live: Official Fragment</h4>
+              <p className="text-xs text-muted-foreground max-w-sm">Secure URI handshake for RzT1pp4Bb1O6C9k7RvnM node. Validated for high-bandwidth telemetry.</p>
+            </div>
+            <Button 
+              className="bg-accent hover:bg-accent/90 text-black font-bold h-12 px-8 gap-2 shadow-lg shadow-accent/20"
+              onClick={() => window.open('https://toffeelive.com/en/watch/RzT1pp4Bb1O6C9k7RvnM', '_blank')}
+            >
+              <ExternalLink size={18} /> Open Toffee Stream
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {mediaData.map((group, i) => (
