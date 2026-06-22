@@ -1,6 +1,6 @@
 /**
  * Firebase configuration object.
- * Updated with production-ready parameters for GhostRecap OS.
+ * Updated with production parameters for GhostRecap OS.
  */
 export const firebaseConfig = {
   apiKey: "AIzaSyAdkWQw4gSOgErlSwsTMCoguyRFNlbVbcE",

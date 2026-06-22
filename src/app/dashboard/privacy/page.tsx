@@ -1,9 +1,10 @@
 "use client";
 
-import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp } from 'lucide-react';
+import { BrainCircuit, ShieldCheck, Zap, Server, Users, Lock, Code, Sparkles, Target, Database, Coins, TrendingUp, Key, Cpu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function IntelligenceOSVision() {
   return (
@@ -41,7 +42,7 @@ export default function IntelligenceOSVision() {
               </li>
               <li className="flex gap-2 items-start bg-black/20 p-2 rounded-lg">
                 <Lock size={16} className="text-accent mt-0.5" />
-                <span><strong>Secure Intel Vault:</strong> আপনার সব ওটিপি (OTP) এবং সেনসিটিভ ফাইল লোকাল-ফার্স্ট এনক্রিপশনে রাখা।</span>
+                <span><strong>Secure Intel Vault:</strong> আপনার সব ওটিপি (OTP) এবং সেনসি티브 ফাইল লোকাল-ফার্স্ট এনক্রিপশনে রাখা।</span>
               </li>
             </ul>
           </CardContent>
@@ -81,13 +82,58 @@ export default function IntelligenceOSVision() {
                 </div>
                 <div>
                   <h5 className="font-bold text-foreground">AI Action Credits</h5>
-                  <p className="text-muted-foreground text-xs">অটোমেটিক রিপ্লাই জেনারেশন বা ডিভি অ্যানালাইসিসের জন্য টোকেন ভিত্তিক চার্জ।</p>
+                  <p className="text-muted-foreground text-xs">অটোমেটিক রিপ্লাই জেনারেশন বা থ্রেট অ্যানালাইসিসের জন্য টোকেন ভিত্তিক চার্জ।</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Advanced Encryption Specifications */}
+      <Card className="bg-secondary/10 border-white/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key size={20} className="text-primary" />
+            Advanced Cryptographic Protocols
+          </CardTitle>
+          <CardDescription>Theoretical foundations of GhostRecap security architecture.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1" className="border-white/5">
+              <AccordionTrigger className="text-sm font-bold hover:no-underline">XEdDSA and VXEdDSA</AccordionTrigger>
+              <AccordionContent className="text-xs text-muted-foreground leading-relaxed">
+                Describes how to create and verify EdDSA-compatible signatures using public key and private key formats initially defined for the X25519 and X448 elliptic curve Diffie-Hellman functions. "VXEdDSA" extends this to make it a verifiable random function (VRF).
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2" className="border-white/5">
+              <AccordionTrigger className="text-sm font-bold hover:no-underline">X3DH (Extended Triple Diffie-Hellman)</AccordionTrigger>
+              <AccordionContent className="text-xs text-muted-foreground leading-relaxed">
+                Establishes a shared secret key between two parties who mutually authenticate based on public keys. Provides forward secrecy and cryptographic deniability.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3" className="border-white/5">
+              <AccordionTrigger className="text-sm font-bold hover:no-underline">PQXDH (Post-Quantum Extended Diffie-Hellman)</AccordionTrigger>
+              <AccordionContent className="text-xs text-muted-foreground leading-relaxed">
+                Provides post-quantum forward secrecy and a form of cryptographic deniability. While relying on discrete log for authentication, it adds a layer of post-quantum resilience to key agreement.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-4" className="border-white/5">
+              <AccordionTrigger className="text-sm font-bold hover:no-underline">Double Ratchet Algorithm</AccordionTrigger>
+              <AccordionContent className="text-xs text-muted-foreground leading-relaxed">
+                Used to exchange encrypted messages based on a shared secret key. Derives new keys for every message so earlier keys cannot be calculated from later ones (forward secrecy) and vice versa (post-compromise security).
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-5" className="border-white/5">
+              <AccordionTrigger className="text-sm font-bold hover:no-underline">Sesame and ML-KEM Braid</AccordionTrigger>
+              <AccordionContent className="text-xs text-muted-foreground leading-relaxed">
+                Sesame manages sessions in multi-device settings. ML-KEM Braid allows sparse continuous key agreement with post-quantum forward secrecy using ML-KEM standards.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
 
       {/* Monetization Tiers */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
