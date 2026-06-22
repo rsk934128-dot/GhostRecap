@@ -33,8 +33,12 @@ import { executeBankToNagadSync } from '@/app/lib/nagad-actions';
 import { cn } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function OceanMixingPage() {
+  const { user } = useUser();
+  const db = useFirestore();
   const [isTesting, setIsTesting] = useState(false);
   const [testProgress, setTestProgress] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -53,7 +57,7 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Toast correctly outside the update cycle to prevent component update errors
+  // Fix: Move toast outside of state update logic to prevent render errors
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);
@@ -113,6 +117,21 @@ export default function OceanMixingPage() {
           title: "Liquidity Synced",
           description: `৳ ${syncAmount} injected from Account: ${sourceAccount}`,
         });
+        
+        // Save to Ledger
+        if (db && user) {
+          addDoc(collection(db, 'transactions'), {
+            amount: parseFloat(syncAmount),
+            currency: 'BDT',
+            status: 'completed',
+            description: `Liquidity Injection from ${selectedBank} (A/C: ${sourceAccount})`,
+            type: 'payment',
+            timestamp: new Date().toISOString(),
+            merchantId: user.uid,
+            metadata: { sourceAccount, bankNode: selectedBank }
+          });
+        }
+        
         setSyncAmount('');
         setSourceAccount('');
       }
