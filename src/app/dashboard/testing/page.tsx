@@ -100,7 +100,7 @@ export default function CICDMonitorPage() {
           <CardHeader className="pb-2">
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <ShieldCheck size={12} className="text-green-500" /> Security Sharding
-            </CardTitle>
+            </CardDescription>
             <CardTitle className="text-3xl font-headline font-bold">Stable</CardTitle>
           </CardHeader>
           <CardContent>
@@ -113,7 +113,6 @@ export default function CICDMonitorPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Pipeline History */}
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -150,7 +149,6 @@ export default function CICDMonitorPage() {
           </CardContent>
         </Card>
 
-        {/* Firebase Test Lab Results */}
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">

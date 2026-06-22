@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -297,7 +296,7 @@ export default function MissionControlCenter() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-4" suppressHydrationWarning>
+        <div className="space-y-4">
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
           </h3>
@@ -310,7 +309,7 @@ export default function MissionControlCenter() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
+          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none" suppressHydrationWarning>
             {filtered.map((msg) => (
               <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-4">

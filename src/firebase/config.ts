@@ -1,4 +1,3 @@
-
 /**
  * Firebase configuration object.
  * These values are public and safe to be bundled in the client-side code.
