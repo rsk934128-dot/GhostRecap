@@ -11,19 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, ShieldCheck, 
   Smartphone, Zap, Search, AlertCircle, QrCode, Receipt, Globe2, WalletCards, 
-  FileSpreadsheet, ArrowRight, MoreVertical, Building2, Link2, Copy, Download
+  FileSpreadsheet, ArrowRight, MoreVertical, Building2, Link2, Copy, Download,
+  UserCheck, History as HistoryIcon, User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
-import { executeMDBPayout } from '@/app/lib/midland-actions';
+import { executeMDBPayout, verifyBankAccount } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
-import { generateHMACChecksum, generateNagadSignature } from '@/lib/security';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NAGAD_BANK_NODES } from '@/lib/mock-data';
 
@@ -39,6 +39,8 @@ export default function NexusLedgerPage() {
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifiedName, setRecipientName] = useState<string | null>(null);
 
   // States for forms
   const [payoutData, setPayoutData] = useState({ 
@@ -62,41 +64,25 @@ export default function NexusLedgerPage() {
     return transactions?.filter(t => statusFilter === 'all' || t.status === statusFilter) || [];
   }, [transactions, statusFilter]);
 
-  const handleRunAIAudit = async () => {
-    if (!filteredTransactions.length) {
-      toast({ variant: "destructive", title: "Empty Ledger", description: "Seed the node before auditing." });
+  const handleVerifyAccount = async () => {
+    if (!payoutData.destAccount) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Enter account number first.' });
       return;
     }
-    setIsAuditing(true);
+    setIsVerifying(true);
+    setRecipientName(null);
     try {
-      const result = await analyzeNexusLedger({
-        transactions: filteredTransactions.map(t => ({ amount: t.amount, currency: t.currency, status: t.status, description: t.description, timestamp: t.timestamp, type: t.type })),
-        merchantName: user?.displayName || "Nexus Merchant"
-      });
-      setAuditResult(result);
-    } catch (e) {
-      toast({ variant: "destructive", title: "AI Audit Standby", description: "Node capacity reached." });
-    } finally {
-      setIsAuditing(false);
-    }
-  };
-
-  const handleSeedData = async () => {
-    if (!db || !user) return;
-    setIsSeeding(true);
-    const mockTxs = [
-      { amount: 15000, currency: 'BDT', status: 'completed', description: 'Midland Bank API Settlement', type: 'payment', timestamp: new Date(Date.now() - 3600000).toISOString() },
-      { amount: 2500, currency: 'BDT', status: 'completed', description: 'Nagad QR Pay - Node 400', type: 'payment', timestamp: new Date(Date.now() - 7200000).toISOString() },
-    ];
-    try {
-      for (const tx of mockTxs) {
-        await addDoc(collection(db, 'transactions'), { ...tx, merchantId: user.uid });
+      const res = await verifyBankAccount(payoutData.destBank, payoutData.destAccount);
+      if (res.success) {
+        setRecipientName(res.name!);
+        toast({ title: "Account Verified", description: `Node identified: ${res.name}` });
+      } else {
+        toast({ variant: 'destructive', title: "Verification Failed", description: res.message });
       }
-      toast({ title: "Nexus Node Seeded", description: "Fragments pushed to ledger." });
     } catch (e) {
-      toast({ variant: "destructive", title: "Seed Failed", description: "Database rejected fragments." });
+      toast({ variant: 'destructive', title: "Node Timeout", description: "Could not reach bank directory." });
     } finally {
-      setIsSeeding(false);
+      setIsVerifying(false);
     }
   };
 
@@ -132,11 +118,12 @@ export default function NexusLedgerPage() {
             amount: parseFloat(payoutData.amount),
             currency: 'BDT',
             status: 'completed',
-            description: `${payoutMethod.toUpperCase()} Settlement to ${payoutData.destBank} (${payoutData.destAccount})`,
+            description: `${payoutMethod.toUpperCase()} Settlement to ${verifiedName || payoutData.destBank} (${payoutData.destAccount})`,
             type: 'payout',
             timestamp: new Date().toISOString(),
             merchantId: user.uid,
             metadata: {
+              recipientName: verifiedName,
               account: payoutData.destAccount,
               bank: payoutData.destBank,
               method: payoutMethod,
@@ -144,6 +131,7 @@ export default function NexusLedgerPage() {
             }
           });
         }
+        setRecipientName(null);
       } else {
         toast({ variant: 'destructive', title: 'Handshake Failed', description: res.message });
       }
@@ -154,11 +142,25 @@ export default function NexusLedgerPage() {
     }
   };
 
-  const generateRequestLink = () => {
-    const amount = payoutData.amount || '0';
-    const link = `https://nexus.recap/pay?id=${user?.uid}&amount=${amount}&ref=MISSION400`;
-    setRequestMoneyLink(link);
-    toast({ title: "Gateway Link Active", description: "Payment request node generated." });
+  const handleExportCSV = () => {
+    if (!filteredTransactions.length) return;
+    const headers = ["Date", "Description", "Type", "Amount", "Status"];
+    const rows = filteredTransactions.map(tx => [
+      format(new Date(tx.timestamp), 'yyyy-MM-dd HH:mm'),
+      `"${tx.description}"`,
+      tx.type.toUpperCase(),
+      tx.amount,
+      tx.status
+    ].join(","));
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `nexus_ledger_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "Ledger Exported", description: "CSV file saved to downloads." });
   };
 
   const getStatusBadge = (status: Transaction['status']) => {
@@ -178,12 +180,11 @@ export default function NexusLedgerPage() {
           <p className="text-sm text-muted-foreground">Autonomous financial fragments and real-time AI reconciliation.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2 border-white/10 hidden sm:flex" onClick={handleSeedData} disabled={isSeeding}>
-            <DatabaseZap size={14} /> Seed Node
+          <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={handleExportCSV}>
+            <FileSpreadsheet size={14} /> Export CSV
           </Button>
-          <Button size="sm" className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20" onClick={handleRunAIAudit} disabled={isAuditing}>
-            {isAuditing ? <RefreshCcw size={14} className="animate-spin" /> : <BrainCircuit size={14} />} 
-            Audit Ledger
+          <Button size="sm" className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20" onClick={() => setIsPayoutDialogOpen(true)}>
+            <Send size={14} /> Send Money
           </Button>
         </div>
       </header>
@@ -282,7 +283,10 @@ export default function NexusLedgerPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>
+      <Dialog open={isPayoutDialogOpen} onOpenChange={(val) => {
+        setIsPayoutDialogOpen(val);
+        if(!val) { setRecipientName(null); setPayoutData({ destAccount: '', destBank: 'Midland Bank', routing: '', amount: '', narration: 'Mission 400 Settlement' }); }
+      }}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
           <DialogHeader><DialogTitle className="font-headline text-2xl">Initiate Settlement</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
@@ -311,9 +315,38 @@ export default function NexusLedgerPage() {
 
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold text-muted-foreground">Destination Account Number</Label>
-              <Input className="bg-black/20 border-white/10 h-11" placeholder="e.g. 01712345678 or AC-123456" value={payoutData.destAccount} onChange={(e) => setPayoutData(p => ({ ...p, destAccount: e.target.value }))} />
-              <p className="text-[10px] text-muted-foreground italic">টাকা সরাসরি এই অ্যাকাউন্টে ক্রেডিট হবে।</p>
+              <div className="flex gap-2">
+                <Input 
+                  className="bg-black/20 border-white/10 h-11 flex-1 font-mono" 
+                  placeholder="e.g. 01712345678" 
+                  value={payoutData.destAccount} 
+                  onChange={(e) => setPayoutData(p => ({ ...p, destAccount: e.target.value }))} 
+                />
+                <Button 
+                  variant="outline" 
+                  className="h-11 px-3 border-primary/20 text-primary hover:bg-primary/10" 
+                  onClick={handleVerifyAccount}
+                  disabled={isVerifying}
+                >
+                  {isVerifying ? <RefreshCcw size={14} className="animate-spin" /> : <UserCheck size={18} />}
+                </Button>
+              </div>
+              {verifiedName && (
+                <div className="p-2 rounded bg-green-500/10 border border-green-500/20 animate-in fade-in zoom-in-95">
+                  <p className="text-[10px] font-bold text-green-500 uppercase flex items-center gap-1">
+                    <CheckCircle2 size={10} /> Recipient Verified
+                  </p>
+                  <p className="text-sm font-bold text-foreground">{verifiedName}</p>
+                </div>
+              )}
             </div>
+
+            {payoutMethod === 'mdb' && (
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Branch Routing Number (Optional)</Label>
+                <Input className="bg-black/20 border-white/10 h-11 font-mono" placeholder="e.g. 012345678" value={payoutData.routing} onChange={(e) => setPayoutData(p => ({ ...p, routing: e.target.value }))} />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold text-muted-foreground">Amount (BDT)</Label>
@@ -322,23 +355,22 @@ export default function NexusLedgerPage() {
 
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold text-muted-foreground">Transaction Note / Narration</Label>
-              <Input className="bg-black/20 border-white/10 h-11" placeholder="e.g. Salary or Payment for..." value={payoutData.narration} onChange={(e) => setPayoutData(p => ({ ...p, narration: e.target.value }))} />
+              <Input className="bg-black/20 border-white/10 h-11" placeholder="e.g. Settlement for..." value={payoutData.narration} onChange={(e) => setPayoutData(p => ({ ...p, narration: e.target.value }))} />
             </div>
           </div>
           <DialogFooter>
             <Button 
               className="w-full bg-primary font-bold gap-2 h-12" 
               onClick={handlePayout} 
-              disabled={isExecuting}
+              disabled={isExecuting || (payoutData.destAccount.length > 5 && !verifiedName)}
             >
               {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <ShieldCheck size={20} />}
-              {isExecuting ? "Authorizing RSA..." : "Authorize RSA Sign"}
+              {isExecuting ? "Authorizing RSA..." : verifiedName ? "Authorize RSA Sign" : "Verify Account First"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Money Request Gateway Dialog */}
       <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
           <DialogHeader>
@@ -351,7 +383,12 @@ export default function NexusLedgerPage() {
               <Input type="number" className="bg-black/20 border-white/10 font-mono h-11" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
             </div>
             
-            <Button className="w-full bg-accent text-accent-foreground font-bold h-11" onClick={generateRequestLink}>
+            <Button className="w-full bg-accent text-accent-foreground font-bold h-11" onClick={() => {
+              const amount = payoutData.amount || '0';
+              const link = `https://nexus.recap/pay?id=${user?.uid}&amount=${amount}&ref=MISSION400`;
+              setRequestMoneyLink(link);
+              toast({ title: "Gateway Link Active", description: "Payment request node generated." });
+            }}>
               Generate Payment Link
             </Button>
 
@@ -371,10 +408,6 @@ export default function NexusLedgerPage() {
                       }}><Copy size={12} /></Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 text-[10px] font-bold gap-2"><Download size={14} /> Download QR</Button>
-                  <Button variant="outline" className="flex-1 text-[10px] font-bold gap-2"><Send size={14} /> Share Link</Button>
                 </div>
               </div>
             )}

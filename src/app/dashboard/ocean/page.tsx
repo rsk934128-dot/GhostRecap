@@ -57,7 +57,7 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fix: Move toast outside of state update logic to prevent render errors
+  // Handle Toast in useEffect to prevent rendering error
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);
@@ -118,7 +118,6 @@ export default function OceanMixingPage() {
           description: `৳ ${syncAmount} injected from Account: ${sourceAccount}`,
         });
         
-        // Save to Ledger
         if (db && user) {
           addDoc(collection(db, 'transactions'), {
             amount: parseFloat(syncAmount),
@@ -158,14 +157,8 @@ export default function OceanMixingPage() {
           <p className="text-muted-foreground">Normalizing liquidity fragments across MDB, Nagad, and Global Rails.</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={handleStartStressTest} 
-            disabled={isTesting}
-            variant="outline"
-            className="gap-2 border-white/10 hover:bg-white/5"
-          >
-            {isTesting ? <RefreshCcw size={16} className="animate-spin" /> : <Activity size={16} />}
-            Stress Test
+          <Button onClick={handleStartStressTest} disabled={isTesting} variant="outline" className="gap-2 border-white/10 hover:bg-white/5">
+            {isTesting ? <RefreshCcw size={16} className="animate-spin" /> : <Activity size={16} />} Stress Test
           </Button>
           <Link href="/dashboard/ocean/topography">
             <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
@@ -192,18 +185,13 @@ export default function OceanMixingPage() {
           <Card key={node.id} className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: `${i * 100}ms` }}>
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
-                <Badge variant="outline" className={cn(
-                  "text-[9px] uppercase font-bold",
-                  node.status === 'online' ? "text-green-500 border-green-500/20" : "text-amber-500 border-amber-500/20"
-                )}>
+                <Badge variant="outline" className={cn("text-[9px] uppercase font-bold", node.status === 'online' ? "text-green-500 border-green-500/20" : "text-amber-500 border-amber-500/20")}>
                   {node.status}
                 </Badge>
                 {node.type === 'nagad' ? <Smartphone size={14} className={cn("transition-colors duration-500", nagadSync ? "text-accent" : "text-muted-foreground")} /> : <Server size={14} className="text-muted-foreground" />}
               </div>
               <CardTitle className="text-lg mt-2">{node.name}</CardTitle>
-              <CardDescription className="font-mono text-xs">
-                {node.currency} {node.balance.toLocaleString()}
-              </CardDescription>
+              <CardDescription className="font-mono text-xs">{node.currency} {node.balance.toLocaleString()}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
@@ -219,69 +207,33 @@ export default function OceanMixingPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="bg-accent/5 border-accent/20 relative overflow-hidden ghostly-fade" style={{ animationDelay: '200ms' }}>
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <Building2 size={100} />
-          </div>
+        <Card className="bg-accent/5 border-accent/20 relative overflow-hidden ghostly-fade">
+          <div className="absolute top-0 right-0 p-8 opacity-5"><Building2 size={100} /></div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl font-headline font-bold">
-              <PlusCircle size={22} className="text-accent" />
-              Bank to Nagad Bridge
+              <PlusCircle size={22} className="text-accent" /> Bank to Nagad Bridge
             </CardTitle>
             <CardDescription>Inject liquidity fragments from 34 commercial banks.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <Building2 size={10} /> Select Source Bank Node
-                </label>
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Select Source Bank Node</label>
                 <Select value={selectedBank} onValueChange={setSelectedBank}>
-                  <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs">
-                    <SelectValue placeholder="Search Bank Directory..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {NAGAD_BANK_NODES.map(bank => (
-                      <SelectItem key={bank} value={bank} className="text-xs">
-                        {bank}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                  <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs"><SelectValue placeholder="Search Bank Directory..." /></SelectTrigger>
+                  <SelectContent className="max-h-[300px]">{NAGAD_BANK_NODES.map(bank => (<SelectItem key={bank} value={bank} className="text-xs">{bank}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <CreditCard size={10} /> Source Account Number
-                </label>
-                <Input 
-                  className="bg-black/20 border-white/10 h-11 font-mono text-sm"
-                  placeholder="e.g. 1234-5678-9012"
-                  value={sourceAccount}
-                  onChange={(e) => setSourceAccount(e.target.value)}
-                />
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Source Account Number</label>
+                <Input className="bg-black/20 border-white/10 h-11 font-mono" placeholder="e.g. 1234-5678-9012" value={sourceAccount} onChange={(e) => setSourceAccount(e.target.value)} />
               </div>
-
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <ArrowDownCircle size={10} /> Amount (BDT)
-                </label>
-                <Input 
-                  type="number"
-                  className="bg-black/20 border-white/10 h-11 text-lg font-mono"
-                  placeholder="0.00"
-                  value={syncAmount}
-                  onChange={(e) => setSyncAmount(e.target.value)}
-                />
+                <label className="text-[10px] font-bold uppercase text-muted-foreground">Amount (BDT)</label>
+                <Input type="number" className="bg-black/20 border-white/10 h-11 text-lg font-mono" placeholder="0.00" value={syncAmount} onChange={(e) => setSyncAmount(e.target.value)} />
               </div>
-
-              <Button 
-                onClick={handleLiquiditySync}
-                disabled={isSyncing}
-                className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-lg shadow-accent/20 gap-2"
-              >
-                {isSyncing ? <RefreshCcw size={18} className="animate-spin" /> : <Smartphone size={18} />}
-                {isSyncing ? "RSA Handshaking..." : "Initiate Liquidity Sync"}
+              <Button onClick={handleLiquiditySync} disabled={isSyncing} className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-lg shadow-accent/20 gap-2">
+                {isSyncing ? <RefreshCcw size={18} className="animate-spin" /> : <Smartphone size={18} />} {isSyncing ? "RSA Handshaking..." : "Initiate Liquidity Sync"}
               </Button>
             </div>
           </CardContent>
@@ -289,28 +241,16 @@ export default function OceanMixingPage() {
 
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity size={20} className="text-primary" />
-              Nagad B2B Bridge Latency
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2 text-lg"><Activity size={20} className="text-primary" /> Nagad B2B Bridge Latency</CardTitle>
             <CardDescription>RSA-2048 signing overhead during fragment mixing.</CardDescription>
           </CardHeader>
           <CardContent className="h-[250px] pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={mockLatencyData}>
-                <defs>
-                  <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/><stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/></linearGradient></defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                <XAxis dataKey="time" stroke="#ffffff30" fontSize={10} />
-                <YAxis stroke="#ffffff30" fontSize={10} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  itemStyle={{ color: 'hsl(var(--primary))', fontSize: '10px' }}
-                />
+                <XAxis dataKey="time" stroke="#ffffff30" fontSize={10} /><YAxis stroke="#ffffff30" fontSize={10} />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} itemStyle={{ color: 'hsl(var(--primary))', fontSize: '10px' }} />
                 <Area type="monotone" dataKey="latency" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorLatency)" />
               </AreaChart>
             </ResponsiveContainer>

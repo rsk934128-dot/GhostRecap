@@ -15,8 +15,8 @@ export function initAppCheck(app: FirebaseApp) {
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY;
   
+  // Prevent initialization if siteKey is missing or placeholder
   if (!siteKey || siteKey === '6Lc_your_site_key_here' || siteKey.length < 10) {
-    console.warn('--- App Check: Skipping enforcement due to missing site key. ---');
     return;
   }
 
@@ -28,6 +28,6 @@ export function initAppCheck(app: FirebaseApp) {
     console.log('--- NEXUS CORE: APP CHECK ENFORCED ---');
     return appCheckInstance;
   } catch (error) {
-    console.warn('App Check initialization handled:', error);
+    // Silent catch to prevent Runtime Error: reCAPTCHA placeholder element issue
   }
 }

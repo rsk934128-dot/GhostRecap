@@ -9,38 +9,48 @@ import { generateHMACChecksum } from '@/lib/security';
 import { MDBPayoutPayload, MDBPayoutResponse } from '@/lib/types';
 
 /**
+ * Simulates bank account verification for NPSB/BEFTN.
+ * Returning dummy names based on account logic.
+ */
+export async function verifyBankAccount(bankName: string, accountNumber: string): Promise<{ success: boolean; name?: string; message: string }> {
+  console.log(`--- NEXUS CORE: VERIFYING ACCOUNT ${accountNumber} AT ${bankName} ---`);
+  
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Simulation logic for Sheikh Farid's associates
+  if (accountNumber === '01712345678') return { success: true, name: 'SHEIKH FARID (NEXUS ROOT)', message: 'Account verified successfully.' };
+  if (accountNumber.startsWith('2200')) return { success: true, name: 'MD. ABDUL BARIK SHEIKH', message: 'Official Paurashava Trade Node identified.' };
+  if (accountNumber.length < 8) return { success: false, message: 'Invalid Account: Format not recognized by NPSB node.' };
+
+  const mockNames = ['Jassie Gill', 'Badshah', 'B Praak', 'Neha Kakkar', 'Nawazuddin Siddiqui'];
+  const randomName = mockNames[Math.floor(Math.random() * mockNames.length)];
+
+  return {
+    success: true,
+    name: `${randomName} (Verified via MDB Core)`,
+    message: 'Account verified successfully.'
+  };
+}
+
+/**
  * Executes a payout to a Midland Bank or external account.
- * This function handles payload construction and checksum validation for inter-bank routing.
  */
 export async function executeMDBPayout(input: Omit<MDBPayoutPayload, 'checksum' | 'currency'>): Promise<MDBPayoutResponse> {
-  // 1. Construct the payload base with destination metadata
   const payloadBase = {
     ...input,
     currency: 'BDT',
     timestamp: new Date().toISOString(),
   };
 
-  // 2. Generate Checksum for HMAC_V4 SHA256 Validation
-  // This is required for secure handshakes with the Midland Core Banking System
   const checksum = generateHMACChecksum(payloadBase);
 
-  // 3. Complete the Payout Payload
   const fullPayload: MDBPayoutPayload = {
     ...payloadBase,
     checksum,
   };
 
-  console.log('--- NEXUS CORE: DISPATCHING INTER-BANK SETTLEMENT ---');
-  console.log('Target Node:', input.destinationAccountNumber);
-  console.log('Routing Meta:', input.narration);
-
-  // 4. Simulate API Handshake with Midland Core Banking System (CBS)
-  // This routes the fund through NPSB (National Payment Switch) to any of the 38 banks.
   try {
-    // Artificial latency for bank switch response (NPSB Handshake)
     await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Simulation of success (95% success rate for sandbox testing)
     const isSuccess = Math.random() > 0.05;
 
     if (isSuccess) {
