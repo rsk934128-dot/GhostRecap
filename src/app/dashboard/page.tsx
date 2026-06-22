@@ -64,14 +64,16 @@ export default function MissionControlCenter() {
       recentTransactions.forEach(tx => {
         if (tx.id && !processedTxIds.current.has(tx.id)) {
           processedTxIds.current.add(tx.id);
-          addLog(`${tx.type.toUpperCase()} Fragment: ${tx.amount} BDT settled via ${tx.description.includes('Nagad') ? 'NAGAD-RSA' : 'MDB-HMAC'}`, 'success');
+          const type = tx.description.includes('Remit') ? 'REMITTANCE' : tx.type.toUpperCase();
+          const protocol = tx.description.includes('Nagad') || tx.description.includes('Remit') ? 'NAGAD-RSA' : 'MDB-HMAC';
+          addLog(`${type} Fragment: ${tx.amount} BDT settled via ${protocol}`, 'success');
         }
       });
     }
   }, [recentTransactions, mounted]);
 
   const stats = useMemo(() => ({
-    volume: recentTransactions?.reduce((acc, t) => acc + t.amount, 0) || 0,
+    volume: recentTransactions?.reduce((acc, t) => acc + (t.type === 'payment' ? t.amount : -t.amount), 0) || 0,
     urgent: messages.filter(m => m.category === 'Urgent').length,
     threatScore: recentTransactions?.some(t => t.status === 'flagged') ? 85 : 12,
   }), [messages, recentTransactions]);
@@ -137,15 +139,19 @@ export default function MissionControlCenter() {
         <Card className="bg-accent/5 border-accent/20 ghostly-fade">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-full bg-accent/10 text-accent"><Bot size={20} /></div>
-              <Badge variant="outline" className="text-[8px] border-accent/20 text-accent">AGENTIC BANKING</Badge>
+              <div className={cn("p-2 rounded-full", stats.volume > 0 ? "bg-green-500/10 text-green-500" : "bg-accent/10 text-accent")}>
+                <Bot size={20} />
+              </div>
+              <Badge variant="outline" className={cn("text-[8px] border-accent/20 text-accent", stats.volume > 0 && "bg-green-500/10 text-green-500 border-green-500/20")}>
+                AGENTIC BANKING
+              </Badge>
             </div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase">MCP Node Status</p>
-            <h3 className="text-xl font-bold font-headline uppercase">Standby</h3>
+            <h3 className="text-xl font-bold font-headline uppercase">{stats.volume > 0 ? "Active" : "Standby"}</h3>
             <div className="flex gap-1 mt-2">
-              <div className="h-1 flex-1 bg-accent rounded-full" />
-              <div className="h-1 flex-1 bg-white/5 rounded-full" />
-              <div className="h-1 flex-1 bg-white/5 rounded-full" />
+              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 0 ? "bg-green-500" : "bg-accent")} />
+              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 10000 ? "bg-green-500" : "bg-white/5")} />
+              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 50000 ? "bg-green-500" : "bg-white/5")} />
             </div>
           </CardContent>
         </Card>
@@ -158,7 +164,7 @@ export default function MissionControlCenter() {
             </div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase">Node Liquidity</p>
             <h3 className="text-xl font-bold font-headline">৳ {stats.volume.toLocaleString()}</h3>
-            <Progress value={Math.min(100, (stats.volume / 100000) * 100)} className="h-1 bg-white/5 mt-2" />
+            <Progress value={Math.min(100, (Math.abs(stats.volume) / 100000) * 100)} className="h-1 bg-white/5 mt-2" />
           </CardContent>
         </Card>
 
@@ -168,7 +174,7 @@ export default function MissionControlCenter() {
             <CardTitle className="text-[10px] uppercase font-bold flex items-center gap-2"><Activity size={12} className="text-primary"/> Node Pulse</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 h-[80px] overflow-y-auto scrollbar-none font-mono text-[9px]">
-            {logs.slice(0, 8).map(log => (
+            {logs.slice(0, 10).map(log => (
               <div key={log.id} className="flex gap-2 mb-1">
                 <span className={cn(log.type === 'error' ? 'text-red-500' : log.type === 'success' ? 'text-green-500' : 'text-primary')}>[{log.type.charAt(0).toUpperCase()}]</span>
                 <span className="text-foreground/70 truncate">{log.message}</span>

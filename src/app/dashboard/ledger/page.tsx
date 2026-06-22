@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Transaction, MDBPayoutResponse, NagadPayoutResponse, InboundRemittancePayload } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -12,7 +12,7 @@ import {
   RefreshCcw, Send, ShieldCheck, 
   Smartphone, Zap, QrCode, Globe2, WalletCards, 
   FileSpreadsheet, ArrowRight, Building2, Link2, Copy,
-  UserCheck, History as HistoryIcon, Download, Search, AlertCircle
+  UserCheck, History as HistoryIcon, Download, Search, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NAGAD_BANK_NODES, MOCK_NAGAD_MTO_NODES } from '@/lib/mock-data';
+import { NAGAD_BANK_NODES } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
@@ -40,7 +40,6 @@ export default function NexusLedgerPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifiedName, setRecipientName] = useState<string | null>(null);
 
-  // States for forms
   const [payoutData, setPayoutData] = useState({ 
     destAccount: '', 
     destBank: 'Midland Bank',
@@ -57,8 +56,6 @@ export default function NexusLedgerPage() {
     principalAmountBDT: 50000,
     referenceNumber: 'WU-' + Math.random().toString(36).substring(7).toUpperCase()
   });
-
-  const [requestLink, setRequestMoneyLink] = useState('');
 
   const ledgerQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -158,11 +155,16 @@ export default function NexusLedgerPage() {
             amount: res.totalCreditedAmount,
             currency: 'BDT',
             status: 'completed',
-            description: `Remittance via ${remitData.mtoProvider} (${remitData.sourceCountry})`,
+            description: `Global Remit via ${remitData.mtoProvider} (Incl. 2.5% Incentive)`,
             type: 'payment',
             timestamp: new Date().toISOString(),
             merchantId: user.uid,
-            metadata: { ...remitData, ...res }
+            metadata: { 
+              ...remitData, 
+              txId: res.txId, 
+              incentive: res.governmentIncentive,
+              principal: res.principalAmount
+            }
           });
         }
         setIsRemitDialogOpen(false);

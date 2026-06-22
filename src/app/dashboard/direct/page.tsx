@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function DirectLinkHub() {
   const [id, setId] = useState('');
@@ -114,5 +115,3 @@ export default function DirectLinkHub() {
     </div>
   );
 }
-
-import { cn } from '@/lib/utils';
