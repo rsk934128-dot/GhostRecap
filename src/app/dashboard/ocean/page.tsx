@@ -53,6 +53,17 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fix: Handling the toast outside the state updater to avoid "Cannot update Toaster while rendering"
+  useEffect(() => {
+    if (testProgress >= 100 && isTesting) {
+      setIsTesting(false);
+      toast({
+        title: "Stress Test Complete",
+        description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
+      });
+    }
+  }, [testProgress, isTesting]);
+
   const nodes: LiquidityNode[] = [
     { id: '1', name: 'Midland Bank Node', balance: 4500000, currency: 'BDT', health: 98, status: 'online', type: 'bank' },
     { id: '2', name: 'Nagad Gateway Node', balance: 1850000, currency: 'BDT', health: 94, status: 'online', type: 'nagad' },
@@ -77,11 +88,6 @@ export default function OceanMixingPage() {
       setTestProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
-          setIsTesting(false);
-          toast({
-            title: "Stress Test Complete",
-            description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
-          });
           return 100;
         }
         return prev + 5;

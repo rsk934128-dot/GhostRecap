@@ -17,13 +17,14 @@ export function initAppCheck(app: FirebaseApp) {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY;
   
   // Guard against missing or placeholder keys to prevent reCAPTCHA runtime errors
-  // Fixed: Added extra check for defined DOM before initializing to prevent placeholder error
-  const placeholderExists = document.getElementById('recaptcha-container') || document.body;
-
-  if (!siteKey || siteKey === '6Lc_your_site_key_here' || !placeholderExists) {
-    console.warn('--- App Check: Skipping enforcement due to missing site key or DOM context. ---');
+  if (!siteKey || siteKey === '6Lc_your_site_key_here' || siteKey.length < 10) {
+    console.warn('--- App Check: Skipping enforcement due to missing or invalid site key. ---');
     return;
   }
+
+  // Ensure DOM is ready for reCAPTCHA
+  const placeholderExists = document.body;
+  if (!placeholderExists) return;
 
   try {
     appCheckInstance = initializeAppCheck(app, {
