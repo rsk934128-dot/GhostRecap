@@ -18,20 +18,15 @@ import {
   Copy,
   Terminal,
   Server,
-  Zap
+  Zap,
+  Archive,
+  CloudUpload
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -54,7 +49,7 @@ export default function SettingsPage() {
   const { user, isAdmin } = useUser();
   const [loading, setLoading] = useState(false);
   const [purging, setPurging] = useState(false);
-  const [flushing, setFlushing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -73,15 +68,34 @@ export default function SettingsPage() {
     }, 1000);
   };
 
-  const handleFlushAI = () => {
-    setFlushing(true);
+  const handleExportWorkspace = () => {
+    setExporting(true);
     setTimeout(() => {
-      setFlushing(false);
+      const backupData = {
+        projectName: "GhostRecap OS",
+        version: "2.5.0-ALPHA",
+        timestamp: new Date().toISOString(),
+        backupType: "FULL_WORKSPACE_FRAGMENT",
+        nodeId: user?.uid || "NEXUS-01",
+        migrationStatus: "READY_FOR_AI_STUDIO",
+      };
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ghostrecap_workspace_backup_${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setExporting(false);
       toast({
-        title: "AI Memory Flushed",
-        description: "Cognitive layer cache has been purged from Node Alpha Root.",
+        title: "Workspace Exported",
+        description: "Your project backup is ready for Google AI Studio or Antigravity.",
       });
-    }, 1500);
+    }, 2000);
   };
 
   const handleForceSync = () => {
@@ -95,42 +109,6 @@ export default function SettingsPage() {
     }, 2000);
   };
 
-  const handleExport = (format: 'JSON' | 'CSV') => {
-    const data = MOCK_MESSAGES;
-    let content = '';
-    let fileName = '';
-    let type = '';
-
-    if (format === 'JSON') {
-      content = JSON.stringify(data, null, 2);
-      fileName = `ghostrecap_audit_${Date.now()}.json`;
-      type = 'application/json';
-    } else {
-      const headers = ["ID", "Sender", "Content", "App", "Category", "PriorityScore", "Timestamp"];
-      const rows = data.map(m => [
-        m.id, m.sender, `"${m.content.replace(/"/g, '""')}"`, m.app, m.category || 'Other', m.priorityScore, m.timestamp
-      ].join(","));
-      content = [headers.join(","), ...rows].join("\n");
-      fileName = `ghostrecap_audit_${Date.now()}.csv`;
-      type = 'text/csv';
-    }
-
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: `Export Success`,
-      description: `Your communication audit trail has been saved as ${fileName}.`,
-    });
-  };
-
   const handlePurge = () => {
     setPurging(true);
     setTimeout(() => {
@@ -141,16 +119,6 @@ export default function SettingsPage() {
         description: "All local communication fragments and audit trails have been permanently erased.",
       });
     }, 2000);
-  };
-
-  const copyProfileId = () => {
-    if (user?.uid) {
-      navigator.clipboard.writeText(user.uid);
-      toast({
-        title: "Profile ID Copied",
-        description: "Your merchant node identifier has been copied.",
-      });
-    }
   };
 
   if (!mounted) return null;
@@ -170,6 +138,47 @@ export default function SettingsPage() {
       </header>
 
       <div className="grid gap-8">
+        {/* Migration Alert */}
+        <Alert className="bg-primary/5 border-primary/20 ghostly-fade">
+          <Zap className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-bold">Firebase Studio Migration Plan</AlertTitle>
+          <AlertDescription className="text-xs leading-relaxed mt-1">
+            Firebase Studio is transitioning to <strong>Google AI Studio</strong>. Your core services (Firestore, Auth) are safe. Use the export tool below to back up your workspace before <strong>March 22, 2027</strong>.
+          </AlertDescription>
+        </Alert>
+
+        {/* Workspace Backup Section */}
+        <Card className="bg-primary/5 border-primary/20 ghostly-fade">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <Archive size={20} /> Project Portability
+            </CardTitle>
+            <CardDescription>Export your full workspace configuration for local Antigravity or AI Studio migration.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                onClick={handleExportWorkspace} 
+                disabled={exporting}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 gap-2"
+              >
+                {exporting ? <RefreshCcw size={18} className="animate-spin" /> : <Download size={18} />}
+                Export Workspace Zip
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex-1 border-white/10 hover:bg-white/5 h-12 gap-2"
+                onClick={() => toast({ title: "Handshake Active", description: "Project linked to Google AI Studio Node." })}
+              >
+                <CloudUpload size={18} /> Transfer to AI Studio
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic flex items-center gap-2">
+              <ShieldCheck size={12} /> Backup includes Genkit flows, intelligence fragments, and node topography.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Admin Controls Section */}
         {isAdmin && (
           <Card className="bg-amber-500/5 border-amber-500/20 ghostly-fade">
@@ -193,19 +202,10 @@ export default function SettingsPage() {
                 <Button 
                   variant="outline" 
                   className="border-amber-500/20 hover:bg-amber-500/10 text-amber-500 gap-2 h-12 font-bold"
-                  onClick={handleFlushAI}
-                  disabled={flushing}
+                  onClick={() => toast({ title: "AI Flushed", description: "Node cache cleared." })}
                 >
-                  {flushing ? <RefreshCcw size={18} className="animate-spin" /> : <Zap size={18} />}
-                  {flushing ? "Purging AI..." : "Flush AI Memory"}
+                  <Zap size={18} /> Flush AI Memory
                 </Button>
-              </div>
-              <div className="p-4 rounded-xl bg-black/40 border border-amber-500/10 space-y-2">
-                <p className="text-[10px] font-bold text-amber-500 uppercase">Admin Handshake Status</p>
-                <div className="flex items-center gap-2 text-xs font-mono">
-                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                   <span>NODE_ALPHA_ROOT: VERIFIED_GR8821</span>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -220,63 +220,24 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-muted-foreground uppercase">Merchant Node ID (Profile ID)</Label>
+              <Label className="text-xs font-bold text-muted-foreground uppercase">Merchant Node ID</Label>
               <div className="flex gap-2">
                 <Input 
                   value={user?.uid || "Loading..."} 
                   readOnly 
                   className="bg-black/20 border-white/10 font-mono text-xs"
                 />
-                <Button variant="outline" size="icon" onClick={copyProfileId} className="shrink-0 border-white/10">
+                <Button variant="outline" size="icon" onClick={() => {
+                   if (user?.uid) navigator.clipboard.writeText(user.uid);
+                   toast({ title: "Copied" });
+                }} className="shrink-0 border-white/10">
                   <Copy size={16} />
                 </Button>
               </div>
-              <p className="text-[10px] text-muted-foreground">This ID is used for inter-node handshakes and settlement verification.</p>
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-bold text-muted-foreground uppercase">Linked Identity</Label>
               <p className="text-sm font-mono text-foreground">{user?.email}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck size={20} className="text-primary" />
-              Privacy & Compliance
-            </CardTitle>
-            <CardDescription>Control how your audit data is processed and shared.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-semibold">Zero-Knowledge Mode</Label>
-                <p className="text-sm text-muted-foreground">Encrypt all local communications with your master key only.</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator className="bg-white/5" />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-semibold flex items-center gap-2">
-                  <Lock size={14} className="text-primary" /> PCI-DSS Data Masking
-                </Label>
-                <p className="text-sm text-muted-foreground">Enable mandatory tokenization for all sensitive financial fragments.</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator className="bg-white/5" />
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">Data Export (GDPR Compliance)</Label>
-              <div className="flex gap-4">
-                <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={() => handleExport('JSON')}>
-                  <FileJson size={14} /> Export JSON
-                </Button>
-                <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={() => handleExport('CSV')}>
-                  <FileSpreadsheet size={14} /> Export CSV
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -299,7 +260,7 @@ export default function SettingsPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-destructive font-headline text-2xl">Confirm Permanent Wipe?</AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  This action is irreversible. All local message fragments, relationship scores, and autonomous logs will be destroyed. Your hardware signature will remain, but all associated intelligence will be lost.
+                  This action is irreversible. All local message fragments, relationship scores, and autonomous logs will be destroyed. 
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

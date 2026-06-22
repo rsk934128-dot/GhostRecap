@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -22,7 +21,10 @@ import {
   Search,
   ExternalLink,
   Code,
-  Wallet
+  Wallet,
+  Archive,
+  RefreshCcw,
+  Monitor
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +33,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
@@ -69,12 +72,12 @@ export default function StrategicDocsPage() {
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Users size={18} className="text-primary" /> টিম সাইজ (Team Size)
+              <Archive size={18} className="text-primary" /> মাইগ্রেশন প্ল্যান
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold font-headline text-foreground">০৫ জন</p>
-            <p className="text-[10px] text-muted-foreground uppercase mt-1">কোর এলিট মেম্বার প্রয়োজন</p>
+            <p className="text-xl font-bold font-headline">৯ মাস বাকি</p>
+            <p className="text-[10px] text-muted-foreground uppercase mt-1">Google AI Studio Transfer</p>
           </CardContent>
         </Card>
         <Card className="bg-secondary/10 border-white/5">
@@ -93,7 +96,7 @@ export default function StrategicDocsPage() {
             <CardTitle className="text-lg flex items-center gap-2">
               <ShieldCheck size={18} className="text-green-500" /> স্ট্যাটাস (Status)
             </CardTitle>
-          </CardHeader>
+          </Header>
           <CardContent>
             <p className="text-2xl font-bold font-headline text-green-500">STABLE</p>
             <p className="text-[10px] text-muted-foreground uppercase mt-1">ইনফ্রাস্ট্রাকচার রেডি</p>
@@ -114,68 +117,64 @@ export default function StrategicDocsPage() {
 
       <Alert variant="destructive" className="bg-destructive/10 border-destructive/20 text-destructive-foreground ghostly-fade">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="font-bold">Midland Bank Account Application Alert</AlertTitle>
-        <AlertDescription className="text-xs">
-          Your Digital Account application (Track ID: 300325662177) for SHEIKH FARID has been <strong className="uppercase">Declined</strong>. Circle-009 Node awaiting re-handshake manual audit.
+        <AlertTitle className="font-bold">Firebase Studio Transition Alert</AlertTitle>
+        <AlertDescription className="text-xs leading-relaxed">
+          Firebase Studio workspace creation is disabled as of <strong>June 22, 2026</strong>. Project shutdown: <strong>March 22, 2027</strong>. Your Firestore and Auth nodes are <strong>UNINTERRUPTED</strong>.
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="tasks" className="w-full">
+      <Tabs defaultValue="migration" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full bg-black/20 h-12 p-1 mb-8">
-          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">কাজ ভাগ করা</TabsTrigger>
+          <TabsTrigger value="migration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">মাইগ্রেশন</TabsTrigger>
           <TabsTrigger value="tracker" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">গ্লোবাল ট্র্যাকার</TabsTrigger>
           <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ইন্টিগ্রেশন</TabsTrigger>
           <TabsTrigger value="openbanking" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ওপেন ব্যাংকিং</TabsTrigger>
-          <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">এডমিন রোল</TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">লগ</TabsTrigger>
+          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">কাজ ভাগ</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tasks" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="migration" className="space-y-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="bg-secondary/10 border-white/5">
               <CardHeader>
                 <CardTitle className="text-primary flex items-center gap-2">
-                  <Cpu size={20} /> নোড ভিত্তিক কাজ ভাগ (Division)
+                  <Monitor size={20} /> মাইগ্রেশন রোডম্যাপ (Roadmap)
                 </CardTitle>
-                <CardDescription>আমরা প্রজেক্টকে ৪টি প্রধান অংশে ভাগ করব:</CardDescription>
+                <CardDescription>Firebase Studio থেকে সরে যাওয়ার পর্যায়সমূহ:</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <h5 className="text-sm font-bold">১. Intelligence Core (AI/ML)</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed">মেসেজ ক্যাটাগরাইজেশন, ফ্রড ডিটেকশন এবং জেমিনি এআই লজিক হ্যান্ডেল করা।</p>
+                  <h5 className="text-sm font-bold">১. ব্যাকআপ ও জিপ (জুন ২০২৬)</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">বর্তমান কোডবেস জিপ করে লোকাল স্টোরেজে রাখা।</p>
                 </div>
                 <div className="space-y-2">
-                  <h5 className="text-sm font-bold">২. Financial Bridge (Backend)</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed">নগদ গেটওয়ে, এমডিবি কোর এবং রেমিট্যান্স লজিক ডেভেলপ করা।</p>
+                  <h5 className="text-sm font-bold">২. Google AI Studio (জুলাই ২০২৬)</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">ক্লাউড এজেন্টগুলোকে গুগলের নতুন ফ্রি এআই স্টুডিওতে ট্রান্সফার করা।</p>
                 </div>
                 <div className="space-y-2">
-                  <h5 className="text-sm font-bold">৩. Security Layer (DevOps)</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed">App Check এনফোর্সমেন্ট, RSA সিগনেচার ভ্যালিডেশন এবং HSM হ্যান্ডশেক।</p>
-                </div>
-                <div className="space-y-2">
-                  <h5 className="text-sm font-bold">৪. Mission Control (Frontend)</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed">শ্যাডসিএন (ShadCN) ইউআই দিয়ে চমৎকার ড্যাশবোর্ড এবং রিয়েল-টাইম লগিং।</p>
+                  <h5 className="text-sm font-bold">৩. Antigravity/Local (আগস্ট ২০২৬)</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">লোকাল পিসিতে গুগল অ্যান্টিগ্রাভিটি ব্যবহার করে কোড এডিট ও টেস্ট করা।</p>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-primary/5 border-primary/20">
               <CardHeader>
-                <CardTitle>সাশ্রয়ী ইনফ্রাস্ট্রাকচার (Architecture)</CardTitle>
-                <CardDescription>বাজেট প্ল্যান অনুযায়ী আমাদের সিস্টেম সেটআপ:</CardDescription>
+                <CardTitle>গুগল মাইগ্রেশন গাইড (Action Items)</CardTitle>
+                <CardDescription>বাজেট ঠিক রেখে পরবর্তী পদক্ষেপ:</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
-                  { role: 'Hosting', count: 'Free', desc: 'Vercel / Netlify - খরচ ০ টাকা' },
-                  { role: 'Database', count: 'Free', desc: 'Firebase Free Tier - খরচ ০ টাকা' },
-                  { role: 'Authentication', count: 'Free', desc: 'Firebase Auth - খরচ ০ টাকা' },
-                  { role: 'APIs', count: 'SaaS', desc: 'Pay-as-you-go (শুধুমাত্র ব্যবহারে খরচ)' },
+                  { role: 'Firestore/Auth', status: 'Safe', desc: 'কোর সার্ভিসগুলো আজীবন সচল থাকবে।' },
+                  { role: 'AI Workspace', status: 'Migrate', desc: 'Google AI Studio - খরচ ০ টাকা।' },
+                  { role: 'Editor', status: 'Antigravity', desc: 'লোকাল ডেক্সটপ অ্যাপ - খরচ ০ টাকা।' },
+                  { role: 'Hosting', status: 'Vercel', desc: 'NextJS হোস্টিং - খরচ ০ টাকা।' },
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-start border-b border-white/5 pb-2">
                     <div>
                       <p className="text-sm font-bold">{item.role}</p>
                       <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                     </div>
-                    <Badge variant="outline" className="text-green-500 border-green-500/30">{item.count}</Badge>
+                    <Badge variant="outline" className="text-green-500 border-green-500/30">{item.status}</Badge>
                   </div>
                 ))}
               </CardContent>
@@ -234,13 +233,6 @@ export default function StrategicDocsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  <TableRow className="bg-primary/5 border-primary/20">
-                    <TableCell className="font-bold text-primary">GhostRecap Node</TableCell>
-                    <TableCell className="font-mono text-xs text-primary">118 (Local)</TableCell>
-                    <TableCell className="text-xs text-primary">BD (Global Bridge)</TableCell>
-                    <TableCell><Badge className="bg-primary text-black">OS NATIVE</Badge></TableCell>
-                    <TableCell className="text-right"><Badge variant="outline" className="border-primary/20 text-primary">YOUR NODE</Badge></TableCell>
-                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
@@ -253,7 +245,7 @@ export default function StrategicDocsPage() {
               <CardTitle className="flex items-center gap-2">
                 <Globe2 size={20} className="text-primary" /> Open Banking Tracker (Global)
               </CardTitle>
-              <CardDescription>Strategic connectivity analysis for 118+ banks in BD and 9,000+ globally via BankSync & Nexus Core.</CardDescription>
+              <CardDescription>Strategic connectivity analysis for 9,000+ globally via BankSync & Nexus Core.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -266,13 +258,6 @@ export default function StrategicDocsPage() {
                       <li className="flex justify-between"><span>PSD2 Compliance</span> <Badge variant="outline" className="h-5 text-green-500 border-green-500/20">Certified</Badge></li>
                     </ul>
                   </div>
-                  <Alert className="bg-accent/5 border-accent/20">
-                    <Code className="h-4 w-4 text-accent" />
-                    <AlertTitle className="text-accent text-xs">Open Banking Infrastructure</AlertTitle>
-                    <AlertDescription className="text-[10px] leading-relaxed">
-                      GhostRecap supports over 30 data points per organization including Developer Sandboxes, Account Information Services (AIS), and Payment Initiation Services (PIS).
-                    </AlertDescription>
-                  </Alert>
                 </div>
                 <div className="space-y-4">
                   <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top API Aggregators 2026</h5>
@@ -283,7 +268,6 @@ export default function StrategicDocsPage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-[9px] text-muted-foreground italic">Data Source: Open Banking Directory & PSD2 API Tracker 2026.</p>
                 </div>
               </div>
             </CardContent>
@@ -317,105 +301,42 @@ export default function StrategicDocsPage() {
                   <div className="col-span-1 text-right text-muted-foreground">Mar 30, 2025</div>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end">
-                <Button variant="ghost" size="sm" className="text-[10px] gap-2 text-muted-foreground hover:text-primary">
-                  <Download size={14} /> Download Application PDF
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="integration" className="space-y-6">
-          <Card className="bg-secondary/10 border-white/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GitMerge size={20} className="text-accent" /> থার্ড-পার্টি ইন্টিগ্রেশন প্রসেস
-              </CardTitle>
-              <CardDescription>কিভাবে আমরা অন্যদের সাথে কানেক্ট হব?</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent shrink-0 font-bold">১</div>
-                  <div>
-                    <h5 className="font-bold text-sm">RSA-2048 হ্যান্ডশেক</h5>
-                    <p className="text-xs text-muted-foreground">নগদ এবং অন্যান্য ব্যাংক নোডের সাথে ডেটা পাঠাতে আমরা পাবলিক/প্রাইভেট কি মেকানিজম ব্যবহার করব।</p>
-                  </div>
+        <TabsContent value="tasks" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-secondary/10 border-white/5">
+              <CardHeader>
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <Cpu size={20} /> নোড ভিত্তিক কাজ ভাগ (Division)
+                </CardTitle>
+                <CardDescription>আমরা প্রজেক্টকে ৪টি প্রধান অংশে ভাগ করব:</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h5 className="text-sm font-bold">১. Intelligence Core (AI/ML)</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">মেসেজ ক্যাটাগরাইজেশন ও জেমিনি এআই লজিক হ্যান্ডেল করা।</p>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent shrink-0 font-bold">২</div>
-                  <div>
-                    <h5 className="font-bold text-sm">Webhooks & Listeners</h5>
-                    <p className="text-xs text-muted-foreground">হোয়াটসঅ্যাপ বা সিগন্যাল থেকে রিয়েল-টাইম পুশ নোটিফিকেশন রিসিভ করার জন্য লিসেনার নোড সেটআপ।</p>
-                  </div>
+                <div className="space-y-2">
+                  <h5 className="text-sm font-bold">২. Financial Bridge (Backend)</h5>
+                  <p className="text-xs text-muted-foreground leading-relaxed">নগদ গেটওয়ে এবং এমডিবি কোর লজিক ডেভেলপ করা।</p>
                 </div>
-              </div>
-              <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-                <h5 className="text-[10px] font-bold uppercase text-primary mb-4 flex items-center gap-2">
-                  <Network size={12} /> কানেক্টিভিটি গ্রাফ
-                </h5>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span>Midland Bank Bridge</span>
-                    <Badge className="bg-green-500/20 text-green-500">READY</Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span>Nagad Gateway</span>
-                    <Badge className="bg-green-500/20 text-green-500">READY</Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span>Global Aggregator (Plaid)</span>
-                    <Badge className="bg-accent/20 text-accent">HANDSHAKING</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="admin" className="space-y-6">
-          <Card className="bg-accent/5 border-accent/20">
-            <CardHeader>
-              <CardTitle className="text-accent flex items-center gap-2">
-                <UserCheck size={20} /> এডমিনের কাজ ও ক্ষমতা (Superuser Role)
-              </CardTitle>
-              <CardDescription>সিস্টেম কমান্ডার ফরিদ ভাইয়ের এক্সক্লুসিভ কাজসমূহ:</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <ul className="space-y-3">
-                <li className="flex gap-2 items-start">
-                  <CheckCircle2 size={16} className="text-accent mt-0.5" />
-                  <span><strong>Liquidity Management:</strong> পুরো সিস্টেমের ক্যাশ ব্যালেন্স এবং লিকুইডিটি মুভমেন্ট নিয়ন্ত্রণ করা।</span>
-                </li>
-                <li className="flex gap-2 items-start">
-                  <CheckCircle2 size={16} className="text-accent mt-0.5" />
-                  <span><strong>Security Override:</strong> কোনো নোড সন্দেহজনক মনে হলে সাথে সাথে সেটি ব্লক বা সাসপেন্ড করা।</span>
-                </li>
-                <li className="flex gap-2 items-start">
-                  <CheckCircle2 size={16} className="text-accent mt-0.5" />
-                  <span><strong>HSM Master Keys:</strong> এনক্রিপশন কি (Key) এবং মাস্টার হ্যান্ডশেক সিগনেচার জেনারেট করা।</span>
-                </li>
-              </ul>
-              <div className="bg-black/40 p-4 rounded-xl border border-accent/20">
-                <p className="text-[10px] font-bold text-accent uppercase mb-2">Admin Command Center</p>
-                <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "এডমিন শুধুমাত্র সিস্টেমের স্বাস্থ্য মনিটর করবে না, বরং প্রতিটি এআই ডিসিশন এবং হাই-ভ্যালু ট্রানজেকশন অডিট করার সর্বোচ্চ ক্ষমতা রাখবে।"
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
       <div className="p-8 bg-primary/5 rounded-3xl border border-primary/20 text-center space-y-4">
         <h3 className="text-2xl font-headline font-bold">পরবর্তী পদক্ষেপ (Next Action)</h3>
         <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-          ডকুমেন্টেশন অনুযায়ী আমরা এখন <strong>Phase 2 (Relationship & Vault)</strong>-এর শেষ পর্যায়ে আছি। ৪৭ দিনের মাথায় আমরা <strong>Phase 3 (Automation Studio)</strong>-কে শতভাগ সচল করব।
+          ডকুমেন্টেশন অনুযায়ী আমরা এখন <strong>Phase 2 (Relationship & Vault)</strong>-এর শেষ পর্যায়ে আছি। গুগলের আপডেটের কারণে আমরা এখন **Workspace Backup**-কে সর্বোচ্চ গুরুত্ব দিচ্ছি।
         </p>
         <div className="flex justify-center gap-4">
-          <Badge className="bg-primary text-black">Audit Ready</Badge>
-          <Badge className="bg-accent text-black">Integration Active</Badge>
+          <Badge className="bg-primary text-black">Migration Ready</Badge>
+          <Badge className="bg-accent text-black">Backup Active</Badge>
         </div>
       </div>
     </div>

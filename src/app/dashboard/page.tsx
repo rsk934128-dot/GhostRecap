@@ -54,8 +54,10 @@ export default function MissionControlCenter() {
     setMessages(MOCK_MESSAGES);
     const stored = typeof window !== 'undefined' ? localStorage.getItem('giant_integration_step') : null;
     if (stored === 'completed') setHandshakeResult({ signature: "STORED_HSM_SIG_VERIFIED_GR8821" });
+    
     addLog('System initialized. Nexus Core handshake standby.', 'info');
     addLog('Anti-Phishing Guard active: Monitoring Official Rails.', 'success');
+    addLog('Firebase Studio Migration Notice: PROJECT SAFE.', 'warning');
     addLog('Agentic Banking Node (MCP): STANDBY.', 'info');
   }, []);
 
@@ -212,24 +214,26 @@ export default function MissionControlCenter() {
         </div>
 
         <div className="space-y-6">
-          <Card className="bg-primary/5 border-primary/20 overflow-hidden relative">
+          <Card className="bg-primary/5 border-primary/20 overflow-hidden relative border-dashed border-2">
             <div className="absolute top-0 right-0 p-8 opacity-5"><Globe size={100} /></div>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg"><ShieldCheck size={20} className="text-primary"/> Anti-Phishing Guard</CardTitle>
-              <CardDescription>Official domain validation and social engineering defense.</CardDescription>
+              <CardTitle className="flex items-center gap-2 text-lg"><ShieldCheck size={20} className="text-primary"/> Migration Hub</CardTitle>
+              <CardDescription>Project Transition to Google AI Studio Node.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {ALLOWED_NAGAD_DOMAINS.map(d => <Badge key={d} variant="outline" className="bg-green-500/5 text-green-500 border-green-500/20 text-[9px] font-mono">{d}</Badge>)}
-              </div>
               <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
-                {['Domain Match Detection', 'QR Metadata Validation', 'Short-link De-obfuscation'].map(item => (
-                  <div key={item} className="flex items-center justify-between text-[11px]">
-                    <span className="text-muted-foreground">{item}</span>
+                 <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Local Antigravity Compatibility</span>
                     <CheckCircle2 size={12} className="text-green-500" />
                   </div>
-                ))}
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-muted-foreground">Workspace Zip Integrity</span>
+                    <CheckCircle2 size={12} className="text-green-500" />
+                  </div>
               </div>
+              <Button variant="outline" className="w-full border-primary/20 text-primary text-xs h-9" onClick={() => toast({ title: "Backup Logged" })}>
+                View Migration Audit
+              </Button>
             </CardContent>
           </Card>
           
