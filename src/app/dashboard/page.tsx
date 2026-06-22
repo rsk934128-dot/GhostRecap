@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -452,31 +451,29 @@ export default function MissionControlCenter() {
                   <RefreshCcw className="animate-spin text-primary" size={32} />
                   <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
                 </div>
-              ) : (
-                analysis && (
-                  <div className="animate-in fade-in slide-in-from-bottom-2">
-                    <Card className={cn(
-                      "border-2",
-                      (analysis.priorityScore ?? 0) > 80 ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
-                    )}>
-                      <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <ShieldAlert size={14} className={(analysis.priorityScore ?? 0) > 80 ? "text-destructive" : "text-primary"} />
-                          Audit Conclusion
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <p className="text-sm leading-relaxed">{analysis.analysis}</p>
-                        {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
-                          <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
-                            PHISHING COUNTERMEASURE: Quarantined
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                )
-              )}
+              ) : analysis ? (
+                <div className="animate-in fade-in slide-in-from-bottom-2">
+                  <Card className={cn(
+                    "border-2",
+                    (analysis.priorityScore ?? 0) > 80 ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                  )}>
+                    <CardHeader className="p-4 pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <ShieldAlert size={14} className={(analysis.priorityScore ?? 0) > 80 ? "text-destructive" : "text-primary"} />
+                        Audit Conclusion
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <p className="text-sm leading-relaxed">{analysis.analysis}</p>
+                      {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
+                        <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
+                          PHISHING COUNTERMEASURE: Quarantined
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
             </div>
           </div>
         </DialogContent>

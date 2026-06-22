@@ -1,15 +1,14 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase, logAnalyticsEvent } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse, InboundRemittancePayload, RemittanceDisbursementResult } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, NagadMfiNode, NagadPhilanthropyNode, NagadMerchantPayPayload, NagadMerchantPayResponse, NagadBiller, NagadBillPayPayload, NagadBillPayResponse, InboundRemittancePayload, RemittanceDisbursementResult, NagadCashOutPayload } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger, SelectGroup, SelectLabel } from '@/components/ui/select';
-import { RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, Landmark, Key, ShieldCheck, Smartphone, Zap, Search, AlertCircle, Building2, MapPin, Heart, Gift, QrCode, User, FileText, Lightbulb, GraduationCap, Wifi, Receipt, Globe2, Plus } from 'lucide-react';
+import { RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, Landmark, Key, ShieldCheck, Smartphone, Zap, Search, AlertCircle, Building2, MapPin, Heart, Gift, QrCode, User, FileText, Lightbulb, GraduationCap, Wifi, Receipt, Globe2, Plus, WalletCards } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +19,7 @@ import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { executeNagadMerchantPay } from '@/app/lib/nagad-merchant-actions';
 import { executeNagadBillPay } from '@/app/lib/nagad-billpay-actions';
 import { executeGlobalRemittance } from '@/app/lib/nagad-remittance-actions';
+import { calculateCashOutFee, executeNagadCashOut } from '@/app/lib/nagad-cashout-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -39,10 +39,12 @@ export default function NexusLedgerPage() {
   const [isMerchantPayDialogOpen, setIsMerchantPayDialogOpen] = useState(false);
   const [isBillPayDialogOpen, setIsBillPayDialogOpen] = useState(false);
   const [isRemittanceDialogOpen, setIsRemittanceDialogOpen] = useState(false);
+  const [isCashOutDialogOpen, setIsCashOutDialogOpen] = useState(false);
   const [isExecutingPayout, setIsExecutingPayout] = useState(false);
   const [isExecutingMerchantPay, setIsExecutingMerchantPay] = useState(false);
   const [isExecutingBillPay, setIsExecutingBillPay] = useState(false);
   const [isExecutingRemittance, setIsExecutingRemittance] = useState(false);
+  const [isExecutingCashOut, setIsExecutingCashOut] = useState(false);
   const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
@@ -82,6 +84,13 @@ export default function NexusLedgerPage() {
     mtoProvider: '',
     principalAmountBDT: 0,
     referenceNumber: ''
+  });
+
+  const [cashOutData, setCashOutData] = useState<NagadCashOutPayload>({
+    uddoktaNumber: '',
+    amount: 0,
+    pinSecureToken: 'SECURE_AGENT_PIN',
+    appType: 'REGULAR_APP'
   });
 
   const [remittanceResult, setRemittanceResult] = useState<RemittanceDisbursementResult | null>(null);
@@ -332,6 +341,38 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handleExecuteCashOut = async () => {
+    if (!cashOutData.uddoktaNumber || cashOutData.amount <= 0) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Agent number and amount required." });
+      return;
+    }
+    setIsExecutingCashOut(true);
+    try {
+      const result = await executeNagadCashOut(cashOutData);
+      if (result.status === 'Success') {
+        const txData = {
+          amount: result.totalDeductedAmount,
+          currency: 'BDT',
+          status: 'completed' as const,
+          description: `Nagad Cash Out: Agent ${cashOutData.uddoktaNumber}`,
+          type: 'payout' as const,
+          merchantId: user?.uid || 'unknown',
+          timestamp: new Date().toISOString(),
+          metadata: { fee: result.calculatedFee, principal: result.principalAmount }
+        };
+        addDoc(collection(db, 'transactions'), txData);
+        toast({ title: "Cash Out Successful", description: result.message });
+        setIsCashOutDialogOpen(false);
+      } else {
+        toast({ variant: "destructive", title: "Withdrawal Failed", description: result.message });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gateway Timeout", description: "Agent node did not respond." });
+    } finally {
+      setIsExecutingCashOut(false);
+    }
+  };
+
   const getStatusBadge = (status: Transaction['status']) => {
     switch (status) {
       case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Completed</Badge>;
@@ -349,6 +390,9 @@ export default function NexusLedgerPage() {
           <p className="text-sm text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="gap-2 border-red-500/20 text-red-500 hover:bg-red-500/5" onClick={() => setIsCashOutDialogOpen(true)}>
+            <WalletCards size={16} /> <span className="hidden sm:inline">Cash Out</span><span className="sm:hidden">Out</span>
+          </Button>
           <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsRemittanceDialogOpen(true)}>
             <Globe2 size={16} /> <span className="hidden sm:inline">Global Remittance</span><span className="sm:hidden">Remit</span>
           </Button>
@@ -403,75 +447,66 @@ export default function NexusLedgerPage() {
         </Card>
       </div>
 
-      <Card className="bg-secondary/5 border-white/5 overflow-hidden">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 bg-secondary/10">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-            <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-              <Input className="pl-9 h-9 w-full sm:w-[250px] bg-black/20 border-white/10" placeholder="Search hash or fragment..." />
+      {/* Cash Out Dialog */}
+      <Dialog open={isCashOutDialogOpen} onOpenChange={setIsCashOutDialogOpen}>
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-headline text-xl">
+              <WalletCards className="text-red-500" /> Nagad Cash Out
+            </DialogTitle>
+            <DialogDescription>Withdraw funds via Nagad Uddokta (Agent) node.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-muted-foreground">Uddokta Number</Label>
+              <Input 
+                className="bg-black/20 border-white/10" 
+                placeholder="01XXXXXXXXX" 
+                value={cashOutData.uddoktaNumber}
+                onChange={(e) => setCashOutData(p => ({ ...p, uddoktaNumber: e.target.value }))}
+              />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 w-full sm:w-[150px] bg-black/20 border-white/10">
-                <Filter className="mr-2" size={14} />
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Fragments</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="flagged">Flagged</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
+                <Input 
+                  type="number"
+                  className="bg-black/20 border-white/10 font-mono" 
+                  placeholder="0.00" 
+                  value={cashOutData.amount || ''}
+                  onChange={(e) => setCashOutData(p => ({ ...p, amount: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Method</Label>
+                <Select value={cashOutData.appType} onValueChange={(val: any) => setCashOutData(p => ({ ...p, appType: val }))}>
+                  <SelectTrigger className="bg-black/20 border-white/10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="REGULAR_APP">App (12.99/k)</SelectItem>
+                    <SelectItem value="USSD_167">USSD (15.00/k)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Estimated Fee:</span>
+                <span className="text-red-500 font-bold">৳ {((cashOutData.amount / 1000) * (cashOutData.appType === 'REGULAR_APP' ? 12.99 : 15)).toLocaleString()}</span>
+              </div>
+            </div>
           </div>
-          <div className="text-[10px] font-mono text-muted-foreground self-end sm:self-auto">LAST SYNC: {format(new Date(), 'HH:mm:ss')}</div>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-white/5">
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Timestamp</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Node Fragment</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Channel</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold text-right whitespace-nowrap">Amount</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold text-center whitespace-nowrap">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-12 animate-pulse text-muted-foreground">Scanning Nexus Memory...</TableCell></TableRow>
-              ) : filteredTransactions?.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">No fragments detected in node.</TableCell></TableRow>
-              ) : (
-                filteredTransactions?.map((tx) => (
-                  <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 cursor-pointer transition-colors" onClick={() => setSelectedTx(tx)}>
-                    <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                      {format(new Date(tx.timestamp), 'MMM d, HH:mm')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col min-w-[150px]">
-                        <span className="font-bold text-sm truncate max-w-[200px]">{tx.description}</span>
-                        <span className="text-[9px] text-muted-foreground font-mono">TXN: {tx.id?.substring(0, 12)}...</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {tx.description.includes('Midland') ? <Landmark size={12} className="text-primary" /> : tx.description.includes('Remittance') ? <Globe2 size={12} className="text-primary" /> : <Smartphone size={12} className="text-accent" />}
-                        <span className="text-[10px] font-bold uppercase">{tx.type}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-sm whitespace-nowrap">
-                      ৳ {tx.amount.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
-                      {getStatusBadge(tx.status)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCashOutDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-red-500 hover:bg-red-600 text-white font-bold px-8 shadow-lg shadow-red-500/20" onClick={handleExecuteCashOut} disabled={isExecutingCashOut}>
+              {isExecutingCashOut ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
+              Withdraw
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Global Remittance Dialog */}
       <Dialog open={isRemittanceDialogOpen} onOpenChange={setIsRemittanceDialogOpen}>
