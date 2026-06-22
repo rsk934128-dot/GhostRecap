@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -14,7 +15,8 @@ import {
   FileJson,
   FileSpreadsheet,
   RefreshCcw,
-  Lock
+  Lock,
+  Copy
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -42,8 +44,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useUser } from '@/firebase';
 
 export default function SettingsPage() {
+  const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [purging, setPurging] = useState(false);
 
@@ -78,6 +82,16 @@ export default function SettingsPage() {
     }, 2000);
   };
 
+  const copyProfileId = () => {
+    if (user?.uid) {
+      navigator.clipboard.writeText(user.uid);
+      toast({
+        title: "Profile ID Copied",
+        description: "Your merchant node identifier has been copied.",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-12 animate-in fade-in duration-500">
       <header>
@@ -86,6 +100,31 @@ export default function SettingsPage() {
       </header>
 
       <div className="grid gap-8">
+        <Card className="bg-secondary/10 border-white/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <User size={20} /> Merchant Profile
+            </CardTitle>
+            <CardDescription>Your unique identity within the Nexus Core network.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground uppercase">Merchant Node ID (Profile ID)</Label>
+              <div className="flex gap-2">
+                <Input 
+                  value={user?.uid || "Loading..."} 
+                  readOnly 
+                  className="bg-black/20 border-white/10 font-mono text-xs"
+                />
+                <Button variant="outline" size="icon" onClick={copyProfileId} className="shrink-0 border-white/10">
+                  <Copy size={16} />
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">This ID is used for inter-node handshakes and settlement verification.</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -123,38 +162,6 @@ export default function SettingsPage() {
                   <FileSpreadsheet size={14} /> Export CSV
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database size={20} className="text-accent" />
-              User-Controlled Retention
-            </CardTitle>
-            <CardDescription>Define how long communication fragments are archived before automatic purging.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Retention Period</Label>
-              <Select defaultValue="30">
-                <SelectTrigger className="bg-black/20 border-white/10">
-                  <SelectValue placeholder="Select period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">7 Days (Audit Only)</SelectItem>
-                  <SelectItem value="30">30 Days (Compliance)</SelectItem>
-                  <SelectItem value="90">90 Days (Intelligence)</SelectItem>
-                  <SelectItem value="forever">Unlimited (Business Tier)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2 pt-2">
-              <Clock size={16} className="text-muted-foreground" />
-              <span className="text-xs text-muted-foreground italic">
-                Retention settings apply to all unified messaging channels.
-              </span>
             </div>
           </CardContent>
         </Card>
