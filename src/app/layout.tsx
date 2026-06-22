@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { initializeFirebase, FirebaseClientProvider } from '@/firebase';
 import { SplashScreen } from '@/components/SplashScreen';
+import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 import './globals.css';
 
@@ -11,6 +13,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Use Singleton initialization
   const { firebaseApp, firestore, auth, analytics } = initializeFirebase();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,6 +93,7 @@ export default function RootLayout({
           <div className={isLoading ? "hidden" : "block"}>
             {children}
           </div>
+          <Toaster />
         </FirebaseClientProvider>
       </body>
     </html>

@@ -6,27 +6,37 @@ import { getAnalytics, Analytics, isSupported, logEvent as firebaseLogEvent } fr
 import { firebaseConfig } from './config';
 import { initAppCheck } from './app-check';
 
+let firebaseApp: FirebaseApp | undefined;
+let firestore: Firestore | undefined;
+let auth: Auth | undefined;
 let analytics: Analytics | undefined;
 
+/**
+ * Initializes and returns Firebase instances using a Singleton pattern.
+ * Ensures services are only initialized once to prevent runtime errors like reCAPTCHA collisions.
+ */
 export function initializeFirebase(): {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
   analytics?: Analytics;
 } {
-  const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  const firestore = getFirestore(firebaseApp);
-  const auth = getAuth(firebaseApp);
+  if (!firebaseApp) {
+    firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    firestore = getFirestore(firebaseApp);
+    auth = getAuth(firebaseApp);
 
-  if (typeof window !== 'undefined') {
-    // Enforce App Check on the client side
-    initAppCheck(firebaseApp);
+    if (typeof window !== 'undefined') {
+      // Initialize App Check (idempotent)
+      initAppCheck(firebaseApp);
 
-    isSupported().then((supported) => {
-      if (supported) {
-        analytics = getAnalytics(firebaseApp);
-      }
-    });
+      // Initialize Analytics if supported
+      isSupported().then((supported) => {
+        if (supported) {
+          analytics = getAnalytics(firebaseApp!);
+        }
+      });
+    }
   }
 
   return { firebaseApp, firestore, auth, analytics };
