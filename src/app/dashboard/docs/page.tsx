@@ -18,22 +18,41 @@ import {
   Download,
   AlertCircle,
   Globe2,
-  Database
+  Database,
+  Search,
+  ExternalLink,
+  Code
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchSearchQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
+
+  const aggregators = [
+    { name: 'BankSync', banks: 9748, countries: 62, mcp: 'READY', verified: true },
+    { name: 'Plaid', banks: 9706, countries: 60, mcp: 'READY', verified: false },
+    { name: 'Lunch Flow', banks: 2402, countries: 60, mcp: 'READY', verified: true },
+    { name: 'GoCardless', banks: 2228, countries: 54, mcp: 'STANDBY', verified: false },
+    { name: 'Salt Edge', banks: 1586, countries: 73, mcp: 'STANDBY', verified: true },
+    { name: 'TrueLayer', banks: 70, countries: 64, mcp: 'READY', verified: true },
+  ];
+
+  const filteredAggregators = aggregators.filter(a => 
+    a.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -90,12 +109,13 @@ export default function StrategicDocsPage() {
       </Alert>
 
       <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-black/20 h-12 p-1 mb-8">
-          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black">কাজ ভাগ করা</TabsTrigger>
-          <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black">ইন্টিগ্রেশন</TabsTrigger>
-          <TabsTrigger value="openbanking" className="data-[state=active]:bg-primary data-[state=active]:text-black">ওপেন ব্যাংকিং</TabsTrigger>
-          <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-black">এডমিন রোল</TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black">অ্যাপ্লিকেশন লগ</TabsTrigger>
+        <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full bg-black/20 h-12 p-1 mb-8">
+          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">কাজ ভাগ করা</TabsTrigger>
+          <TabsTrigger value="tracker" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">গ্লোবাল ট্র্যাকার</TabsTrigger>
+          <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ইন্টিগ্রেশন</TabsTrigger>
+          <TabsTrigger value="openbanking" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ওপেন ব্যাংকিং</TabsTrigger>
+          <TabsTrigger value="admin" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">এডমিন রোল</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">লগ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-6">
@@ -150,6 +170,70 @@ export default function StrategicDocsPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="tracker" className="space-y-6">
+          <Card className="bg-secondary/10 border-white/5 overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <BarChart size={20} className="text-primary" /> Financial Aggregator Tracker 2026
+                </CardTitle>
+                <CardDescription>Industry comparison of Open Banking connectivity platforms.</CardDescription>
+              </div>
+              <div className="relative w-64 hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                <Input 
+                  placeholder="Filter aggregators..." 
+                  className="pl-9 h-8 bg-black/20 border-white/10 text-xs" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchSearchQuery(e.target.value)}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-white/5">
+                  <TableRow className="border-white/5">
+                    <TableHead className="text-[10px] uppercase font-bold">Platform</TableHead>
+                    <TableHead className="text-[10px] uppercase font-bold">Banks</TableHead>
+                    <TableHead className="text-[10px] uppercase font-bold">Countries</TableHead>
+                    <TableHead className="text-[10px] uppercase font-bold">MCP Status</TableHead>
+                    <TableHead className="text-[10px] uppercase font-bold text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAggregators.map((agg) => (
+                    <TableRow key={agg.name} className="border-white/5 hover:bg-white/5 transition-colors">
+                      <TableCell className="font-bold">
+                        <div className="flex items-center gap-2">
+                          {agg.name}
+                          {agg.verified && <CheckCircle2 size={10} className="text-blue-400" />}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{agg.banks.toLocaleString()}</TableCell>
+                      <TableCell className="text-xs">{agg.countries}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={agg.mcp === 'READY' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-amber-500/20 text-amber-500'}>
+                          {agg.mcp}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="h-7 w-7"><ExternalLink size={12} /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-primary/5 border-primary/20">
+                    <TableCell className="font-bold text-primary">GhostRecap Node</TableCell>
+                    <TableCell className="font-mono text-xs text-primary">118 (Local)</TableCell>
+                    <TableCell className="text-xs text-primary">BD (Global Bridge)</TableCell>
+                    <TableCell><Badge className="bg-primary text-black">OS NATIVE</Badge></TableCell>
+                    <TableCell className="text-right"><Badge variant="outline" className="border-primary/20 text-primary">YOUR NODE</Badge></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="openbanking" className="space-y-6">
           <Card className="bg-secondary/10 border-white/5">
             <CardHeader>
@@ -165,15 +249,15 @@ export default function StrategicDocsPage() {
                     <h5 className="font-bold text-sm mb-2 text-primary">Midland Bank PLC Status</h5>
                     <ul className="space-y-2 text-xs text-muted-foreground">
                       <li className="flex justify-between"><span>Open Banking APIs</span> <Badge variant="outline" className="h-5">Profiling Active</Badge></li>
-                      <li className="flex justify-between"><span>MCP Integration</span> <Badge variant="outline" className="h-5 text-accent border-accent/20">Standby</Badge></li>
-                      <li className="flex justify-between"><span>PSD2 Compliance</span> <Badge variant="outline" className="h-5 text-green-500 border-green-500/20">Ready</Badge></li>
+                      <li className="flex justify-between"><span>MCP Integration</span> <Badge variant="outline" className="h-5 text-accent border-accent/20">Ready (Agentic)</Badge></li>
+                      <li className="flex justify-between"><span>PSD2 Compliance</span> <Badge variant="outline" className="h-5 text-green-500 border-green-500/20">Certified</Badge></li>
                     </ul>
                   </div>
                   <Alert className="bg-accent/5 border-accent/20">
-                    <Zap className="h-4 w-4 text-accent" />
-                    <AlertTitle className="text-accent text-xs">Agentic Banking & MCP</AlertTitle>
-                    <AlertDescription className="text-[10px]">
-                      Model Context Protocol (MCP) servers are being mapped to allow AI assistants to perform permissioned banking actions directly within GhostRecap OS.
+                    <Code className="h-4 w-4 text-accent" />
+                    <AlertTitle className="text-accent text-xs">Open Banking Infrastructure</AlertTitle>
+                    <AlertDescription className="text-[10px] leading-relaxed">
+                      GhostRecap supports over 30 data points per organization including Developer Sandboxes, Account Information Services (AIS), and Payment Initiation Services (PIS).
                     </AlertDescription>
                   </Alert>
                 </div>
