@@ -214,12 +214,12 @@ export default function MissionControlCenter() {
               <ShieldCheck size={10} className="text-green-500" /> Anti-Phishing Shield: ACTIVE
             </span>
           </div>
-          <h1 className="text-4xl font-headline font-bold">Mission Control</h1>
-          <p className="text-muted-foreground">Unified orchestration with integrated Nagad Fraud Awareness.</p>
+          <h1 className="text-3xl md:text-4xl font-headline font-bold">Mission Control</h1>
+          <p className="text-sm text-muted-foreground">Unified orchestration with integrated Nagad Fraud Awareness.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
-            className="gap-2 shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold group"
+            className="w-full md:w-auto gap-2 shadow-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold group"
             onClick={handleSmartSync}
             disabled={isSyncing}
           >
@@ -229,7 +229,7 @@ export default function MissionControlCenter() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-destructive/5 border-destructive/20 ghostly-fade overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -302,7 +302,7 @@ export default function MissionControlCenter() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
           <h3 className="text-xl font-headline font-bold flex items-center gap-2">
             <SignalHigh size={20} className="text-primary" /> Inbound Intelligence Graph
@@ -334,7 +334,7 @@ export default function MissionControlCenter() {
                           <Badge key={t} className="text-[8px] bg-primary/20 text-primary border-primary/30 h-4">{t}</Badge>
                         ))}
                       </div>
-                      <span className="text-sm text-muted-foreground font-mono">
+                      <span className="text-[10px] text-muted-foreground font-mono">
                         {mounted && msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
                       </span>
                     </div>
@@ -345,7 +345,7 @@ export default function MissionControlCenter() {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                    className="h-8 w-8 opacity-0 lg:group-hover:opacity-100"
                     onClick={() => handleAnalyze(msg)}
                   >
                     <ChevronRight size={14} />
@@ -433,7 +433,7 @@ export default function MissionControlCenter() {
       </div>
 
       <Dialog open={!!selectedMsg} onOpenChange={(open) => !open && setSelectedMsg(null)}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
+        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10 w-[95vw] md:w-full">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-headline">
               <Zap className="text-primary" />

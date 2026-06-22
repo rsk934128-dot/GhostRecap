@@ -1,3 +1,4 @@
+
 /**
  * Firebase configuration object.
  * Updated with official production parameters for GhostRecap OS.

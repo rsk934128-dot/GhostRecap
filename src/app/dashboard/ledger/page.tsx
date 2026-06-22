@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger, SelectGroup, SelectLabel } from '@/components/ui/select';
-import { RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, Landmark, Key, ShieldCheck, Smartphone, Zap, Search, AlertCircle, Building2, MapPin, Heart, Gift, QrCode, User, FileText, Lightbulb, GraduationCap, Wifi, Receipt, Globe2 } from 'lucide-react';
+import { RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, Landmark, Key, ShieldCheck, Smartphone, Zap, Search, AlertCircle, Building2, MapPin, Heart, Gift, QrCode, User, FileText, Lightbulb, GraduationCap, Wifi, Receipt, Globe2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -344,35 +345,35 @@ export default function NexusLedgerPage() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20 bg-primary/5 mb-2">Financial Node 01</Badge>
-          <h1 className="text-4xl font-headline font-bold">Nexus Ledger</h1>
-          <p className="text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
+          <h1 className="text-3xl md:text-4xl font-headline font-bold">Nexus Ledger</h1>
+          <p className="text-sm text-muted-foreground">Self-healing financial reconciliation and AI transaction auditing.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsRemittanceDialogOpen(true)}>
-            <Globe2 size={16} /> Global Remittance
+          <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsRemittanceDialogOpen(true)}>
+            <Globe2 size={16} /> <span className="hidden sm:inline">Global Remittance</span><span className="sm:hidden">Remit</span>
           </Button>
-          <Button variant="outline" className="gap-2 border-amber-500/20 text-amber-500 hover:bg-amber-500/5" onClick={() => setIsBillPayDialogOpen(true)}>
-            <Receipt size={16} /> Pay Bill
+          <Button variant="outline" size="sm" className="gap-2 border-amber-500/20 text-amber-500 hover:bg-amber-500/5" onClick={() => setIsBillPayDialogOpen(true)}>
+            <Receipt size={16} /> <span className="hidden sm:inline">Pay Bill</span><span className="sm:hidden">Bill</span>
           </Button>
-          <Button variant="outline" className="gap-2 border-accent/20 text-accent hover:bg-accent/5" onClick={() => setIsMerchantPayDialogOpen(true)}>
-            <QrCode size={16} /> Simulate QR Pay
+          <Button variant="outline" size="sm" className="gap-2 border-accent/20 text-accent hover:bg-accent/5" onClick={() => setIsMerchantPayDialogOpen(true)}>
+            <QrCode size={16} /> <span className="hidden sm:inline">Simulate QR Pay</span><span className="sm:hidden">QR</span>
           </Button>
-          <Button variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsPayoutDialogOpen(true)}>
-            <Send size={16} /> Initiate Payout
+          <Button variant="outline" size="sm" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => setIsPayoutDialogOpen(true)}>
+            <Send size={16} /> <span className="hidden sm:inline">Initiate Payout</span><span className="sm:hidden">Payout</span>
           </Button>
-          <Button variant="outline" className="gap-2 border-white/10" onClick={handleSeedData} disabled={isSeeding}>
-            {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />} Seed Test Node
+          <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={handleSeedData} disabled={isSeeding}>
+            {isSeeding ? <RefreshCcw size={16} className="animate-spin" /> : <DatabaseZap size={16} />} <span className="hidden sm:inline">Seed Test Node</span>
           </Button>
-          <Button className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20" onClick={handleRunAIAudit} disabled={isAuditing}>
+          <Button size="sm" className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20 w-full sm:w-auto" onClick={handleRunAIAudit} disabled={isAuditing}>
             {isAuditing ? <RefreshCcw size={16} className="animate-spin" /> : <BrainCircuit size={16} />} Run AI Audit
           </Button>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <Card className="bg-secondary/10 border-white/5 ghostly-fade">
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold">
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold">
               ৳ {transactions?.reduce((acc, t) => t.status === 'completed' ? acc + t.amount : acc, 0).toLocaleString() || 0}
             </CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
@@ -382,7 +383,7 @@ export default function NexusLedgerPage() {
         </Card>
         <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '100ms' }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold text-destructive">
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold text-destructive">
               {transactions?.filter(t => t.status === 'flagged').length || 0}
             </CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
@@ -390,9 +391,9 @@ export default function NexusLedgerPage() {
             </CardDescription>
           </CardHeader>
         </Card>
-        <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '200ms' }}>
+        <Card className="bg-secondary/10 border-white/5 ghostly-fade sm:col-span-2 md:col-span-1" style={{ animationDelay: '200ms' }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold text-accent">
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold text-accent">
               {transactions?.length || 0}
             </CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
@@ -403,14 +404,14 @@ export default function NexusLedgerPage() {
       </div>
 
       <Card className="bg-secondary/5 border-white/5 overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-secondary/10">
-          <div className="flex items-center gap-4">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 bg-secondary/10">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-              <Input className="pl-9 h-9 w-[250px] bg-black/20 border-white/10" placeholder="Search hash or fragment..." />
+              <Input className="pl-9 h-9 w-full sm:w-[250px] bg-black/20 border-white/10" placeholder="Search hash or fragment..." />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 w-[150px] bg-black/20 border-white/10">
+              <SelectTrigger className="h-9 w-full sm:w-[150px] bg-black/20 border-white/10">
                 <Filter className="mr-2" size={14} />
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -422,17 +423,17 @@ export default function NexusLedgerPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="text-[10px] font-mono text-muted-foreground">LAST SYNC: {format(new Date(), 'HH:mm:ss')}</div>
+          <div className="text-[10px] font-mono text-muted-foreground self-end sm:self-auto">LAST SYNC: {format(new Date(), 'HH:mm:ss')}</div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-white/5">
               <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-[10px] uppercase font-bold">Timestamp</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold">Node Fragment</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold">Channel</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold text-right">Amount</TableHead>
-                <TableHead className="text-[10px] uppercase font-bold text-center">Status</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Timestamp</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Node Fragment</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold whitespace-nowrap">Channel</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold text-right whitespace-nowrap">Amount</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold text-center whitespace-nowrap">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -443,11 +444,11 @@ export default function NexusLedgerPage() {
               ) : (
                 filteredTransactions?.map((tx) => (
                   <TableRow key={tx.id} className="border-white/5 hover:bg-white/5 cursor-pointer transition-colors" onClick={() => setSelectedTx(tx)}>
-                    <TableCell className="font-mono text-[11px] text-muted-foreground">
+                    <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                       {format(new Date(tx.timestamp), 'MMM d, HH:mm')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col min-w-[150px]">
                         <span className="font-bold text-sm truncate max-w-[200px]">{tx.description}</span>
                         <span className="text-[9px] text-muted-foreground font-mono">TXN: {tx.id?.substring(0, 12)}...</span>
                       </div>
@@ -458,10 +459,10 @@ export default function NexusLedgerPage() {
                         <span className="text-[10px] font-bold uppercase">{tx.type}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-bold text-sm">
+                    <TableCell className="text-right font-bold text-sm whitespace-nowrap">
                       ৳ {tx.amount.toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center whitespace-nowrap">
                       {getStatusBadge(tx.status)}
                     </TableCell>
                   </TableRow>
@@ -474,17 +475,17 @@ export default function NexusLedgerPage() {
 
       {/* Global Remittance Dialog */}
       <Dialog open={isRemittanceDialogOpen} onOpenChange={setIsRemittanceDialogOpen}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
+        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10 w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+            <DialogTitle className="flex items-center gap-2 font-headline text-xl md:text-2xl">
               <Globe2 className="text-primary" /> Global MTO Bridge
             </DialogTitle>
             <DialogDescription>Process inbound international remittance with 2.5% Government Incentive.</DialogDescription>
           </DialogHeader>
           
           {!remittanceResult ? (
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Remitter Name</Label>
                   <Input 
@@ -509,7 +510,7 @@ export default function NexusLedgerPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">MTO Provider</Label>
                   <Select value={remittanceData.mtoProvider} onValueChange={(val) => setRemittanceData(p => ({ ...p, mtoProvider: val }))}>
@@ -534,7 +535,7 @@ export default function NexusLedgerPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase text-muted-foreground">Beneficiary Nagad No</Label>
                   <Input 
@@ -563,7 +564,7 @@ export default function NexusLedgerPage() {
                 </div>
                 <div className="flex justify-between text-sm font-bold pt-1 border-t border-white/5">
                   <span>Total Credited:</span>
-                  <span className="text-foreground">৳ {(remittanceData.principalAmountBDT * 1.025).toLocaleString()}</span>
+                  <span>৳ {(remittanceData.principalAmountBDT * 1.025).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -587,37 +588,37 @@ export default function NexusLedgerPage() {
               </Card>
 
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold">Principal</p>
-                  <p className="text-xs font-bold">৳ {remittanceResult.principalAmount.toLocaleString()}</p>
+                <div className="text-center p-2 sm:p-3 rounded-lg bg-white/5 border border-white/5">
+                  <p className="text-[8px] sm:text-[9px] text-muted-foreground uppercase font-bold">Principal</p>
+                  <p className="text-[10px] sm:text-xs font-bold">৳ {remittanceResult.principalAmount.toLocaleString()}</p>
                 </div>
-                <div className="text-center p-3 rounded-lg bg-white/5 border border-white/5">
-                  <p className="text-[9px] text-primary uppercase font-bold">Incentive</p>
-                  <p className="text-xs font-bold">৳ {remittanceResult.governmentIncentive.toLocaleString()}</p>
+                <div className="text-center p-2 sm:p-3 rounded-lg bg-white/5 border border-white/5">
+                  <p className="text-[8px] sm:text-[9px] text-primary uppercase font-bold">Incentive</p>
+                  <p className="text-[10px] sm:text-xs font-bold">৳ {remittanceResult.governmentIncentive.toLocaleString()}</p>
                 </div>
-                <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <p className="text-[9px] text-foreground uppercase font-bold">Total</p>
-                  <p className="text-xs font-bold">৳ {remittanceResult.totalCreditedAmount.toLocaleString()}</p>
+                <div className="text-center p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-[8px] sm:text-[9px] text-foreground uppercase font-bold">Total</p>
+                  <p className="text-[10px] sm:text-xs font-bold">৳ {remittanceResult.totalCreditedAmount.toLocaleString()}</p>
                 </div>
               </div>
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             {remittanceResult ? (
               <Button className="w-full bg-primary text-black font-bold" onClick={() => { setRemittanceResult(null); setIsRemittanceDialogOpen(false); }}>
                 Acknowledge & Close
               </Button>
             ) : (
               <>
-                <Button variant="ghost" onClick={() => setIsRemittanceDialogOpen(false)}>Cancel</Button>
+                <Button variant="ghost" className="w-full sm:w-auto" onClick={() => setIsRemittanceDialogOpen(false)}>Cancel</Button>
                 <Button 
-                  className="bg-primary hover:bg-primary/90 text-black font-bold px-8 shadow-lg shadow-primary/20"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-bold px-8 shadow-lg shadow-primary/20"
                   onClick={handleExecuteRemittance}
                   disabled={isExecutingRemittance}
                 >
                   {isExecutingRemittance ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <Globe2 size={16} className="mr-2" />}
-                  {isExecutingRemittance ? "Handshaking MTO..." : "Disburse Remittance"}
+                  {isExecutingRemittance ? "Handshaking..." : "Disburse"}
                 </Button>
               </>
             )}
@@ -627,9 +628,9 @@ export default function NexusLedgerPage() {
 
       {/* Bill Pay Dialog */}
       <Dialog open={isBillPayDialogOpen} onOpenChange={setIsBillPayDialogOpen}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10">
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+            <DialogTitle className="flex items-center gap-2 font-headline text-xl">
               <Receipt className="text-amber-500" /> Utility & Education Node
             </DialogTitle>
             <DialogDescription>Pay utility bills and education fees via Nagad Gateway.</DialogDescription>
@@ -649,14 +650,8 @@ export default function NexusLedgerPage() {
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Education (Sirajganj & Others)</SelectLabel>
+                    <SelectLabel>Education</SelectLabel>
                     {MOCK_NAGAD_BILLERS.filter(b => b.category === 'Education').map(b => (
-                      <SelectItem key={b.code} value={b.code}>{b.name}</SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Internet</SelectLabel>
-                    {MOCK_NAGAD_BILLERS.filter(b => b.category === 'Internet').map(b => (
                       <SelectItem key={b.code} value={b.code}>{b.name}</SelectItem>
                     ))}
                   </SelectGroup>
@@ -667,16 +662,16 @@ export default function NexusLedgerPage() {
             {selectedBiller && (
               <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 flex items-center gap-3">
                 <div className="p-2 rounded-md bg-amber-500/10 text-amber-500">
-                  {selectedBiller.category === 'Education' ? <GraduationCap size={16} /> : selectedBiller.category === 'Utility' ? <Lightbulb size={16} /> : <Wifi size={16} />}
+                  {selectedBiller.category === 'Education' ? <GraduationCap size={16} /> : <Lightbulb size={16} />}
                 </div>
                 <div>
                   <p className="text-xs font-bold">{selectedBiller.name}</p>
-                  <p className="text-[10px] text-muted-foreground">Code: {selectedBiller.code} | Fee: {selectedBiller.chargeType === 'Fixed' ? `৳${selectedBiller.chargeValue}` : 'Slab-based'}</p>
+                  <p className="text-[10px] text-muted-foreground">Code: {selectedBiller.code} | Fee: {selectedBiller.chargeValue} BDT</p>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">Account/Bill No</Label>
                 <Input 
@@ -706,15 +701,15 @@ export default function NexusLedgerPage() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsBillPayDialogOpen(false)}>Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => setIsBillPayDialogOpen(false)}>Cancel</Button>
             <Button 
-              className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 shadow-lg shadow-amber-500/20"
+              className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 shadow-lg shadow-amber-500/20"
               onClick={handleExecuteBillPay}
               disabled={isExecutingBillPay}
             >
               {isExecutingBillPay ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <Receipt size={16} className="mr-2" />}
-              Process Bill Pay
+              Pay Bill
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -722,28 +717,28 @@ export default function NexusLedgerPage() {
 
       {/* Payout Dialog */}
       <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10">
+        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-white/10 w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
+            <DialogTitle className="flex items-center gap-2 font-headline text-xl">
               <Send className="text-primary" /> Initiate Settlement
             </DialogTitle>
             <DialogDescription>Execute inter-node fund transfers via MDB Core or Nagad Bridge.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto px-1">
             <Tabs value={payoutMethod} onValueChange={(val: any) => setPayoutMethod(val)}>
               <TabsList className="grid grid-cols-2 w-full bg-black/20 h-12 p-1">
-                <TabsTrigger value="mdb" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold">Midland Bank NPSB</TabsTrigger>
-                <TabsTrigger value="nagad" className="data-[state=active]:bg-accent data-[state=active]:text-black font-bold">Nagad B2B Bridge</TabsTrigger>
+                <TabsTrigger value="mdb" className="data-[state=active]:bg-primary data-[state=active]:text-black font-bold text-xs sm:text-sm">Midland Bank</TabsTrigger>
+                <TabsTrigger value="nagad" className="data-[state=active]:bg-accent data-[state=active]:text-black font-bold text-xs sm:text-sm">Nagad B2B</TabsTrigger>
               </TabsList>
               
               <TabsContent value="mdb" className="space-y-4 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-muted-foreground">Destination Account</Label>
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">Dest Account</Label>
                     <Input className="bg-black/20 border-white/10" placeholder="122..." value={payoutData.destAccount} onChange={(e) => setPayoutData(prev => ({ ...prev, destAccount: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase text-muted-foreground">Routing Number</Label>
+                    <Label className="text-xs font-bold uppercase text-muted-foreground">Routing</Label>
                     <Input className="bg-black/20 border-white/10" placeholder="150..." value={payoutData.routing} onChange={(e) => setPayoutData(prev => ({ ...prev, routing: e.target.value }))} />
                   </div>
                 </div>
@@ -756,13 +751,13 @@ export default function NexusLedgerPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="b2b">Merchant to Personal (M2P)</SelectItem>
-                    <SelectItem value="mfi">Microfinance Settlement (EMI)</SelectItem>
-                    <SelectItem value="charity">Philanthropy Disbursement</SelectItem>
+                    <SelectItem value="mfi">Microfinance (EMI)</SelectItem>
+                    <SelectItem value="charity">Philanthropy</SelectItem>
                   </SelectContent>
                 </Select>
 
                 {nagadMode === 'mfi' && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase text-muted-foreground">MFI Organization</Label>
                       <Select value={payoutData.mfiOrg} onValueChange={(val) => setPayoutData(prev => ({ ...prev, mfiOrg: val, mfiBranch: '' }))}>
@@ -780,33 +775,8 @@ export default function NexusLedgerPage() {
                   </div>
                 )}
 
-                {nagadMode === 'charity' && (
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-xs font-bold uppercase text-muted-foreground">Philanthropy Node</Label>
-                    <Select value={payoutData.philanthropyId} onValueChange={(val) => setPayoutData(prev => ({ ...prev, philanthropyId: val }))}>
-                      <SelectTrigger className="bg-black/20 border-white/10 h-11"><SelectValue placeholder="Select Foundation" /></SelectTrigger>
-                      <SelectContent>
-                        {MOCK_NAGAD_PHILANTHROPY_NODES.map(node => (
-                          <SelectItem key={node.id} value={node.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              <Heart size={12} className="text-red-400" />
-                              <span>{node.organizationName}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedPhilanthropy && (
-                      <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-between mt-2">
-                        <span className="text-[10px] font-bold uppercase text-green-500">Category: {selectedPhilanthropy.category}</span>
-                        <Badge variant="outline" className="text-[8px] bg-green-500/10 text-green-500 py-0">ACTIVE NODE</Badge>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-muted-foreground">Nagad Account (MSISDN)</Label>
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Nagad Account</Label>
                   <div className="relative">
                     <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                     <Input className="pl-10 bg-black/20 border-white/10" placeholder="01XXXXXXXXX" value={payoutData.destAccount} onChange={(e) => setPayoutData(prev => ({ ...prev, destAccount: e.target.value }))} />
@@ -815,16 +785,16 @@ export default function NexusLedgerPage() {
               </TabsContent>
             </Tabs>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Settlement Amount (BDT)</Label>
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Settlement Amount</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">৳</span>
                   <Input type="number" className="pl-8 bg-black/20 border-white/10 font-mono h-11" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(prev => ({ ...prev, amount: e.target.value }))} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Narration / Reference</Label>
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Narration</Label>
                 <Input className="bg-black/20 border-white/10 h-11" value={payoutData.narration} onChange={(e) => setPayoutData(prev => ({ ...prev, narration: e.target.value }))} />
               </div>
             </div>
@@ -836,190 +806,52 @@ export default function NexusLedgerPage() {
               </div>
               <div className="flex justify-between items-center text-[11px] font-mono">
                 <span className="text-muted-foreground">Algorithm:</span>
-                <span className="text-foreground">{payoutMethod === 'mdb' ? 'HMAC-SHA256' : 'RSA-2048/PKCS1'}</span>
+                <span className="text-foreground">{payoutMethod === 'mdb' ? 'HMAC-SHA256' : 'RSA-2048'}</span>
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsPayoutDialogOpen(false)}>Cancel</Button>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="ghost" className="w-full sm:w-auto" onClick={() => setIsPayoutDialogOpen(false)}>Cancel</Button>
             <Button 
               className={cn(
-                "font-bold px-8 shadow-lg",
+                "w-full sm:w-auto font-bold px-8 shadow-lg",
                 payoutMethod === 'mdb' ? "bg-primary hover:bg-primary/90 text-black" : "bg-accent hover:bg-accent/90 text-black"
               )}
               onClick={handleExecutePayout}
               disabled={isExecutingPayout}
             >
               {isExecutingPayout ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
-              {isExecutingPayout ? "RSA Handshaking..." : "Authorize Settlement"}
+              {isExecutingPayout ? "RSA Signing..." : "Authorize"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* QR Simulation Dialog */}
-      <Dialog open={isMerchantPayDialogOpen} onOpenChange={setIsMerchantPayDialogOpen}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-headline text-2xl">
-              <QrCode className="text-accent" /> Merchant Pay Node
-            </DialogTitle>
-            <DialogDescription>Simulate a C2B transaction (QR or USSD) received by your node.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Channel</Label>
-                <Select value={merchantPayData.channel} onValueChange={(val: any) => setMerchantPayData(prev => ({ ...prev, channel: val }))}>
-                  <SelectTrigger className="bg-black/20 border-white/10 h-11"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="APP_QR">Nagad App (QR)</SelectItem>
-                    <SelectItem value="USSD">USSD (*167#)</SelectItem>
-                    <SelectItem value="GATEWAY_API">Gateway API</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Amount (BDT)</Label>
-                <Input type="number" className="bg-black/20 border-white/10 h-11 font-mono" placeholder="0.00" value={merchantPayData.amount || ''} onChange={(e) => setMerchantPayData(prev => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-muted-foreground">Customer MSISDN (Sender)</Label>
-              <Input className="bg-black/20 border-white/10 h-11" placeholder="01XXXXXXXXX" value={merchantPayData.merchantAccountNumber} onChange={(e) => setMerchantPayData(prev => ({ ...prev, merchantAccountNumber: e.target.value }))} />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-muted-foreground">PIN Secure Token</Label>
-              <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input type="password" value={merchantPayData.pinSecureToken} readOnly className="pl-10 bg-black/20 border-white/10 h-11" />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsMerchantPayDialogOpen(false)}>Cancel</Button>
-            <Button 
-              className="bg-accent hover:bg-accent/90 text-black font-bold px-8 shadow-lg shadow-accent/20"
-              onClick={handleExecuteMerchantPay}
-              disabled={isExecutingMerchantPay}
-            >
-              {isExecutingMerchantPay ? <RefreshCcw size={16} className="animate-spin mr-2" /> : <Smartphone size={16} className="mr-2" />}
-              {isExecutingMerchantPay ? "RSA Signing..." : "Simulate Payment"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* AI Audit Dialog */}
-      <Dialog open={!!auditResult} onOpenChange={(open) => !open && setAuditResult(null)}>
-        <DialogContent className="max-w-3xl bg-card/95 backdrop-blur-xl border-white/10 max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-headline text-3xl">
-              <BrainCircuit className="text-primary" /> Intelligence Audit Report
-            </DialogTitle>
-            <DialogDescription>Autonomous transaction forensic analysis for merchant node.</DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-8 py-6">
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="bg-primary/5 border-primary/20 p-4">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Compliance Score</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-4xl font-bold font-headline text-primary">{auditResult?.complianceScore}%</span>
-                  <Badge variant="outline" className="mb-1 text-[8px] border-primary/30 text-primary">PASSED</Badge>
-                </div>
-              </Card>
-              <Card className={cn(
-                "p-4 border-2",
-                auditResult?.fraudAnalysis.riskLevel === 'Low' ? "bg-green-500/5 border-green-500/20" : "bg-destructive/5 border-destructive/20"
-              )}>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Fraud Risk Level</p>
-                <div className="flex items-center gap-2">
-                  {auditResult?.fraudAnalysis.riskLevel === 'Low' ? <CheckCircle2 className="text-green-500" size={24} /> : <AlertCircle className="text-destructive" size={24} />}
-                  <span className={cn("text-2xl font-bold font-headline uppercase", auditResult?.fraudAnalysis.riskLevel === 'Low' ? "text-green-500" : "text-destructive")}>
-                    {auditResult?.fraudAnalysis.riskLevel}
-                  </span>
-                </div>
-              </Card>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <DatabaseZap size={14} className="text-primary" /> Cognitive Summary
-              </h4>
-              <p className="text-sm leading-relaxed p-4 rounded-xl bg-secondary/50 border border-white/5 italic">
-                "{auditResult?.smartSummary}"
-              </p>
-            </div>
-
-            {auditResult?.fraudAnalysis.phishingAlerts && auditResult.fraudAnalysis.phishingAlerts.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-bold uppercase tracking-widest text-destructive flex items-center gap-2">
-                  <ShieldCheck size={14} /> Phishing Guard Alerts
-                </h4>
-                <div className="grid gap-2">
-                  {auditResult.fraudAnalysis.phishingAlerts.map((alert, i) => (
-                    <div key={i} className="flex gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive-foreground">
-                      <AlertCircle size={14} className="shrink-0" />
-                      {alert}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Zap size={14} className="text-accent" /> Node Recommendations
-              </h4>
-              <div className="grid gap-2">
-                {auditResult?.recommendations.map((rec, i) => (
-                  <div key={i} className="flex gap-3 p-3 rounded-lg bg-white/5 border border-white/5 text-xs text-muted-foreground">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
-                    {rec}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="border-t border-white/5 pt-4">
-            <Button className="bg-primary text-black font-bold px-12" onClick={() => setAuditResult(null)}>Acknowledge Audit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Transaction Details Dialog */}
       <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
-        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10">
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle className="font-headline">Node Fragment Details</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-black/40 border border-white/5 space-y-2">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Amount Disbursed</p>
-              <h2 className="text-4xl font-bold font-headline">৳ {selectedTx?.amount.toLocaleString()}</h2>
+              <h2 className="text-3xl md:text-4xl font-bold font-headline">৳ {selectedTx?.amount.toLocaleString()}</h2>
               <Badge variant="outline" className="border-green-500/30 text-green-500 bg-green-500/5">{selectedTx?.status.toUpperCase()}</Badge>
             </div>
             
             <div className="space-y-3">
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-muted-foreground">Fragment ID</span>
-                <span className="font-mono text-primary">{selectedTx?.id}</span>
+              <div className="flex justify-between text-xs py-2 border-b border-white/5 gap-4">
+                <span className="text-muted-foreground shrink-0">Fragment ID</span>
+                <span className="font-mono text-primary truncate">{selectedTx?.id}</span>
               </div>
               <div className="flex justify-between text-xs py-2 border-b border-white/5">
                 <span className="text-muted-foreground">Type</span>
                 <span className="font-bold uppercase">{selectedTx?.type}</span>
               </div>
               <div className="flex justify-between text-xs py-2 border-b border-white/5">
-                <span className="text-muted-foreground">Channel</span>
-                <span>{selectedTx?.description.includes('Midland') ? 'MDB Core Bridge' : selectedTx?.description.includes('Remittance') ? 'Global MTO Bridge' : 'Nagad B2B Gateway'}</span>
-              </div>
-              <div className="flex justify-between text-xs py-2 border-b border-white/5">
                 <span className="text-muted-foreground">Timestamp</span>
-                <span>{selectedTx && format(new Date(selectedTx.timestamp), 'yyyy-MM-dd HH:mm:ss')}</span>
+                <span>{selectedTx && format(new Date(selectedTx.timestamp), 'yyyy-MM-dd HH:mm')}</span>
               </div>
             </div>
 

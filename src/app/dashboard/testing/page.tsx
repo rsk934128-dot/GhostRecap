@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -52,15 +53,15 @@ export default function CICDMonitorPage() {
           </div>
           <div className="flex items-center gap-3">
             <GitBranch className="text-primary" size={32} />
-            <h1 className="text-4xl font-headline font-bold">CI/CD Monitor</h1>
+            <h1 className="text-3xl md:text-4xl font-headline font-bold">CI/CD Monitor</h1>
           </div>
-          <p className="text-muted-foreground">Monitoring build pipelines and Firebase Test Lab Robo-crawlers.</p>
+          <p className="text-sm text-muted-foreground">Monitoring build pipelines and Firebase Test Lab Robo-crawlers.</p>
         </div>
         <div className="flex gap-2">
           <Button 
             onClick={handleManualTrigger} 
             disabled={isSyncing}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+            className="w-full md:w-auto gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
           >
             {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Terminal size={16} />}
             Trigger Build Flow
@@ -68,10 +69,10 @@ export default function CICDMonitorPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <Card className="bg-secondary/10 border-white/5 ghostly-fade">
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold">98.2%</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold">98.2%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <Activity size={12} className="text-primary" /> Active Pipeline Health
             </CardDescription>
@@ -84,7 +85,7 @@ export default function CICDMonitorPage() {
 
         <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '100ms' }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold">85%</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold">85%</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <FlaskConical size={12} className="text-accent" /> Test Lab Coverage
             </CardDescription>
@@ -95,9 +96,9 @@ export default function CICDMonitorPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-secondary/10 border-white/5 ghostly-fade" style={{ animationDelay: '200ms' }}>
+        <Card className="bg-secondary/10 border-white/5 ghostly-fade sm:col-span-2 md:col-span-1" style={{ animationDelay: '200ms' }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-3xl font-headline font-bold">Stable</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-headline font-bold">Stable</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
               <ShieldCheck size={12} className="text-green-500" /> Security Sharding
             </CardDescription>
@@ -111,7 +112,7 @@ export default function CICDMonitorPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -121,10 +122,10 @@ export default function CICDMonitorPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {MOCK_PIPELINE_BUILDS.map((build) => (
-              <div key={build.id} className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5 group hover:border-primary/30 transition-colors">
+              <div key={build.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5 group hover:border-primary/30 transition-colors gap-4">
                 <div className="flex items-center gap-4">
                   <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
                     build.status === 'Success' ? "bg-green-500/10 text-green-500" : "bg-destructive/10 text-destructive"
                   )}>
                     {build.status === 'Success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
@@ -134,12 +135,12 @@ export default function CICDMonitorPage() {
                       <p className="text-sm font-bold">{build.id}</p>
                       <Badge variant="outline" className="text-[8px] border-white/10">{build.branch}</Badge>
                     </div>
-                    <p className="text-[10px] text-muted-foreground font-mono">SHA: {build.commitHash} | {build.author}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px]">SHA: {build.commitHash} | {build.author}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">{mounted && build.timestamp ? format(new Date(build.timestamp), 'MMM d, HH:mm') : '...'}</p>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                <div className="text-right flex items-center sm:block justify-between">
+                  <p className="text-xs text-muted-foreground">{mounted && build.timestamp ? format(new Date(build.timestamp), 'MMM d, HH:mm') : '...'}</p>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 opacity-50 sm:opacity-0 sm:group-hover:opacity-100">
                     <ExternalLink size={12} />
                   </Button>
                 </div>
@@ -160,10 +161,10 @@ export default function CICDMonitorPage() {
               <div key={test.id} className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Smartphone size={18} className="text-muted-foreground" />
+                    <Smartphone size={18} className="text-muted-foreground shrink-0" />
                     <div>
                       <p className="text-sm font-bold">{test.device}</p>
-                      <p className="text-[10px] text-muted-foreground">{test.osVersion} • {test.type} Test</p>
+                      <p className="text-[10px] text-muted-foreground">{test.osVersion} • {test.type}</p>
                     </div>
                   </div>
                   <Badge variant={test.status === 'Passed' ? 'default' : 'destructive'} className={cn(
@@ -181,7 +182,7 @@ export default function CICDMonitorPage() {
                         <Image src={s} alt="Robo Step" fill className="object-cover opacity-60 hover:opacity-100 transition-opacity" />
                       </div>
                     ))}
-                    <div className="w-16 h-28 rounded-md border border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground gap-1 cursor-pointer hover:bg-white/5 transition-colors">
+                    <div className="w-16 h-28 rounded-md border border-dashed border-white/10 flex flex-col items-center justify-center text-muted-foreground gap-1 cursor-pointer hover:bg-white/5 transition-colors shrink-0">
                       <ExternalLink size={12} />
                       <span className="text-[8px] font-bold">Logs</span>
                     </div>
@@ -190,9 +191,9 @@ export default function CICDMonitorPage() {
 
                 <div className="flex items-center justify-between pt-2 border-t border-white/5">
                   <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock size={10} /> Duration: {test.duration}
+                    <Clock size={10} /> {test.duration}
                   </span>
-                  <span className="text-sm text-muted-foreground font-mono">
+                  <span className="text-[10px] text-muted-foreground font-mono">
                     {mounted && test.timestamp ? format(new Date(test.timestamp), 'MMM d, HH:mm') : '...'}
                   </span>
                 </div>
@@ -203,16 +204,16 @@ export default function CICDMonitorPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="bg-primary/5 border-primary/20 p-8 flex flex-col items-center text-center space-y-4 relative overflow-hidden group">
+        <Card className="bg-primary/5 border-primary/20 p-6 md:p-8 flex flex-col items-center text-center space-y-4 relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
           <Cpu className="text-primary relative z-10" size={48} />
           <div className="relative z-10">
             <h3 className="text-xl font-headline font-bold">Parallel Sharding Active</h3>
-            <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2">
-              Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. Current execution time reduced by <span className="text-green-500 font-bold">72%</span> compared to serial testing.
+            <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2 leading-relaxed">
+              Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. current execution time reduced by <span className="text-green-500 font-bold">72%</span>.
             </p>
           </div>
-          <button className="relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary/20 hover:bg-primary/10 hover:text-primary h-9 px-3">
+          <button className="relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary/20 hover:bg-primary/10 hover:text-primary h-9 px-4">
             Manage Shard Policy <ChevronRight size={14} />
           </button>
         </Card>
@@ -226,14 +227,14 @@ export default function CICDMonitorPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { label: 'Environment', value: 'Google Cloud Workstations' },
-              { label: 'Runner', value: 'Ubuntu-22.04 (Standard-4)' },
-              { label: 'SDK Version', value: 'Firebase-CLI v12.4.0' },
-              { label: 'Artifacts', value: 'Cloud Storage Bucket (gs://mdb-nexus-builds)' },
+              { label: 'Environment', value: 'Google Cloud' },
+              { label: 'Runner', value: 'Ubuntu-22.04' },
+              { label: 'SDK Version', value: 'Firebase-CLI v12.4' },
+              { label: 'Artifacts', value: 'Cloud Storage' },
             ].map((item, i) => (
-              <div key={i} className="flex justify-between items-center text-[11px] font-mono">
+              <div key={i} className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono">
                 <span className="text-muted-foreground">{item.label}:</span>
-                <span className="text-foreground">{item.value}</span>
+                <span className="text-foreground truncate ml-4">{item.value}</span>
               </div>
             ))}
           </CardContent>
