@@ -329,7 +329,7 @@ export default function MissionControlCenter() {
                         ))}
                       </div>
                       <span className="text-[10px] text-muted-foreground font-mono">
-                        {msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
+                        {mounted && msg.timestamp ? format(new Date(msg.timestamp), 'HH:mm') : '...'}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1 group-hover:text-foreground transition-colors">
