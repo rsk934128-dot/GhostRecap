@@ -1,12 +1,12 @@
-
 import { ArchivedMessage, AutomationRule, ContactProfile, VaultItem, NagadMfiNode, NagadPhilanthropyNode, TestLabResult, PipelineBuild, NagadBiller, NagadGlobalMtoNode } from './types';
 
+// Use fixed ISO strings for timestamps to prevent hydration mismatch
 export const MOCK_MESSAGES: ArchivedMessage[] = [
   {
     id: 'signal-mdb-1',
     sender: 'Midland Bank IT',
     content: 'Nexus Node Handshake: Authentication keys for HSM Bridge generated. Waiting for merchant signature.',
-    timestamp: '2026-06-22T04:45:00Z',
+    timestamp: '2026-06-22T04:45:00.000Z',
     app: 'Signal',
     category: 'Urgent',
     priorityScore: 99,
@@ -16,7 +16,7 @@ export const MOCK_MESSAGES: ArchivedMessage[] = [
     id: '1',
     sender: 'Alex Rivera',
     content: 'Can you send the draft by tonight? It is pretty critical for the meeting.',
-    timestamp: '2026-06-22T03:30:00Z',
+    timestamp: '2026-06-22T03:30:00.000Z',
     app: 'WhatsApp',
     category: 'Urgent',
     priorityScore: 92,
@@ -25,7 +25,7 @@ export const MOCK_MESSAGES: ArchivedMessage[] = [
     id: '2',
     sender: 'Amazon',
     content: 'Your package has been delivered to the front door.',
-    timestamp: '2026-06-22T02:15:00Z',
+    timestamp: '2026-06-22T02:15:00.000Z',
     app: 'Messenger',
     category: 'Transactional',
     priorityScore: 45,
@@ -34,7 +34,7 @@ export const MOCK_MESSAGES: ArchivedMessage[] = [
     id: '3',
     sender: 'Bank of America',
     content: 'Your OTP for the transaction of $150.00 is 558921. Do not share.',
-    timestamp: '2026-06-22T01:00:00Z',
+    timestamp: '2026-06-22T01:00:00.000Z',
     app: 'Signal',
     category: 'OTP',
     priorityScore: 88,
@@ -43,7 +43,7 @@ export const MOCK_MESSAGES: ArchivedMessage[] = [
     id: '4',
     sender: 'Sarah Jenkins',
     content: '[Message Deleted]',
-    timestamp: '2026-06-21T23:45:00Z',
+    timestamp: '2026-06-21T23:45:00.000Z',
     app: 'Telegram',
     isDeleted: true,
     priorityScore: 15,
@@ -52,7 +52,7 @@ export const MOCK_MESSAGES: ArchivedMessage[] = [
     id: '5',
     sender: 'Project Alpha Team',
     content: 'Meeting rescheduled to 4 PM tomorrow. Please confirm availability.',
-    timestamp: '2026-06-21T20:30:00Z',
+    timestamp: '2026-06-21T20:30:00.000Z',
     app: 'WhatsApp',
     category: 'Other',
     priorityScore: 65,

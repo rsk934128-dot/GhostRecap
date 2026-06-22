@@ -310,7 +310,7 @@ export default function MissionControlCenter() {
               suppressHydrationWarning
             />
           </div>
-          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
+          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none" suppressHydrationWarning>
             {filtered.map((msg) => (
               <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-4">
@@ -443,14 +443,12 @@ export default function MissionControlCenter() {
               <p className="text-sm italic">"{selectedMsg?.content}"</p>
             </div>
             
-            {isAnalyzing && (
+            {isAnalyzing ? (
               <div className="flex flex-col items-center justify-center py-12 space-y-4">
                 <RefreshCcw className="animate-spin text-primary" size={32} />
                 <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
               </div>
-            )}
-
-            {!isAnalyzing && analysis && (
+            ) : analysis ? (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                 <Card className={cn(
                   "border-2",
@@ -472,7 +470,7 @@ export default function MissionControlCenter() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

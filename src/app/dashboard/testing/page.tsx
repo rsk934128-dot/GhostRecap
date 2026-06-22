@@ -116,7 +116,7 @@ export default function CICDMonitorPage() {
         <Card className="bg-secondary/10 border-white/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Monitor size={20} className="text-primary" /> Recent Build Builds
+              <Monitor size={20} className="text-primary" /> Recent Builds
             </CardTitle>
             <CardDescription>Automated CI triggers from GitHub Actions.</CardDescription>
           </CardHeader>
