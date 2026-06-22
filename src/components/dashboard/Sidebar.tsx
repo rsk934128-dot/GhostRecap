@@ -23,7 +23,8 @@ import {
   User as UserIcon,
   ShieldCheck,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -46,6 +47,7 @@ export const navItems = [
   { name: 'Automation Studio', icon: Zap, href: '/dashboard/rules' },
   { name: 'Direct Link Hub', icon: Link2, href: '/dashboard/direct' },
   { name: 'Media Hub', icon: Music, href: '/dashboard/media' },
+  { name: 'Strategic Docs', icon: FileText, href: '/dashboard/docs' },
   { name: 'Intel & Roadmap', icon: BrainCircuit, href: '/dashboard/privacy' },
 ];
 
