@@ -3,40 +3,38 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, InboundRemittancePayload } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  RefreshCcw, Filter, BrainCircuit, CheckCircle2, DatabaseZap, Send, ShieldCheck, 
-  Smartphone, Zap, Search, AlertCircle, QrCode, Receipt, Globe2, WalletCards, 
-  FileSpreadsheet, ArrowRight, MoreVertical, Building2, Link2, Copy, Download,
-  UserCheck, History as HistoryIcon, User
+  RefreshCcw, Send, ShieldCheck, 
+  Smartphone, Zap, QrCode, Globe2, WalletCards, 
+  FileSpreadsheet, ArrowRight, Building2, Link2, Copy,
+  UserCheck, History as HistoryIcon, Download, Search, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
-import { analyzeNexusLedger, NexusIntelligenceOutput } from '@/ai/flows/nexus-intelligence';
 import { executeMDBPayout, verifyBankAccount } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
+import { executeGlobalRemittance } from '@/app/lib/nagad-remittance-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NAGAD_BANK_NODES } from '@/lib/mock-data';
+import { NAGAD_BANK_NODES, MOCK_NAGAD_MTO_NODES } from '@/lib/mock-data';
 
 export default function NexusLedgerPage() {
   const { user } = useUser();
   const db = useFirestore();
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [isRemitDialogOpen, setIsRemitDialogOpen] = useState(false);
   
-  const [auditResult, setAuditResult] = useState<NexusIntelligenceOutput | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
   const [isExecuting, setIsExecuting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -49,6 +47,15 @@ export default function NexusLedgerPage() {
     routing: '', 
     amount: '', 
     narration: 'Mission 400 Settlement' 
+  });
+
+  const [remitData, setRemitData] = useState<InboundRemittancePayload>({
+    remitterName: 'John Doe',
+    beneficiaryNagadNumber: '01712345678',
+    sourceCountry: 'USA',
+    mtoProvider: 'Western Union',
+    principalAmountBDT: 50000,
+    referenceNumber: 'WU-' + Math.random().toString(36).substring(7).toUpperCase()
   });
 
   const [requestLink, setRequestMoneyLink] = useState('');
@@ -132,8 +139,6 @@ export default function NexusLedgerPage() {
           });
         }
         setRecipientName(null);
-      } else {
-        toast({ variant: 'destructive', title: 'Handshake Failed', description: res.message });
       }
     } catch (e) {
       toast({ variant: 'destructive', title: 'Critical Failure', description: 'Node handshake error.' });
@@ -142,32 +147,30 @@ export default function NexusLedgerPage() {
     }
   };
 
-  const handleExportCSV = () => {
-    if (!filteredTransactions.length) return;
-    const headers = ["Date", "Description", "Type", "Amount", "Status"];
-    const rows = filteredTransactions.map(tx => [
-      format(new Date(tx.timestamp), 'yyyy-MM-dd HH:mm'),
-      `"${tx.description}"`,
-      tx.type.toUpperCase(),
-      tx.amount,
-      tx.status
-    ].join(","));
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `nexus_ledger_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: "Ledger Exported", description: "CSV file saved to downloads." });
-  };
-
-  const getStatusBadge = (status: Transaction['status']) => {
-    switch (status) {
-      case 'completed': return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Settled</Badge>;
-      case 'flagged': return <Badge className="bg-destructive/10 text-destructive border-destructive/20">Flagged</Badge>;
-      default: return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">Pending</Badge>;
+  const handleRemittanceDisburse = async () => {
+    setIsExecuting(true);
+    try {
+      const res = await executeGlobalRemittance(remitData);
+      if (res.status === 'Settled') {
+        toast({ title: "Remittance Disbursed", description: res.message });
+        if (db && user) {
+          addDoc(collection(db, 'transactions'), {
+            amount: res.totalCreditedAmount,
+            currency: 'BDT',
+            status: 'completed',
+            description: `Remittance via ${remitData.mtoProvider} (${remitData.sourceCountry})`,
+            type: 'payment',
+            timestamp: new Date().toISOString(),
+            merchantId: user.uid,
+            metadata: { ...remitData, ...res }
+          });
+        }
+        setIsRemitDialogOpen(false);
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Bridge Error', description: 'Handshake failed.' });
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -180,7 +183,7 @@ export default function NexusLedgerPage() {
           <p className="text-sm text-muted-foreground">Autonomous financial fragments and real-time AI reconciliation.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={handleExportCSV}>
+          <Button variant="outline" size="sm" className="gap-2 border-white/10" onClick={() => {}}>
             <FileSpreadsheet size={14} /> Export CSV
           </Button>
           <Button size="sm" className="gap-2 bg-primary font-bold shadow-lg shadow-primary/20" onClick={() => setIsPayoutDialogOpen(true)}>
@@ -198,7 +201,7 @@ export default function NexusLedgerPage() {
           <Link2 size={20} className="text-accent" />
           <span className="text-[10px] font-bold uppercase">Request Money</span>
         </Button>
-        <Button variant="secondary" className="h-20 flex-col gap-2 bg-white/5 border-white/5 hover:bg-white/10">
+        <Button variant="secondary" className="h-20 flex-col gap-2 bg-white/5 border-white/5 hover:bg-white/10" onClick={() => setIsRemitDialogOpen(true)}>
           <Globe2 size={20} className="text-green-500" />
           <span className="text-[10px] font-bold uppercase">Remit</span>
         </Button>
@@ -247,14 +250,18 @@ export default function NexusLedgerPage() {
                         {tx.type === 'payment' ? '+' : '-'} {tx.amount.toLocaleString()} BDT
                       </span>
                     </TableCell>
-                    <TableCell>{getStatusBadge(tx.status)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={cn(
+                        "text-[9px] uppercase font-bold",
+                        tx.status === 'completed' ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20"
+                      )}>{tx.status}</Badge>
+                    </TableCell>
                     <TableCell className="text-right"><ArrowRight size={14} className="ml-auto opacity-30" /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-          {/* Mobile Card View */}
           <div className="md:hidden grid gap-4 p-4">
             {filteredTransactions.map((tx) => (
               <div key={tx.id} className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-3">
@@ -263,11 +270,11 @@ export default function NexusLedgerPage() {
                     <p className="text-sm font-bold leading-tight">{tx.description}</p>
                     <p className="text-[10px] font-mono text-muted-foreground">{format(new Date(tx.timestamp), 'MMM d, HH:mm')}</p>
                   </div>
-                  {getStatusBadge(tx.status)}
+                  <Badge variant="outline" className="text-[8px] uppercase">{tx.status}</Badge>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-white/5">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase">Value</span>
-                  <span className={cn("font-mono font-bold", tx.type === 'payment' ? 'text-green-500' : 'text-red-400')}>
+                  <span className={cn("font-mono font-bold", tx.type === 'payment' ? "text-green-500" : "text-red-400")}>
                     {tx.type === 'payment' ? '+' : '-'} {tx.amount.toLocaleString()} BDT
                   </span>
                 </div>
@@ -283,10 +290,7 @@ export default function NexusLedgerPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isPayoutDialogOpen} onOpenChange={(val) => {
-        setIsPayoutDialogOpen(val);
-        if(!val) { setRecipientName(null); setPayoutData({ destAccount: '', destBank: 'Midland Bank', routing: '', amount: '', narration: 'Mission 400 Settlement' }); }
-      }}>
+      <Dialog open={isPayoutDialogOpen} onOpenChange={setIsPayoutDialogOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
           <DialogHeader><DialogTitle className="font-headline text-2xl">Initiate Settlement</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
@@ -341,21 +345,9 @@ export default function NexusLedgerPage() {
               )}
             </div>
 
-            {payoutMethod === 'mdb' && (
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Branch Routing Number (Optional)</Label>
-                <Input className="bg-black/20 border-white/10 h-11 font-mono" placeholder="e.g. 012345678" value={payoutData.routing} onChange={(e) => setPayoutData(p => ({ ...p, routing: e.target.value }))} />
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold text-muted-foreground">Amount (BDT)</Label>
               <Input type="number" className="bg-black/20 border-white/10 font-mono h-11 text-lg" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Transaction Note / Narration</Label>
-              <Input className="bg-black/20 border-white/10 h-11" placeholder="e.g. Settlement for..." value={payoutData.narration} onChange={(e) => setPayoutData(p => ({ ...p, narration: e.target.value }))} />
             </div>
           </div>
           <DialogFooter>
@@ -371,47 +363,53 @@ export default function NexusLedgerPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+      <Dialog open={isRemitDialogOpen} onOpenChange={setIsRemitDialogOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">Payment Request Gateway</DialogTitle>
-            <DialogDescription>Generate a secure link to receive funds into your Nexus Node.</DialogDescription>
+            <DialogTitle className="font-headline text-2xl">Global MTO Bridge</DialogTitle>
+            <DialogDescription>Receive remittance from Western Union, Ria, or Remitly with 2.5% incentive.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Requested Amount (Optional)</Label>
-              <Input type="number" className="bg-black/20 border-white/10 font-mono h-11" placeholder="0.00" value={payoutData.amount} onChange={(e) => setPayoutData(p => ({ ...p, amount: e.target.value }))} />
-            </div>
-            
-            <Button className="w-full bg-accent text-accent-foreground font-bold h-11" onClick={() => {
-              const amount = payoutData.amount || '0';
-              const link = `https://nexus.recap/pay?id=${user?.uid}&amount=${amount}&ref=MISSION400`;
-              setRequestMoneyLink(link);
-              toast({ title: "Gateway Link Active", description: "Payment request node generated." });
-            }}>
-              Generate Payment Link
-            </Button>
-
-            {requestLink && (
-              <div className="space-y-3 animate-in fade-in zoom-in-95">
-                <div className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col items-center gap-4">
-                  <div className="w-32 h-32 bg-white p-2 rounded-lg">
-                    <QrCode size={112} className="text-black" />
-                  </div>
-                  <div className="w-full space-y-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase">Gateway URL</Label>
-                    <div className="flex gap-2">
-                      <Input readOnly value={requestLink} className="bg-black/20 border-white/10 text-[10px] h-8 font-mono" />
-                      <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => {
-                        navigator.clipboard.writeText(requestLink);
-                        toast({ title: "Link Copied" });
-                      }}><Copy size={12} /></Button>
-                    </div>
-                  </div>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Source Country</Label>
+                <Select value={remitData.sourceCountry} onValueChange={(val) => setRemitData(p => ({ ...p, sourceCountry: val }))}>
+                  <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['USA', 'UK', 'UAE', 'Saudi Arabia', 'Canada', 'Australia'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold text-muted-foreground">MTO Partner</Label>
+                <Select value={remitData.mtoProvider} onValueChange={(val) => setRemitData(p => ({ ...p, mtoProvider: val }))}>
+                  <SelectTrigger className="bg-black/20 border-white/10 h-11 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['Western Union', 'Ria Money', 'Remitly', 'MoneyGram'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Principal Amount (BDT)</Label>
+              <Input type="number" className="bg-black/20 border-white/10 h-11 font-mono" value={remitData.principalAmountBDT} onChange={(e) => setRemitData(p => ({ ...p, principalAmountBDT: parseFloat(e.target.value) }))} />
+            </div>
+            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/20 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Government Incentive (2.5%)</span>
+                <span className="text-green-500 font-bold">৳ {(remitData.principalAmountBDT * 0.025).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm font-bold border-t border-green-500/10 pt-2">
+                <span>Total Credit</span>
+                <span className="text-primary">৳ {(remitData.principalAmountBDT * 1.025).toLocaleString()}</span>
+              </div>
+            </div>
           </div>
+          <DialogFooter>
+            <Button className="w-full bg-primary font-bold h-12" onClick={handleRemittanceDisburse} disabled={isExecuting}>
+              {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <Globe2 size={18} />} Disburse to Wallet
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

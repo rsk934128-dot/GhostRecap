@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -197,44 +196,6 @@ export default function CICDMonitorPage() {
                     {mounted && test.timestamp ? format(new Date(test.timestamp), 'MMM d, HH:mm') : '...'}
                   </span>
                 </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="bg-primary/5 border-primary/20 p-6 md:p-8 flex flex-col items-center text-center space-y-4 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
-          <Cpu className="text-primary relative z-10" size={48} />
-          <div className="relative z-10">
-            <h3 className="text-xl font-headline font-bold">Parallel Sharding Active</h3>
-            <p className="text-muted-foreground text-sm max-w-xl mx-auto mt-2 leading-relaxed">
-              Your test suite is split across <span className="text-primary font-bold">5 parallel device nodes</span>. Current execution time reduced by <span className="text-green-500 font-bold">72%</span>.
-            </p>
-          </div>
-          <button className="relative z-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-primary/20 hover:bg-primary/10 hover:text-primary h-9 px-4">
-            Manage Shard Policy <ChevronRight size={14} />
-          </button>
-        </Card>
-
-        <Card className="bg-secondary/10 border-white/5">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Terminal size={16} className="text-muted-foreground" />
-              Build Execution Context
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              { label: 'Environment', value: 'Google Cloud' },
-              { label: 'Runner', value: 'Ubuntu-22.04' },
-              { label: 'SDK Version', value: 'Firebase-CLI v12.4' },
-              { label: 'Artifacts', value: 'Cloud Storage' },
-            ].map((item, i) => (
-              <div key={i} className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono">
-                <span className="text-muted-foreground">{item.label}:</span>
-                <span className="text-foreground truncate ml-4">{item.value}</span>
               </div>
             ))}
           </CardContent>
