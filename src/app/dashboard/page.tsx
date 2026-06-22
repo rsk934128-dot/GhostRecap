@@ -198,7 +198,7 @@ export default function MissionControlCenter() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12" suppressHydrationWarning>
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -310,7 +310,7 @@ export default function MissionControlCenter() {
               suppressHydrationWarning
             />
           </div>
-          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none" suppressHydrationWarning>
+          <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
             {filtered.map((msg) => (
               <Card key={msg.id} className="ghostly-fade border-white/5 bg-secondary/10 hover:bg-secondary/20 transition-all group overflow-hidden">
                 <CardContent className="p-4 flex items-center gap-4">

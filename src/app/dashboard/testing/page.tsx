@@ -45,7 +45,7 @@ export default function CICDMonitorPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12" suppressHydrationWarning>
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -58,14 +58,14 @@ export default function CICDMonitorPage() {
           <p className="text-muted-foreground">Monitoring build pipelines and Firebase Test Lab Robo-crawlers.</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <Button 
             onClick={handleManualTrigger} 
             disabled={isSyncing}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-10 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
           >
             {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Terminal size={16} />}
             Trigger Build Flow
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -139,7 +139,7 @@ export default function CICDMonitorPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-muted-foreground">{format(new Date(build.timestamp), 'MMM d, HH:mm')}</p>
+                  <p className="text-[10px] text-muted-foreground">{mounted ? format(new Date(build.timestamp), 'MMM d, HH:mm') : '...'}</p>
                   <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
                     <ExternalLink size={12} />
                   </Button>
@@ -194,7 +194,7 @@ export default function CICDMonitorPage() {
                     <Clock size={10} /> Duration: {test.duration}
                   </span>
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    {format(new Date(test.timestamp), 'HH:mm')}
+                    {mounted ? format(new Date(test.timestamp), 'HH:mm') : '...'}
                   </span>
                 </div>
               </div>
