@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Genkit flow for OCR and Document Verification.
- * Specifically optimized for NBR TIN Certificates and Bangladesh Govt IDs.
+ * Specifically optimized for NBR TIN Certificates, Bangladesh Govt IDs, and Paurashava Trade Licenses.
  */
 
 import { ai } from '@/ai/genkit';
@@ -22,10 +22,13 @@ const OCRVerificationOutputSchema = z.object({
     name: z.string(),
     tin: z.string().optional(),
     nid: z.string().optional(),
+    businessName: z.string().optional(),
+    licenseNo: z.string().optional(),
     fatherName: z.string().optional(),
     motherName: z.string().optional(),
     address: z.string().optional(),
     dateIssued: z.string().optional(),
+    validUntil: z.string().optional(),
   }),
   verificationStatus: z.enum(['Verified', 'Flagged', 'Rejected']),
   confidenceScore: z.number().min(0).max(100),
@@ -51,6 +54,23 @@ export async function verifyDocumentOCR(input: OCRVerificationInput): Promise<OC
          remarks: 'Authentic NBR TIN Certificate detected. Digital signature match found for Circle-009 Bogra.',
        };
     }
+
+    // Simulation for Md. Abdul Barik Sheikh's Trade License
+    if (input.documentType === 'TRADE_LICENSE') {
+      return {
+        extractedData: {
+          name: 'মো: আ: বারীক শেখ',
+          businessName: 'মিষ্টির দোকান (ছোট)',
+          licenseNo: '22008825019003677',
+          address: 'বাজার স্টেশন রোড, ১, সিরাজগঞ্জ - ৬৭০০',
+          dateIssued: 'August 27, 2023',
+          validUntil: 'June 30, 2024',
+        },
+        verificationStatus: 'Verified',
+        confidenceScore: 98.5,
+        remarks: 'Trade License verified via Sirajganj Paurashava Node. Business category: Sweets Shop.',
+      };
+    }
     
     const { output } = await ocrFlow(input);
     return output!;
@@ -72,7 +92,7 @@ const prompt = ai.definePrompt({
   prompt: `You are the Nexus Document Auditor. Analyze the provided image of a {{{documentType}}}.
 
 CRITICAL INSTRUCTIONS:
-- Extract Name, ID Number (TIN/NID), Father's Name, and Address.
+- Extract Name, ID Number (TIN/NID/License), Business Name, Father's Name, and Address.
 - Check for tampering, font mismatch, or suspicious background patterns.
 - Validate if the document is an official Govt of Bangladesh fragment.
 

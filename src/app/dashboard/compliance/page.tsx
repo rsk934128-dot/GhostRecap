@@ -19,7 +19,9 @@ import {
   FileText,
   ScanLine,
   BrainCircuit,
-  Upload
+  Upload,
+  Building2,
+  CalendarDays
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,17 +54,20 @@ export default function GlobalCompliancePage() {
     }
   }, []);
 
-  const handleRunOCR = async () => {
+  const handleRunAudit = async (type: 'TIN_CERTIFICATE' | 'TRADE_LICENSE') => {
     setIsVerifying(true);
     try {
       const result = await verifyDocumentOCR({
         photoDataUri: 'data:image/png;base64,...',
-        documentType: 'TIN_CERTIFICATE'
+        documentType: type
       });
       setOcrResult(result);
       setGiantStepProgress(100);
       localStorage.setItem('giant_integration_step', 'completed');
-      toast({ title: "Audit Complete", description: "Identity verified via NBR TIN fragment." });
+      toast({ 
+        title: "Audit Complete", 
+        description: `Identity verified via ${type.replace('_', ' ')} fragment.` 
+      });
     } catch (e) {
       toast({ variant: "destructive", title: "Audit Standby", description: "Node capacity reached." });
     } finally {
@@ -97,19 +102,28 @@ export default function GlobalCompliancePage() {
           </div>
           <p className="text-muted-foreground">Managing sovereign compliance and cross-border payment rails.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {giantStepProgress === 100 && (
-            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 px-4 flex gap-2">
+            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 px-4 flex gap-2 h-10 items-center">
               <CheckCircle2 size={14} /> Handshake Verified
             </Badge>
           )}
           <Button 
-            onClick={handleRunOCR} 
+            onClick={() => handleRunAudit('TIN_CERTIFICATE')} 
             disabled={isVerifying}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+            variant="outline"
+            className="gap-2 border-primary/20 hover:bg-primary/5 text-primary font-bold h-10"
           >
             {isVerifying ? <RefreshCcw size={16} className="animate-spin" /> : <ScanLine size={16} />}
-            Run Identity Audit
+            Audit TIN
+          </Button>
+          <Button 
+            onClick={() => handleRunAudit('TRADE_LICENSE')} 
+            disabled={isVerifying}
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 h-10"
+          >
+            {isVerifying ? <RefreshCcw size={16} className="animate-spin" /> : <Building2 size={16} />}
+            Audit Trade License
           </Button>
         </div>
       </header>
@@ -165,22 +179,34 @@ export default function GlobalCompliancePage() {
         <Card className="bg-green-500/5 border-green-500/20 animate-in slide-in-from-bottom-2">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-green-500">
-              <BrainCircuit size={20} /> Identity Verification Report
+              <BrainCircuit size={20} /> Identity Verification Report: {ocrResult.extractedData.businessName ? 'Trade License' : 'TIN Certificate'}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">Taxpayer Name</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">Legal Name</p>
               <p className="text-sm font-bold">{ocrResult.extractedData.name}</p>
             </div>
+            {ocrResult.extractedData.businessName && (
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Business Name</p>
+                <p className="text-sm font-bold">{ocrResult.extractedData.businessName}</p>
+              </div>
+            )}
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">TIN Number</p>
-              <p className="text-sm font-mono">{ocrResult.extractedData.tin}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase">ID Number</p>
+              <p className="text-sm font-mono">{ocrResult.extractedData.licenseNo || ocrResult.extractedData.tin}</p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase">Confidence</p>
               <p className="text-sm font-bold text-green-500">{ocrResult.confidenceScore}%</p>
             </div>
+            {ocrResult.extractedData.validUntil && (
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Validity</p>
+                <p className="text-sm font-bold text-amber-500 flex items-center gap-1"><CalendarDays size={12} /> {ocrResult.extractedData.validUntil}</p>
+              </div>
+            )}
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase">Status</p>
               <Badge className="bg-green-500 text-black">OFFICIAL MATCH</Badge>
@@ -238,9 +264,9 @@ export default function GlobalCompliancePage() {
           <CardContent className="space-y-4">
             {[
               { label: 'NBR TIN Verification', status: giantStepProgress === 100 ? 'complete' : 'pending' },
+              { label: 'Paurashava Trade License', status: giantStepProgress === 100 ? 'complete' : 'pending' },
               { label: 'E2EE Hardware Handshake', status: 'complete' },
               { label: 'Visa QR Settlement Node', status: giantStepProgress === 100 ? 'complete' : 'pending' },
-              { label: 'Apple Pay Entitlements', status: giantStepProgress === 100 ? 'complete' : 'pending' },
             ].map((item, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{item.label}</span>
