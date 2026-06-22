@@ -51,7 +51,7 @@ export default function OceanMixingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Toast correctly outside the update cycle
+  // Handle Toast correctly outside the update cycle to prevent component update errors
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);
