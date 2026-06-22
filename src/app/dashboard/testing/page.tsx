@@ -194,7 +194,7 @@ export default function CICDMonitorPage() {
                     <Clock size={10} /> Duration: {test.duration}
                   </span>
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    {mounted ? format(new Date(test.timestamp), 'HH:mm') : '...'}
+                    {mounted ? format(new Date(test.timestamp), 'MMM d, HH:mm') : '...'}
                   </span>
                 </div>
               </div>
