@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-shield",
+      "description": "GhostRecap Security Shield",
+      "imageUrl": "https://picsum.photos/seed/ghost1/1200/400",
+      "imageHint": "cyber security"
+    },
+    {
+      "id": "dashboard-preview",
+      "description": "Intelligence Dashboard Preview",
+      "imageUrl": "https://picsum.photos/seed/ghost2/800/450",
+      "imageHint": "data visualization"
+    },
+    {
+      "id": "encryption-flow",
+      "description": "Cryptographic Architecture",
+      "imageUrl": "https://picsum.photos/seed/ghost3/800/450",
+      "imageHint": "abstract network"
+    }
+  ]
 }

@@ -1,4 +1,7 @@
+
 # GhostRecap - Communication Intelligence OS 🛡️🚀
+
+<img src="https://picsum.photos/seed/ghost1/1200/400" alt="GhostRecap Banner" data-ai-hint="cyber security" style="border-radius: 12px; margin-bottom: 20px;" />
 
 **GhostRecap** is an AI-powered Communication Intelligence OS designed to unify, analyze, automate, and secure digital conversations across every channel (WhatsApp, Signal, Telegram). It empowers individuals and businesses to transform noisy notifications into actionable intelligence while maintaining absolute privacy.
 
@@ -7,6 +10,8 @@
 ### 1. Unified Intelligence
 - Automatically categorizes incoming messages from multiple platforms into categories like **Urgent**, **OTP**, and **Transactional**.
 - Provides a centralized **Mission Control** for real-time orchestration.
+
+<img src="https://picsum.photos/seed/ghost2/800/450" alt="Dashboard Preview" data-ai-hint="data visualization" style="border-radius: 8px; margin: 15px 0;" />
 
 ### 2. Anti-Phishing Shield
 - Automated domain validation for official Nagad rails (`nagad.com.bd`).
@@ -23,6 +28,8 @@
 ## 🔐 Advanced Cryptographic Architecture
 
 GhostRecap is built on theoretical foundations of world-class security:
+
+<img src="https://picsum.photos/seed/ghost3/800/450" alt="Encryption Flow" data-ai-hint="abstract network" style="border-radius: 8px; margin: 15px 0;" />
 
 - **XEdDSA & VXEdDSA**: EdDSA-compatible signatures using Curve25519/X448.
 - **X3DH (Extended Triple Diffie-Hellman)**: Mutual authentication with forward secrecy and deniability.

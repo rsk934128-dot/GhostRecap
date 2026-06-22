@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -84,14 +85,14 @@ export default function MissionControlCenter() {
         id: 'initial-1',
         type: 'info',
         message: 'System initialized. Nexus Core handshake standby.',
-        timestamp: new Date().toISOString(),
+        timestamp: '2026-06-22T04:45:00.000Z',
         module: 'NEXUS-CORE'
       },
       {
         id: 'initial-2',
         type: 'success',
         message: 'Anti-Phishing Guard active: Monitoring Nagad Official Domains.',
-        timestamp: new Date().toISOString(),
+        timestamp: '2026-06-22T04:46:00.000Z',
         module: 'NEXUS-CORE'
       }
     ];
@@ -307,6 +308,7 @@ export default function MissionControlCenter() {
               placeholder="Search Nexus Memory..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              suppressHydrationWarning
             />
           </div>
           <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-none">
@@ -448,29 +450,31 @@ export default function MissionControlCenter() {
                   <RefreshCcw className="animate-spin text-primary" size={32} />
                   <p className="text-sm font-medium animate-pulse">Running Threat Analysis...</p>
                 </div>
-              ) : analysis ? (
-                <div className="animate-in fade-in slide-in-from-bottom-2">
-                  <Card className={cn(
-                    "border-2",
-                    (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
-                  )}>
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
-                        Audit Conclusion
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <p className="text-sm leading-relaxed">{analysis.analysis}</p>
-                      {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
-                        <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
-                          PHISHING COUNTERMEASURE: Quarantined
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
+              ) : (
+                analysis && (
+                  <div className="animate-in fade-in slide-in-from-bottom-2">
+                    <Card className={cn(
+                      "border-2",
+                      (analysis.priorityScore && analysis.priorityScore > 80) ? "bg-destructive/5 border-destructive/20" : "bg-primary/5 border-primary/20"
+                    )}>
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <ShieldAlert size={14} className={(analysis.priorityScore && analysis.priorityScore > 80) ? "text-destructive" : "text-primary"} />
+                          Audit Conclusion
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0">
+                        <p className="text-sm leading-relaxed">{analysis.analysis}</p>
+                        {selectedMsg?.tags?.includes('PHISHING-GUARD') && (
+                          <div className="mt-4 p-3 rounded bg-destructive/10 border border-destructive/20 text-xs text-destructive font-bold uppercase">
+                            PHISHING COUNTERMEASURE: Quarantined
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )
+              )}
             </div>
           </div>
         </DialogContent>
