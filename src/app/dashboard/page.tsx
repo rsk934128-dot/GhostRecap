@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -125,7 +124,7 @@ export default function MissionControlCenter() {
         </Button>
       </header>
 
-      {/* Cognitive Layer Cards - Mobile Grid */}
+      {/* Cognitive Layer Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-destructive/5 border-destructive/20 ghostly-fade overflow-hidden">
           <CardContent className="p-6">
@@ -171,7 +170,6 @@ export default function MissionControlCenter() {
           </CardContent>
         </Card>
 
-        {/* Live Logs - Only 3 lines on mobile */}
         <Card className="bg-secondary/10 border-white/5 overflow-hidden">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-[10px] uppercase font-bold flex items-center gap-2"><Activity size={12} className="text-primary"/> Node Pulse</CardTitle>
@@ -192,7 +190,7 @@ export default function MissionControlCenter() {
           <h3 className="text-xl font-headline font-bold flex items-center gap-2"><SignalHigh size={20} className="text-primary"/> Inbound Fragments</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(searchQuery => e.target.value)} />
           </div>
           <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-none">
             {filtered.map((msg) => (
