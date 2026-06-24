@@ -45,7 +45,6 @@ export default function OceanMixingPage() {
   useEffect(() => {
     if (mounted && testProgress === 100 && isTesting) {
       setIsTesting(false);
-      // Ensure toast is called safely
       toast({
         title: "Stress Test Complete",
         description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
@@ -134,6 +133,16 @@ export default function OceanMixingPage() {
           </Link>
         </div>
       </header>
+
+      {isTesting && (
+        <Card className="bg-primary/5 border-primary/20 p-6 ghostly-fade">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase text-primary">Security Stress Test in Progress...</span>
+            <span className="text-xs font-mono">{testProgress}%</span>
+          </div>
+          <Progress value={testProgress} className="h-2 bg-white/5" />
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {nodes.map((node, i) => (

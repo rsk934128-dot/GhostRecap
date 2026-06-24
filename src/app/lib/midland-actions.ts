@@ -22,7 +22,7 @@ export async function verifyBankAccount(bankName: string, accountNumber: string)
     return { success: true, name: 'SHEIKH FARID (NEXUS ROOT)', message: 'Account verified via MDB Tracking Node.' };
   }
   if (accountNumber.startsWith('2200')) {
-    return { success: true, name: 'MD. ABDUL BARIK SHEIKH', message: 'Official Paurashava Trade Node identified.' };
+    return { success: true, name: 'মো: আ: বারীক শেখ', message: 'Official Paurashava Trade Node identified.' };
   }
   if (accountNumber.length < 8) return { success: false, message: 'Invalid Account: Format not recognized by NPSB node.' };
 
