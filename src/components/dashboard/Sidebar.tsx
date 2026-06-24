@@ -24,7 +24,8 @@ import {
   ShieldCheck,
   Menu,
   X,
-  FileText
+  FileText,
+  LineChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -37,6 +38,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 
 export const navItems = [
   { name: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
+  { name: 'Analytics Pro', icon: LineChart, href: '/dashboard/analytics' },
   { name: 'Nexus Ledger', icon: BarChart3, href: '/dashboard/ledger' },
   { name: 'Global Bridge', icon: Globe, href: '/dashboard/compliance' },
   { name: 'Ocean Mixing', icon: Waves, href: '/dashboard/ocean' },

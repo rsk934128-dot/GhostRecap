@@ -1,3 +1,4 @@
+
 "use client";
 
 import { MOCK_CONTACTS } from '@/lib/mock-data';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function RelationshipIntelligence() {
   return (
@@ -79,9 +81,11 @@ export default function RelationshipIntelligence() {
               Based on your last 7 days of intelligence logs, your interaction efficiency has increased by 14%. Focus on 3 urgent threads from Alex Rivera for optimal SLA compliance.
             </p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
-            View Analytics Deep-Dive
-          </Button>
+          <Link href="/dashboard/analytics">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
+              View Analytics Deep-Dive
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>
