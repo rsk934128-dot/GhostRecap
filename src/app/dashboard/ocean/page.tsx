@@ -42,7 +42,6 @@ export default function OceanMixingPage() {
     setMounted(true);
   }, []);
 
-  // Use Effect to handle toast notification to prevent state error during render
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);

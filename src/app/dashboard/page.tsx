@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { MOCK_MESSAGES } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { 
-  Search, RefreshCcw, Briefcase, ArrowUpRight, CheckCircle2,
+  Search, RefreshCcw, CheckCircle2,
   SignalHigh, Zap, Lock, Activity, Award, ShieldCheck, ShieldAlert,
-  ChevronRight, Globe, QrCode, TrendingUp, MessageSquare, Bot, BrainCircuit
+  Globe, TrendingUp, MessageSquare, Bot, BrainCircuit
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
-import { verifyHSMHandshake, ALLOWED_NAGAD_DOMAINS } from '@/lib/security';
 
 export default function MissionControlCenter() {
   const { user } = useUser();
@@ -58,7 +57,7 @@ export default function MissionControlCenter() {
     addLog('System initialized. Nexus Core handshake standby.', 'info');
     addLog('Anti-Phishing Guard active: Monitoring Official Rails.', 'success');
     addLog('Firebase Studio Migration Notice: PROJECT SAFE.', 'warning');
-    addLog('Agentic Banking Node (MCP): STANDBY.', 'info');
+    addLog('Agentic Banking Node (MCP): ACTIVE.', 'success');
   }, []);
 
   useEffect(() => {
@@ -118,13 +117,12 @@ export default function MissionControlCenter() {
           <h1 className="text-3xl md:text-4xl font-headline font-bold">Mission Control</h1>
           <p className="text-sm text-muted-foreground italic">"এক এর ভিতর সব" - Unified Intelligence Orchestration.</p>
         </div>
-        <Button className="w-full md:auto gap-2 bg-primary font-bold shadow-xl group" onClick={handleSmartSync} disabled={isSyncing}>
+        <Button className="w-full md:w-auto gap-2 bg-primary font-bold shadow-xl group" onClick={handleSmartSync} disabled={isSyncing}>
           {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} />}
           Sync Intelligence
         </Button>
       </header>
 
-      {/* Cognitive Layer Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-destructive/5 border-destructive/20 ghostly-fade overflow-hidden">
           <CardContent className="p-6">
@@ -141,19 +139,19 @@ export default function MissionControlCenter() {
         <Card className="bg-accent/5 border-accent/20 ghostly-fade">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-2 rounded-full", stats.volume > 0 ? "bg-green-500/10 text-green-500" : "bg-accent/10 text-accent")}>
+              <div className="p-2 rounded-full bg-green-500/10 text-green-500">
                 <Bot size={20} />
               </div>
-              <Badge variant="outline" className={cn("text-[8px] border-accent/20 text-accent", stats.volume > 0 && "bg-green-500/10 text-green-500 border-green-500/20")}>
+              <Badge variant="outline" className="text-[8px] border-green-500/20 text-green-500 bg-green-500/10">
                 AGENTIC BANKING
               </Badge>
             </div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase">MCP Node Status</p>
-            <h3 className="text-xl font-bold font-headline uppercase">{stats.volume > 0 ? "Active" : "Standby"}</h3>
+            <h3 className="text-xl font-bold font-headline uppercase">Active</h3>
             <div className="flex gap-1 mt-2">
-              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 0 ? "bg-green-500" : "bg-accent")} />
-              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 10000 ? "bg-green-500" : "bg-white/5")} />
-              <div className={cn("h-1 flex-1 rounded-full", stats.volume > 50000 ? "bg-green-500" : "bg-white/5")} />
+              <div className="h-1 flex-1 rounded-full bg-green-500" />
+              <div className="h-1 flex-1 rounded-full bg-green-500" />
+              <div className="h-1 flex-1 rounded-full bg-white/5" />
             </div>
           </CardContent>
         </Card>
@@ -190,7 +188,7 @@ export default function MissionControlCenter() {
           <h3 className="text-xl font-headline font-bold flex items-center gap-2"><SignalHigh size={20} className="text-primary"/> Inbound Fragments</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(searchQuery => e.target.value)} />
+            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-none">
             {filtered.map((msg) => (
