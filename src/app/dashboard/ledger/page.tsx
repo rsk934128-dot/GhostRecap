@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -361,6 +362,44 @@ export default function NexusLedgerPage() {
               {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <ShieldCheck size={20} />}
               {isExecuting ? "Authorizing RSA..." : verifiedName ? "Authorize RSA Sign" : "Verify Account First"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl">Request Payment</DialogTitle>
+            <DialogDescription>Generate a secure payment fragment to receive funds via Nexus Core.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4 flex flex-col items-center">
+            <div className="p-4 bg-white rounded-2xl">
+              <QrCode size={180} className="text-black" />
+            </div>
+            <div className="w-full space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Gateway Payment Link</Label>
+              <div className="flex gap-2">
+                <Input 
+                  readOnly 
+                  className="bg-black/20 border-white/10 h-11 font-mono text-xs" 
+                  value={`https://nexus.pay/request/${user?.uid ? user.uid.substring(0,8) : 'ALPHA'}`} 
+                />
+                <Button variant="outline" size="icon" className="shrink-0 border-primary/20 text-primary" onClick={() => {
+                  if (user?.uid) {
+                    navigator.clipboard.writeText(`https://nexus.pay/request/${user.uid.substring(0,8)}`);
+                    toast({ title: "Link Copied" });
+                  }
+                }}>
+                  <Copy size={18} />
+                </Button>
+              </div>
+            </div>
+            <p className="text-[10px] text-center text-muted-foreground italic">
+              Sharing this link allows others to send BDT directly to your merchant node.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button className="w-full bg-primary font-bold h-12" onClick={() => setIsRequestDialogOpen(false)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

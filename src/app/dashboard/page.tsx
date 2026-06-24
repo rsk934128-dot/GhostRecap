@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { 
   Search, RefreshCcw, Briefcase, ArrowUpRight, CheckCircle2,
   SignalHigh, Zap, Lock, Activity, Award, ShieldCheck, ShieldAlert,
-  ChevronRight, Globe, QrCode, TrendingUp, MessageSquare, Bot
+  ChevronRight, Globe, QrCode, TrendingUp, MessageSquare, Bot, BrainCircuit
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -118,7 +119,7 @@ export default function MissionControlCenter() {
           <h1 className="text-3xl md:text-4xl font-headline font-bold">Mission Control</h1>
           <p className="text-sm text-muted-foreground italic">"এক এর ভিতর সব" - Unified Intelligence Orchestration.</p>
         </div>
-        <Button className="w-full md:w-auto gap-2 bg-primary font-bold shadow-xl group" onClick={handleSmartSync} disabled={isSyncing}>
+        <Button className="w-full md:auto gap-2 bg-primary font-bold shadow-xl group" onClick={handleSmartSync} disabled={isSyncing}>
           {isSyncing ? <RefreshCcw size={16} className="animate-spin" /> : <Zap size={16} />}
           Sync Intelligence
         </Button>
