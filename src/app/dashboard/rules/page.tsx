@@ -1,7 +1,7 @@
 "use client";
 
 import { MOCK_RULES } from '@/lib/mock-data';
-import { Zap, Plus, GripVertical, Settings2, Code, ArrowRight, Play, Database, Save, BrainCircuit, Activity, Trash2 } from 'lucide-react';
+import { Zap, Plus, GripVertical, Settings2, Code, ArrowRight, Play, Database, Save, BrainCircuit, Activity, Trash2, BookText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -26,6 +26,7 @@ import { AutomationRule } from '@/lib/types';
 export default function AutomationStudio() {
   const [rules, setRules] = useState<AutomationRule[]>(MOCK_RULES);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSDKDocsOpen, setIsSDKDocsOpen] = useState(false);
   const [newRule, setNewRule] = useState<Partial<AutomationRule>>({
     name: '',
     trigger: '',
@@ -250,9 +251,52 @@ export default function AutomationStudio() {
                Coming Soon: Write custom TypeScript snippets to handle complex financial handshakes and automated payouts.
              </p>
            </div>
-           <Button variant="outline" className="border-white/10 hover:bg-accent/10 hover:text-accent">Access SDK Docs</Button>
+           <Button variant="outline" className="border-white/10 hover:bg-accent/10 hover:text-accent gap-2" onClick={() => setIsSDKDocsOpen(true)}>
+             <BookText size={16} /> Access SDK Docs
+           </Button>
         </div>
       </div>
+
+      <Dialog open={isSDKDocsOpen} onOpenChange={setIsSDKDocsOpen}>
+        <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-headline font-bold flex items-center gap-2">
+              <Code className="text-primary" /> GhostRecap OS SDK Docs
+            </DialogTitle>
+            <DialogDescription>Developer guidelines for Mission 400 node integration.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-6 text-sm leading-relaxed">
+            <section className="space-y-3">
+              <h4 className="text-lg font-bold text-primary">১. কোর হ্যান্ডশেক প্রোটোকল (Core Handshake)</h4>
+              <p className="text-muted-foreground">প্রতিটি নোড কানেকশনের জন্য `RSA-2048` ডিজিটাল সিগনেচার বাধ্যতামূলক। আমাদের ওএস স্বয়ংক্রিয়ভাবে মিডল্যান্ড ব্যাংক কোর এবং নগদ গেটওয়ের জন্য চ্যালেঞ্জ-রেসপন্স হ্যান্ডশেক জেনারেট করে।</p>
+              <div className="p-4 rounded-lg bg-black/40 border border-white/5 font-mono text-[11px] text-accent">
+                const signature = generateNagadSignature(payload);<br/>
+                const hsmResponse = await verifyHSMHandshake(nodeId);
+              </div>
+            </section>
+            <Separator className="bg-white/5" />
+            <section className="space-y-3">
+              <h4 className="text-lg font-bold text-primary">২. পিআইআই রেড্যাকশন (PII Redaction)</h4>
+              <p className="text-muted-foreground">এআই এজেন্টদের ডাটা ফিড করার আগে সেনসিটিভ তথ্য (ফোন নম্বর, ইমেইল) মাস্ক করা হয়। এটি GDPR এবং DORA কমপ্লায়েন্স নিশ্চিত করে।</p>
+              <ul className="list-disc list-inside text-muted-foreground ml-2">
+                <li>Regex-based Stage 1 detection.</li>
+                <li>Dynamic data masking in memory.</li>
+                <li>Structured audit logging for every MCP tool call.</li>
+              </ul>
+            </section>
+            <section className="space-y-3">
+              <h4 className="text-lg font-bold text-primary">৩. ইলাস্টিক এমসিপি (Elastic MCP)</h4>
+              <p className="text-muted-foreground">আমির গরজি-র ফিন্যান্সিয়াল ইলাস্টিক এমসিপি সার্ভার ব্যবহার করে আপনি সরাসরি আপনার লেজার থেকে ডাটা কোয়েরি করতে পারবেন।</p>
+              <div className="p-4 rounded-lg bg-black/40 border border-white/5 font-mono text-[11px] text-green-400">
+                npx lhm plugin publish --dir ./src/mcp-node
+              </div>
+            </section>
+          </div>
+          <DialogFooter>
+            <Button className="bg-primary font-bold px-8" onClick={() => setIsSDKDocsOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, 
-  Users, 
-  DollarSign, 
   BarChart3, 
   PieChart, 
   ArrowUpRight, 
@@ -13,7 +11,6 @@ import {
   Globe, 
   Activity,
   Award,
-  Wallet,
   Globe2,
   CheckCircle2,
   Server,
@@ -23,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -116,7 +112,7 @@ export default function AnalyticsDeepDive() {
               Phase 3 Scale Ready
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
