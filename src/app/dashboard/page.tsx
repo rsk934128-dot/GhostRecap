@@ -56,8 +56,7 @@ export default function MissionControlCenter() {
     
     addLog('System initialized. Nexus Core handshake standby.', 'info');
     addLog('Anti-Phishing Guard active: Monitoring Official Rails.', 'success');
-    addLog('Firebase Studio Migration Notice: PROJECT SAFE.', 'warning');
-    addLog('Agentic Banking Node (MCP): ACTIVE.', 'success');
+    addLog('Agentic Banking Node (Elastic MCP): ACTIVE.', 'success');
   }, []);
 
   useEffect(() => {
@@ -143,10 +142,10 @@ export default function MissionControlCenter() {
                 <Bot size={20} />
               </div>
               <Badge variant="outline" className="text-[8px] border-green-500/20 text-green-500 bg-green-500/10">
-                AGENTIC BANKING
+                ELASTIC MCP NODE
               </Badge>
             </div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase">MCP Node Status</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Agentic Banking</p>
             <h3 className="text-xl font-bold font-headline uppercase">Active</h3>
             <div className="flex gap-1 mt-2">
               <div className="h-1 flex-1 rounded-full bg-green-500" />

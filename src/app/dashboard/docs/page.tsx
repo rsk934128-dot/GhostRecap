@@ -39,8 +39,8 @@ export default function StrategicDocsPage() {
     { name: 'BankSync', banks: 9748, countries: 62, mcp: 'READY', verified: true },
     { name: 'Plaid', banks: 9706, countries: 60, mcp: 'READY', verified: false },
     { name: 'Lunch Flow', banks: 2402, countries: 60, mcp: 'READY', verified: true },
+    { name: 'Elastic MCP Server', banks: 1586, countries: 73, mcp: 'ACTIVE', verified: true },
     { name: 'GoCardless', banks: 2228, countries: 54, mcp: 'STANDBY', verified: false },
-    { name: 'Salt Edge', banks: 1586, countries: 73, mcp: 'STANDBY', verified: true },
     { name: 'TrueLayer', banks: 70, countries: 64, mcp: 'READY', verified: true },
   ];
 
@@ -177,7 +177,7 @@ export default function StrategicDocsPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <BarChart size={20} className="text-primary" /> Financial Aggregator Tracker 2026
+                  <BarChart size={20} className="text-primary" /> Open Banking Tracker 2026
                 </CardTitle>
                 <CardDescription>Industry comparison of Open Banking connectivity platforms.</CardDescription>
               </div>
@@ -214,7 +214,7 @@ export default function StrategicDocsPage() {
                       <TableCell className="font-mono text-xs">{agg.banks.toLocaleString()}</TableCell>
                       <TableCell className="text-xs">{agg.countries}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={agg.mcp === 'READY' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-amber-500/20 text-amber-500'}>
+                        <Badge variant="outline" className={agg.mcp === 'ACTIVE' || agg.mcp === 'READY' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-amber-500/20 text-amber-500'}>
                           {agg.mcp}
                         </Badge>
                       </TableCell>
@@ -252,7 +252,7 @@ export default function StrategicDocsPage() {
                 <div className="space-y-4">
                   <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Top API Aggregators 2026</h5>
                   <div className="grid grid-cols-2 gap-2">
-                    {['BankSync (9,748 Banks)', 'Plaid (9,706 Banks)', 'Lunch Flow', 'GoCardless', 'TrueLayer', 'Yapily'].map(node => (
+                    {['BankSync (9,748 Banks)', 'Plaid (9,706 Banks)', 'Elastic MCP Server', 'Lunch Flow', 'TrueLayer', 'Yapily'].map(node => (
                       <div key={node} className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px] font-medium flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500" /> {node}
                       </div>
