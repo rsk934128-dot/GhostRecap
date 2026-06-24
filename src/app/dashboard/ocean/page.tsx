@@ -45,13 +45,11 @@ export default function OceanMixingPage() {
   useEffect(() => {
     if (mounted && testProgress === 100 && isTesting) {
       setIsTesting(false);
-      // Wrapped in a timeout to avoid synchronous rendering updates
-      setTimeout(() => {
-        toast({
-          title: "Stress Test Complete",
-          description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
-        });
-      }, 0);
+      // Ensure toast is called safely
+      toast({
+        title: "Stress Test Complete",
+        description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
+      });
     }
   }, [testProgress, isTesting, mounted]);
 

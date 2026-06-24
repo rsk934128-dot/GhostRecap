@@ -23,7 +23,12 @@ import {
   Bot,
   Terminal,
   CloudUpload,
-  Github
+  Github,
+  Rocket,
+  ArrowUpRight,
+  ShieldQuestion,
+  Loader2,
+  Building2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -142,8 +147,9 @@ export default function StrategicDocsPage() {
         </AlertDescription>
       </Alert>
 
-      <Tabs defaultValue="migration" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full bg-black/20 h-12 p-1 mb-8">
+      <Tabs defaultValue="roadmap" className="w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-7 w-full bg-black/20 h-12 p-1 mb-8">
+          <TabsTrigger value="roadmap" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">SaaS Roadmap</TabsTrigger>
           <TabsTrigger value="migration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">মাইগ্রেশন</TabsTrigger>
           <TabsTrigger value="tracker" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">গ্লোবাল ট্র্যাকার</TabsTrigger>
           <TabsTrigger value="mcp" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">MCP Marketplace</TabsTrigger>
@@ -151,6 +157,120 @@ export default function StrategicDocsPage() {
           <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">লগ</TabsTrigger>
           <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">কাজ ভাগ</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="roadmap" className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2 bg-secondary/10 border-white/5">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Rocket className="text-primary" /> SaaS Node Evolution Strategy
+                </CardTitle>
+                <CardDescription>Transition from Manual Liquidity Desk to Fully Automated Node.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  {[
+                    { 
+                      id: 1, 
+                      title: 'Phase 1: Seed & Manual Desk', 
+                      status: 'Active', 
+                      desc: 'Focus on first 100 high-trust users. Payouts handled manually via Desk.',
+                      points: ['Manual bKash/Nagad Settlement', '2% Revenue Collection', 'Trade License Compliance']
+                    },
+                    { 
+                      id: 2, 
+                      title: 'Phase 2: API Bridge & Sandbox', 
+                      status: 'Upcoming (Q2)', 
+                      desc: 'B2C API integration in Sandbox mode. Automated Grant Token exchange testing.',
+                      points: ['OAuth2 Node Implementation', 'IP Whitelisting', 'B2C Approval Process']
+                    },
+                    { 
+                      id: 3, 
+                      title: 'Phase 3: Fully Automated SaaS', 
+                      status: 'Vision (Q4)', 
+                      desc: 'Real-time automated disbursements. Institutional API keys live. 3.5% Premium Fee.',
+                      points: ['Direct Bank Settlement', 'Global Remittance Node', 'Corporate Guarantee Active']
+                    }
+                  ].map((phase) => (
+                    <div key={phase.id} className="p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-primary/30 transition-all">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs",
+                            phase.status === 'Active' ? "bg-primary text-black" : "bg-white/5 text-muted-foreground"
+                          )}>
+                            {phase.id}
+                          </div>
+                          <div>
+                            <h4 className="font-bold">{phase.title}</h4>
+                            <p className="text-[11px] text-muted-foreground">{phase.desc}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          "text-[9px] uppercase font-bold",
+                          phase.status === 'Active' ? "text-primary border-primary/20 bg-primary/5" : "text-muted-foreground"
+                        )}>
+                          {phase.status}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/5">
+                        {phase.points.map((p, i) => (
+                          <div key={i} className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <CheckCircle2 size={10} className="text-primary" /> {p}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ShieldCheck size={18} className="text-primary" /> B2C Readiness Check
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { label: 'bKash B2C API Application', status: 'Pending', icon: FileText },
+                    { label: 'Server IP Whitelisting', status: 'Ready', icon: Globe2 },
+                    { label: 'Grant Token Exchange', status: 'Ready', icon: Zap },
+                    { label: 'Corporate Guarantee Bond', status: 'Pending', icon: ShieldAlert },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <item.icon size={14} className="text-muted-foreground" />
+                        <span className="text-[11px] font-medium">{item.label}</span>
+                      </div>
+                      <Badge variant="outline" className={cn(
+                        "text-[8px] h-5 py-0 px-2 font-bold",
+                        item.status === 'Ready' ? "text-green-500 border-green-500/20 bg-green-500/5" : "text-amber-500 border-amber-500/20"
+                      )}>
+                        {item.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-accent/5 border-accent/20 p-6 space-y-4 text-center">
+                <ShieldQuestion className="text-accent mx-auto" size={40} />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm">Strategic Governance</h4>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                    "Our key unique value proposition: AI Signals and Agentic Banking integration for elite merchants via Mission 400."
+                  </p>
+                </div>
+                <Button className="w-full bg-accent text-black font-bold h-9 gap-2">
+                  <ArrowUpRight size={14} /> View Master Plan
+                </Button>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
 
         <TabsContent value="migration" className="space-y-6">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
