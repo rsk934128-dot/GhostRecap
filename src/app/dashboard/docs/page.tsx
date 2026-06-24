@@ -286,7 +286,6 @@ export default function StrategicDocsPage() {
                     </div>
                  </div>
 
-                 {/* Marketplace Publishing Console */}
                  <div className="mt-8 space-y-4">
                    <h4 className="text-sm font-bold flex items-center gap-2">
                      <CloudUpload size={16} className="text-primary" /> Marketplace Publishing Console

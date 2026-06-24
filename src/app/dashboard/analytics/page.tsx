@@ -14,17 +14,23 @@ import {
   Globe, 
   Activity,
   Award,
-  Wallet
+  Wallet,
+  Globe2,
+  CheckCircle2,
+  Server,
+  Network
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 
 export default function AnalyticsDeepDive() {
   const [mounted, setMounted] = useState(false);
+  const [isGlobalReportOpen, setIsGlobalReportOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -37,6 +43,13 @@ export default function AnalyticsDeepDive() {
     { year: 'Year 2', users: '200K', revenue: '$15M', status: 'Growth' },
     { year: 'Year 3', users: '500K', revenue: '$50M', status: 'Scale' },
     { year: 'Year 5', users: '2M+', revenue: '$100M+', status: 'Unicorn' },
+  ];
+
+  const globalNodes = [
+    { location: 'South Asia (Rajshahi)', status: 'Master', latency: '8ms', capacity: '98%' },
+    { location: 'North America (US-East)', status: 'Active', latency: '45ms', capacity: '72%' },
+    { location: 'Europe (Frankfurt)', status: 'Active', latency: '32ms', capacity: '65%' },
+    { location: 'Southeast Asia (Singapore)', status: 'Active', latency: '12ms', capacity: '88%' },
   ];
 
   return (
@@ -52,7 +65,10 @@ export default function AnalyticsDeepDive() {
           </div>
           <p className="text-muted-foreground">Strategic forecasting and real-time intelligence for Mission 400.</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2">
+        <Button 
+          onClick={() => setIsGlobalReportOpen(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20 gap-2"
+        >
           <Globe size={16} /> Global Report
         </Button>
       </header>
@@ -204,6 +220,96 @@ export default function AnalyticsDeepDive() {
           GhostRecap OS executes automated arbitrage and commission extraction across the Nexus Core bridge, ensuring a consistent 18% spread on every settlement.
         </p>
       </div>
+
+      {/* Global Report Dialog */}
+      <Dialog open={isGlobalReportOpen} onOpenChange={setIsGlobalReportOpen}>
+        <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 overflow-y-auto max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-headline font-bold flex items-center gap-2">
+              <Globe2 className="text-primary" /> Global Node Intelligence Report
+            </DialogTitle>
+            <DialogDescription>Real-time telemetry and capacity audit for distributed Mission 400 nodes.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6">
+            <div className="md:col-span-2 space-y-6">
+              <Card className="bg-primary/5 border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Server size={18} className="text-primary" /> Distributed Node Matrix
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-black/20">
+                      <TableRow className="border-white/5">
+                        <TableHead className="text-[10px] font-bold uppercase">Node Location</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase">Tier</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase">Latency</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase text-right">Capacity</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {globalNodes.map((node, i) => (
+                        <TableRow key={i} className="border-white/5 hover:bg-white/5 transition-colors">
+                          <TableCell className="text-xs font-bold">{node.location}</TableCell>
+                          <TableCell><Badge variant="outline" className={cn("text-[8px] h-4 py-0", node.status === 'Master' ? "text-primary border-primary/20 bg-primary/5" : "text-muted-foreground")}>{node.status}</Badge></TableCell>
+                          <TableCell className="text-xs font-mono">{node.latency}</TableCell>
+                          <TableCell className="text-right">
+                             <div className="flex items-center justify-end gap-2">
+                               <span className="text-[10px] font-mono">{node.capacity}</span>
+                               <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
+                                 <div className="h-full bg-primary" style={{ width: node.capacity }} />
+                               </div>
+                             </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="p-4 rounded-xl bg-secondary/50 border border-white/5 space-y-2">
+                   <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1"><Network size={10} className="text-primary"/> Network Throughput</p>
+                   <p className="text-xl font-bold font-mono">1.8M req/s</p>
+                 </div>
+                 <div className="p-4 rounded-xl bg-secondary/50 border border-white/5 space-y-2">
+                   <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1"><ShieldCheck size={10} className="text-green-500"/> Security Uptime</p>
+                   <p className="text-xl font-bold font-mono">99.998%</p>
+                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+               <Card className="bg-accent/5 border-accent/20">
+                 <CardHeader>
+                   <CardTitle className="text-sm font-bold uppercase tracking-widest text-accent">Global Settlement</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground">Total Payout Volume</p>
+                      <p className="text-2xl font-bold font-headline">$438M+</p>
+                    </div>
+                    <Separator className="bg-accent/10" />
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground">Sovereign Incentives</p>
+                      <p className="text-xl font-bold text-green-500 font-mono">৳ 1.2B</p>
+                    </div>
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-black font-bold h-10 gap-2 mt-4 shadow-lg shadow-accent/20">
+                       <CheckCircle2 size={16} /> Audit Verified
+                    </Button>
+                 </CardContent>
+               </Card>
+               <div className="p-4 rounded-xl bg-black/40 border border-white/5 text-center">
+                 <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                   "All nodes are currently synchronized with the HSM Root Signature."
+                 </p>
+               </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
