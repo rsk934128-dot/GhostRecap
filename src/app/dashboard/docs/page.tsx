@@ -285,7 +285,7 @@ export default function StrategicDocsPage() {
                       </div>
                       <p className="text-[10px] text-muted-foreground">Search and analyze financial data using Elasticsearch context. Verified for Digital Banking Nodes.</p>
                       <div className="flex gap-2">
-                         <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Configure</Button>
+                         <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1" onClick={() => window.open('https://lobehub.com/mcp', '_blank')}>Configure</Button>
                          <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Logs</Button>
                       </div>
                     </div>
@@ -299,7 +299,7 @@ export default function StrategicDocsPage() {
                         <Badge variant="outline" className="border-accent/20 text-accent">v2.5.0-ALPHA</Badge>
                       </div>
                       <p className="text-[10px] text-muted-foreground">Manage your own MCP listings on lobehub.com/mcp. Ownership and versioning control.</p>
-                      <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Open Marketplace</Button>
+                      <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]" onClick={() => window.open('https://lobehub.com/mcp', '_blank')}>Open Marketplace</Button>
                     </div>
                  </div>
 

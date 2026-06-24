@@ -42,16 +42,15 @@ export default function OceanMixingPage() {
     setMounted(true);
   }, []);
 
-  // Stability Fix: Handle toast in useEffect to avoid state update loops
   useEffect(() => {
-    if (testProgress === 100 && isTesting) {
+    if (mounted && testProgress === 100 && isTesting) {
       setIsTesting(false);
       toast({
         title: "Stress Test Complete",
         description: "Ocean Mixing Node successfully handled 15,000 requests/sec with Nagad RSA signatures.",
       });
     }
-  }, [testProgress, isTesting]);
+  }, [testProgress, isTesting, mounted]);
 
   const nodes: LiquidityNode[] = [
     { id: '1', name: 'Midland Bank Node', balance: 4500000, currency: 'BDT', health: 98, status: 'online', type: 'bank' },

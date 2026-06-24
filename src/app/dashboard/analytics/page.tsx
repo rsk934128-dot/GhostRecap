@@ -190,7 +190,7 @@ export default function AnalyticsDeepDive() {
             <Award className="text-accent" size={48} />
             <div>
               <h3 className="text-xl font-headline font-bold">Mission 400 Governance</h3>
-              <p className="text-muted-foreground text-xs mt-2 leading-relaxed italic">
+              <p className="text-muted-foreground text-sm mt-2 leading-relaxed italic">
                 "Our key is unique value proposition: AI Signals and Agentic Banking integration for elite merchants."
               </p>
             </div>
