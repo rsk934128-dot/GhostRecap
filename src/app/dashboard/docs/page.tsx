@@ -267,7 +267,7 @@ export default function StrategicDocsPage() {
                 <Button className="w-full bg-accent text-black font-bold h-9 gap-2">
                   <ArrowUpRight size={14} /> View Master Plan
                 </Button>
-              </div>
+              </Card>
             </div>
           </div>
         </TabsContent>
