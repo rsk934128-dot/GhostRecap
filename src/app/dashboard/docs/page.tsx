@@ -15,7 +15,9 @@ import {
   ExternalLink,
   Globe2,
   Network,
-  Cpu
+  Cpu,
+  Package,
+  Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -117,7 +119,7 @@ export default function StrategicDocsPage() {
         <TabsList className="grid grid-cols-2 md:grid-cols-6 w-full bg-black/20 h-12 p-1 mb-8">
           <TabsTrigger value="migration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">মাইগ্রেশন</TabsTrigger>
           <TabsTrigger value="tracker" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">গ্লোবাল ট্র্যাকার</TabsTrigger>
-          <TabsTrigger value="integration" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ইন্টিগ্রেশন</TabsTrigger>
+          <TabsTrigger value="mcp" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">MCP Marketplace</TabsTrigger>
           <TabsTrigger value="openbanking" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">ওপেন ব্যাংকিং</TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">লগ</TabsTrigger>
           <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs">কাজ ভাগ</TabsTrigger>
@@ -225,6 +227,54 @@ export default function StrategicDocsPage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mcp" className="space-y-6">
+          <Card className="bg-secondary/10 border-white/5">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Package className="text-primary" /> LobeHub MCP Marketplace
+                  </CardTitle>
+                  <CardDescription>Install and manage Model Context Protocol servers for agentic banking.</CardDescription>
+                </div>
+                <Button className="bg-primary text-black font-bold h-9 gap-2">
+                  <Plus size={16} /> Add Server
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">E</div>
+                         <h5 className="font-bold text-sm">Financial Elastic MCP</h5>
+                      </div>
+                      <Badge className="bg-green-500 text-black">INSTALLED</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Search and analyze financial data using Elasticsearch context. Verified for Digital Banking Nodes.</p>
+                    <div className="flex gap-2">
+                       <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Configure</Button>
+                       <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Logs</Button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3 opacity-60 grayscale">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                         <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground font-bold">G</div>
+                         <h5 className="font-bold text-sm">Google AI Search MCP</h5>
+                      </div>
+                      <Badge variant="outline">AVAILABLE</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Integrate Google Search results into agent reasoning. High latency predicted.</p>
+                    <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Install Node</Button>
+                  </div>
+               </div>
             </CardContent>
           </Card>
         </TabsContent>

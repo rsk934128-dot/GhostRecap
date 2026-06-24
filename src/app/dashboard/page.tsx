@@ -57,6 +57,7 @@ export default function MissionControlCenter() {
     addLog('System initialized. Nexus Core handshake standby.', 'info');
     addLog('Anti-Phishing Guard active: Monitoring Official Rails.', 'success');
     addLog('Agentic Banking Node (Elastic MCP): ACTIVE.', 'success');
+    addLog('Migration Watch: 9 months until Studio shutdown.', 'warning');
   }, []);
 
   useEffect(() => {
