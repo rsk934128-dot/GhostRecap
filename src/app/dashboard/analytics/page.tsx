@@ -218,7 +218,6 @@ export default function AnalyticsDeepDive() {
         </p>
       </div>
 
-      {/* Global Report Dialog */}
       <Dialog open={isGlobalReportOpen} onOpenChange={setIsGlobalReportOpen}>
         <DialogContent className="max-w-4xl bg-card/95 backdrop-blur-xl border-white/10 overflow-y-auto max-h-[90vh]">
           <DialogHeader>
@@ -249,7 +248,11 @@ export default function AnalyticsDeepDive() {
                       {globalNodes.map((node, i) => (
                         <TableRow key={i} className="border-white/5 hover:bg-white/5 transition-colors">
                           <TableCell className="text-xs font-bold">{node.location}</TableCell>
-                          <TableCell><Badge variant="outline" className={cn("text-[8px] h-4 py-0", node.status === 'Master' ? "text-primary border-primary/20 bg-primary/5" : "text-muted-foreground")}>{node.status}</Badge></TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn("text-[8px] h-4 py-0", node.status === 'Master' ? "text-primary border-primary/20 bg-primary/5" : "text-muted-foreground")}>
+                              {node.status}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-xs font-mono">{node.latency}</TableCell>
                           <TableCell className="text-right">
                              <div className="flex items-center justify-end gap-2">

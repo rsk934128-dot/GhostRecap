@@ -32,12 +32,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchSearchQuery] = useState('');
+  const [isAddServerOpen, setIsAddServerOpen] = useState(false);
+  const [newServer, setNewServer] = useState({ name: '', identifier: '', repo: '', description: '' });
 
   useEffect(() => {
     setMounted(true);
@@ -57,6 +62,19 @@ export default function StrategicDocsPage() {
   const filteredAggregators = aggregators.filter(a => 
     a.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddServer = () => {
+    if (!newServer.name || !newServer.identifier || !newServer.repo) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Please fill in required fields.' });
+      return;
+    }
+    toast({
+      title: 'Server Submitted',
+      description: `Importing ${newServer.name} node via Mission 400 Bridge...`,
+    });
+    setIsAddServerOpen(false);
+    setNewServer({ name: '', identifier: '', repo: '', description: '' });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -250,7 +268,7 @@ export default function StrategicDocsPage() {
                     </CardTitle>
                     <CardDescription>Install and manage Model Context Protocol servers for agentic banking.</CardDescription>
                   </div>
-                  <Button className="bg-primary text-black font-bold h-9 gap-2">
+                  <Button className="bg-primary text-black font-bold h-9 gap-2" onClick={() => setIsAddServerOpen(true)}>
                     <Plus size={16} /> Add Server
                   </Button>
                 </div>
@@ -468,6 +486,65 @@ export default function StrategicDocsPage() {
           <Badge className="bg-accent text-black">Backup Active</Badge>
         </div>
       </div>
+
+      <Dialog open={isAddServerOpen} onOpenChange={setIsAddServerOpen}>
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline font-bold flex items-center gap-2">
+              <Plus className="text-primary" /> Add New MCP Server
+            </DialogTitle>
+            <DialogDescription>Submit a GitHub repository to import as a new MCP listing.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-xs font-bold uppercase text-muted-foreground">Server Name</Label>
+              <Input 
+                id="name" 
+                placeholder="e.g. Weather MCP" 
+                className="bg-black/20 border-white/10"
+                value={newServer.name}
+                onChange={(e) => setNewServer({...newServer, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="identifier" className="text-xs font-bold uppercase text-muted-foreground">Identifier</Label>
+              <Input 
+                id="identifier" 
+                placeholder="e.g. janedoe-weather-mcp" 
+                className="bg-black/20 border-white/10 font-mono"
+                value={newServer.identifier}
+                onChange={(e) => setNewServer({...newServer, identifier: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="repo" className="text-xs font-bold uppercase text-muted-foreground">GitHub Repository URL</Label>
+              <Input 
+                id="repo" 
+                placeholder="https://github.com/user/repo" 
+                className="bg-black/20 border-white/10"
+                value={newServer.repo}
+                onChange={(e) => setNewServer({...newServer, repo: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="desc" className="text-xs font-bold uppercase text-muted-foreground">Description</Label>
+              <Textarea 
+                id="desc" 
+                placeholder="Briefly describe the server's purpose..." 
+                className="bg-black/20 border-white/10 min-h-[80px]"
+                value={newServer.description}
+                onChange={(e) => setNewServer({...newServer, description: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsAddServerOpen(false)}>Cancel</Button>
+            <Button className="bg-primary text-black font-bold px-8" onClick={handleAddServer}>
+              Submit to Bridge
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
