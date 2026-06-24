@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy, limit, addDoc, serverTimestamp } from 'firebase/firestore';
-import { Transaction, MDBPayoutResponse, NagadPayoutResponse, InboundRemittancePayload } from '@/lib/types';
+import { Transaction, MDBPayoutResponse, NagadPayoutResponse, InboundRemittancePayload, NagadCashOutPayload, CashOutFeeResult } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,8 @@ import {
   RefreshCcw, Send, ShieldCheck, 
   Smartphone, Zap, QrCode, Globe2, WalletCards, 
   FileSpreadsheet, ArrowRight, Building2, Link2, Copy,
-  UserCheck, History as HistoryIcon, Download, Search, AlertCircle, CheckCircle2
+  UserCheck, History as HistoryIcon, Download, Search, AlertCircle, CheckCircle2,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { format } from 'date-fns';
 import { executeMDBPayout, verifyBankAccount } from '@/app/lib/midland-actions';
 import { executeNagadPayout } from '@/app/lib/nagad-actions';
 import { executeGlobalRemittance } from '@/app/lib/nagad-remittance-actions';
+import { executeNagadCashOut, calculateCashOutFee } from '@/app/lib/nagad-cashout-actions';
 import { toast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
@@ -34,6 +36,7 @@ export default function NexusLedgerPage() {
   const [isPayoutDialogOpen, setIsPayoutDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [isRemitDialogOpen, setIsRemitDialogOpen] = useState(false);
+  const [isCashOutDialogOpen, setIsCashOutDialogOpen] = useState(false);
   
   const [payoutMethod, setPayoutMethod] = useState<'mdb' | 'nagad'>('mdb');
   const [isExecuting, setIsExecuting] = useState(false);
@@ -57,6 +60,15 @@ export default function NexusLedgerPage() {
     referenceNumber: 'WU-' + Math.random().toString(36).substring(7).toUpperCase()
   });
 
+  const [cashOutData, setCashOutData] = useState<NagadCashOutPayload>({
+    uddoktaNumber: '',
+    amount: 0,
+    pinSecureToken: '••••',
+    appType: 'REGULAR_APP'
+  });
+
+  const [cashOutFee, setCashOutFee] = useState<CashOutFeeResult | null>(null);
+
   const ledgerQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'transactions'), where('merchantId', '==', user.uid), orderBy('timestamp', 'desc'), limit(50));
@@ -67,6 +79,14 @@ export default function NexusLedgerPage() {
   const filteredTransactions = useMemo(() => {
     return transactions?.filter(t => statusFilter === 'all' || t.status === statusFilter) || [];
   }, [transactions, statusFilter]);
+
+  useEffect(() => {
+    if (cashOutData.amount > 0) {
+      calculateCashOutFee(cashOutData.amount, cashOutData.appType).then(setCashOutFee);
+    } else {
+      setCashOutFee(null);
+    }
+  }, [cashOutData.amount, cashOutData.appType]);
 
   const handleVerifyAccount = async () => {
     if (!payoutData.destAccount) {
@@ -176,6 +196,44 @@ export default function NexusLedgerPage() {
     }
   };
 
+  const handleCashOut = async () => {
+    if (!cashOutData.uddoktaNumber || cashOutData.amount <= 0) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Enter Uddokta number and amount.' });
+      return;
+    }
+    setIsExecuting(true);
+    try {
+      const res = await executeNagadCashOut(cashOutData);
+      if (res.status === 'Success') {
+        toast({ title: "Cash Out Successful", description: res.message });
+        if (db && user) {
+          addDoc(collection(db, 'transactions'), {
+            amount: res.totalDeductedAmount,
+            currency: 'BDT',
+            status: 'completed',
+            description: `Cash Out to Agent: ${cashOutData.uddoktaNumber}`,
+            type: 'payout',
+            timestamp: new Date().toISOString(),
+            merchantId: user.uid,
+            metadata: { 
+              ...cashOutData, 
+              txId: res.txId, 
+              fee: res.calculatedFee,
+              principal: res.principalAmount
+            }
+          });
+        }
+        setIsCashOutDialogOpen(false);
+      } else {
+        toast({ variant: 'destructive', title: "Transaction Failed", description: res.message });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Node Error', description: 'HSM handshake timed out.' });
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -207,7 +265,7 @@ export default function NexusLedgerPage() {
           <Globe2 size={20} className="text-green-500" />
           <span className="text-[10px] font-bold uppercase">Remit</span>
         </Button>
-        <Button variant="secondary" className="h-20 flex-col gap-2 bg-white/5 border-white/5 hover:bg-white/10">
+        <Button variant="secondary" className="h-20 flex-col gap-2 bg-white/5 border-white/5 hover:bg-white/10" onClick={() => setIsCashOutDialogOpen(true)}>
           <WalletCards size={20} className="text-red-500" />
           <span className="text-[10px] font-bold uppercase">Cash Out</span>
         </Button>
@@ -270,7 +328,7 @@ export default function NexusLedgerPage() {
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <p className="text-sm font-bold leading-tight">{tx.description}</p>
-                    <p className="text-[10px] font-mono text-muted-foreground">{format(new Date(tx.timestamp), 'MMM d, HH:mm')}</p>
+                    <p className="text-[10px] font-mono text-muted-foreground">{format(new Date(tx.timestamp), 'HH:mm')}</p>
                   </div>
                   <Badge variant="outline" className="text-[8px] uppercase">{tx.status}</Badge>
                 </div>
@@ -448,6 +506,84 @@ export default function NexusLedgerPage() {
           <DialogFooter>
             <Button className="w-full bg-primary font-bold h-12" onClick={handleRemittanceDisburse} disabled={isExecuting}>
               {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <Globe2 size={18} />} Disburse to Wallet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Out Dialog */}
+      <Dialog open={isCashOutDialogOpen} onOpenChange={setIsCashOutDialogOpen}>
+        <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-white/10 w-[95vw]">
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl flex items-center gap-2">
+              <WalletCards className="text-red-500" /> Cash Out via Uddokta
+            </DialogTitle>
+            <DialogDescription>Withdraw funds at any Nagad Agent (Uddokta) node.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Agent Application Type</Label>
+              <Tabs value={cashOutData.appType} onValueChange={(val: any) => setCashOutData(p => ({ ...p, appType: val }))}>
+                <TabsList className="grid grid-cols-2 w-full bg-black/20">
+                  <TabsTrigger value="REGULAR_APP" className="text-[10px]">Regular (12.99)</TabsTrigger>
+                  <TabsTrigger value="ISLAMIC_APP" className="text-[10px]">Islamic/USSD (15.00)</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Agent (Uddokta) Number</Label>
+              <Input 
+                className="bg-black/20 border-white/10 h-11 font-mono" 
+                placeholder="e.g. 01712345678" 
+                value={cashOutData.uddoktaNumber}
+                onChange={(e) => setCashOutData(p => ({ ...p, uddoktaNumber: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Amount (BDT)</Label>
+              <Input 
+                type="number" 
+                className="bg-black/20 border-white/10 h-11 font-mono text-lg" 
+                placeholder="0.00" 
+                value={cashOutData.amount}
+                onChange={(e) => setCashOutData(p => ({ ...p, amount: parseFloat(e.target.value) }))}
+              />
+            </div>
+            
+            {cashOutFee && (
+              <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20 space-y-2 animate-in fade-in zoom-in-95">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Cash Out Fee ({cashOutData.appType === 'REGULAR_APP' ? '12.99' : '15.00'} slab)</span>
+                  <span className="text-red-500 font-bold">৳ {cashOutFee.calculatedFee.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold border-t border-red-500/10 pt-2">
+                  <span>Total Deduction</span>
+                  <span className="text-foreground">৳ {cashOutFee.totalDeductedAmount.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Security PIN Token</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+                <Input 
+                  type="password" 
+                  readOnly 
+                  className="bg-black/20 border-white/10 h-11 pl-9 font-mono" 
+                  value="••••" 
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              className="w-full bg-red-600 hover:bg-red-700 font-bold h-12 gap-2" 
+              onClick={handleCashOut} 
+              disabled={isExecuting || cashOutData.amount <= 0 || !cashOutData.uddoktaNumber}
+            >
+              {isExecuting ? <RefreshCcw size={16} className="animate-spin" /> : <ShieldCheck size={18} />}
+              {isExecuting ? "Authorizing PII..." : "Confirm Cash Out"}
             </Button>
           </DialogFooter>
         </DialogContent>

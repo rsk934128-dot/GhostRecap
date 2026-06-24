@@ -14,7 +14,8 @@ import {
   Globe2,
   CheckCircle2,
   Server,
-  Network
+  Network,
+  BarChart
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,10 +25,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 export default function AnalyticsDeepDive() {
   const [mounted, setMounted] = useState(false);
   const [isGlobalReportOpen, setIsGlobalReportOpen] = useState(false);
+  const [searchQuery, setSearchSearchQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
