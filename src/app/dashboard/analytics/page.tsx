@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Server,
   Network,
-  BarChart
+  Search
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,12 +26,11 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
 
 export default function AnalyticsDeepDive() {
   const [mounted, setMounted] = useState(false);
   const [isGlobalReportOpen, setIsGlobalReportOpen] = useState(false);
-  const [searchQuery, setSearchSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setMounted(true);
@@ -195,7 +194,7 @@ export default function AnalyticsDeepDive() {
             <div>
               <h3 className="text-xl font-headline font-bold">Mission 400 Governance</h3>
               <p className="text-muted-foreground text-sm mt-2 leading-relaxed italic">
-                "Our key is unique value proposition: AI Signals and Agentic Banking integration for elite merchants."
+                "Our key unique value proposition: AI Signals and Agentic Banking integration for elite merchants."
               </p>
             </div>
             <div className="flex gap-2 w-full">

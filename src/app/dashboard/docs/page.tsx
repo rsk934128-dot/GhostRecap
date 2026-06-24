@@ -35,12 +35,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
-  const [searchQuery, setSearchSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isAddServerOpen, setIsAddServerOpen] = useState(false);
   const [newServer, setNewServer] = useState({ name: '', identifier: '', repo: '', description: '' });
 
@@ -215,7 +216,7 @@ export default function StrategicDocsPage() {
                   placeholder="Filter aggregators..." 
                   className="pl-9 h-8 bg-black/20 border-white/10 text-xs" 
                   value={searchQuery}
-                  onChange={(e) => setSearchSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </CardHeader>
