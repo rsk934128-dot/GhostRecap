@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -20,7 +21,10 @@ import {
   Plus,
   ShieldAlert,
   ArrowRight,
-  Bot
+  Bot,
+  Terminal,
+  CloudUpload,
+  Github
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +34,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
@@ -236,8 +241,8 @@ export default function StrategicDocsPage() {
         </TabsContent>
 
         <TabsContent value="mcp" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-secondary/10 border-white/5 md:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="bg-secondary/10 border-white/5 lg:col-span-2">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -268,17 +273,66 @@ export default function StrategicDocsPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3 opacity-60 grayscale">
+                    <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                           <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground font-bold">G</div>
-                           <h5 className="font-bold text-sm">Google AI Search MCP</h5>
+                           <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent font-bold">G</div>
+                           <h5 className="font-bold text-sm">Marketplace Hub</h5>
                         </div>
-                        <Badge variant="outline">AVAILABLE</Badge>
+                        <Badge variant="outline" className="border-accent/20 text-accent">v2.5.0-ALPHA</Badge>
                       </div>
-                      <p className="text-[10px] text-muted-foreground">Integrate Google Search results into agent reasoning. High latency predicted.</p>
-                      <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Install Node</Button>
+                      <p className="text-[10px] text-muted-foreground">Manage your own MCP listings on lobehub.com/mcp. Ownership and versioning control.</p>
+                      <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Open Marketplace</Button>
                     </div>
+                 </div>
+
+                 {/* Marketplace Publishing Console */}
+                 <div className="mt-8 space-y-4">
+                   <h4 className="text-sm font-bold flex items-center gap-2">
+                     <CloudUpload size={16} className="text-primary" /> Marketplace Publishing Console
+                   </h4>
+                   <div className="p-4 rounded-xl border border-dashed border-white/20 bg-black/40 space-y-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                         <p className="text-[10px] font-bold text-muted-foreground uppercase">Step 1: Auth & Handshake</p>
+                         <div className="flex gap-2">
+                           <Button 
+                             variant="outline" 
+                             className="text-[10px] h-8 flex-1 gap-2 border-white/10" 
+                             onClick={() => toast({ title: "Run: npx lhm login", description: "Complete OAuth in your browser." })}
+                           >
+                             <Terminal size={12} /> lhm login
+                           </Button>
+                           <Button 
+                             variant="outline" 
+                             className="text-[10px] h-8 flex-1 gap-2 border-white/10"
+                             onClick={() => toast({ title: "Run: npx lhm github connect", description: "Verify ownership on GitHub." })}
+                           >
+                             <Github size={12} /> lhm connect
+                           </Button>
+                         </div>
+                       </div>
+                       <div className="space-y-2">
+                         <p className="text-[10px] font-bold text-muted-foreground uppercase">Step 2: Sync & Release</p>
+                         <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              className="text-[10px] h-8 flex-1 gap-2 border-primary/20 text-primary"
+                              onClick={() => toast({ title: "Run: npx lhm plugin publish", description: "Deploying amir-gorji-financial-elastic-mcp-server..." })}
+                            >
+                              <CloudUpload size={12} /> lhm publish
+                            </Button>
+                         </div>
+                       </div>
+                     </div>
+                     <Alert className="bg-primary/5 border-primary/20 py-2">
+                       <ShieldCheck className="h-3 w-3 text-primary" />
+                       <AlertDescription className="text-[9px] text-muted-foreground italic">
+                         Identifier: <strong>amir-gorji-financial-elastic-mcp-server</strong>. 
+                         Manifest <strong>lhm.plugin.json</strong> is ready for deployment.
+                       </AlertDescription>
+                     </Alert>
+                   </div>
                  </div>
               </CardContent>
             </Card>

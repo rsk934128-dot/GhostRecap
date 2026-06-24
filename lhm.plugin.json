@@ -1,0 +1,48 @@
+
+{
+  "identifier": "amir-gorji-financial-elastic-mcp-server",
+  "name": "Amir Gorji Financial Elastic MCP",
+  "description": "Secure Elasticsearch MCP server for financial auditing with PII redaction and structured logging. Designed for MDB Core Nexus nodes and Mission 400 governance.",
+  "version": "2.5.0-ALPHA",
+  "author": "Sheikh Farid",
+  "authorUrl": "https://github.com/rubels1k994",
+  "tags": [
+    "banking",
+    "elasticsearch",
+    "security",
+    "pii-redaction",
+    "mcp",
+    "fintech"
+  ],
+  "category": "finance",
+  "tools": [
+    {
+      "name": "elastic_search",
+      "description": "Run secure, redacted Elasticsearch queries for financial fragments across distributed nodes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "string",
+            "description": "The financial ledger index to query (e.g., transactions-*)."
+          },
+          "query": {
+            "type": "object",
+            "description": "Elasticsearch DSL query object."
+          }
+        },
+        "required": [
+          "index",
+          "query"
+        ]
+      }
+    }
+  ],
+  "localizations": [
+    {
+      "locale": "bn-BD",
+      "name": "আমির গরজি ফিন্যান্সিয়াল ইলাস্টিক এমসিপি",
+      "description": "সুরক্ষিত ইলাস্টিকসার্চ এমসিপি সার্ভার যা পিআইআই রিডাকশন এবং অডিট লগিং সুবিধা প্রদান করে।"
+    }
+  ]
+}
