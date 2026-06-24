@@ -17,7 +17,9 @@ import {
   Network,
   Cpu,
   Package,
-  Plus
+  Plus,
+  ShieldAlert,
+  ArrowRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function StrategicDocsPage() {
   const [mounted, setMounted] = useState(false);
@@ -232,51 +235,84 @@ export default function StrategicDocsPage() {
         </TabsContent>
 
         <TabsContent value="mcp" className="space-y-6">
-          <Card className="bg-secondary/10 border-white/5">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Package className="text-primary" /> LobeHub MCP Marketplace
-                  </CardTitle>
-                  <CardDescription>Install and manage Model Context Protocol servers for agentic banking.</CardDescription>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-secondary/10 border-white/5 md:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Package className="text-primary" /> LobeHub MCP Marketplace
+                    </CardTitle>
+                    <CardDescription>Install and manage Model Context Protocol servers for agentic banking.</CardDescription>
+                  </div>
+                  <Button className="bg-primary text-black font-bold h-9 gap-2">
+                    <Plus size={16} /> Add Server
+                  </Button>
                 </div>
-                <Button className="bg-primary text-black font-bold h-9 gap-2">
-                  <Plus size={16} /> Add Server
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-4">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">E</div>
-                         <h5 className="font-bold text-sm">Financial Elastic MCP</h5>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">E</div>
+                           <h5 className="font-bold text-sm">Financial Elastic MCP</h5>
+                        </div>
+                        <Badge className="bg-green-500 text-black">INSTALLED</Badge>
                       </div>
-                      <Badge className="bg-green-500 text-black">INSTALLED</Badge>
+                      <p className="text-[10px] text-muted-foreground">Search and analyze financial data using Elasticsearch context. Verified for Digital Banking Nodes.</p>
+                      <div className="flex gap-2">
+                         <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Configure</Button>
+                         <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Logs</Button>
+                      </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">Search and analyze financial data using Elasticsearch context. Verified for Digital Banking Nodes.</p>
-                    <div className="flex gap-2">
-                       <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Configure</Button>
-                       <Button variant="outline" size="sm" className="h-7 text-[10px] flex-1">Logs</Button>
-                    </div>
-                  </div>
 
-                  <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3 opacity-60 grayscale">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                         <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground font-bold">G</div>
-                         <h5 className="font-bold text-sm">Google AI Search MCP</h5>
+                    <div className="p-4 rounded-xl border border-white/10 bg-black/20 space-y-3 opacity-60 grayscale">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                           <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground font-bold">G</div>
+                           <h5 className="font-bold text-sm">Google AI Search MCP</h5>
+                        </div>
+                        <Badge variant="outline">AVAILABLE</Badge>
                       </div>
-                      <Badge variant="outline">AVAILABLE</Badge>
+                      <p className="text-[10px] text-muted-foreground">Integrate Google Search results into agent reasoning. High latency predicted.</p>
+                      <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Install Node</Button>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">Integrate Google Search results into agent reasoning. High latency predicted.</p>
-                    <Button variant="secondary" size="sm" className="w-full h-7 text-[10px]">Install Node</Button>
+                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-accent/5 border-accent/20">
+               <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2"><ShieldAlert size={18} className="text-accent"/> Security Proxy</CardTitle>
+                  <CardDescription>Active PII Redaction Pipeline</CardDescription>
+               </CardHeader>
+               <CardContent className="space-y-6">
+                  <div className="flex flex-col items-center gap-4 py-4">
+                     <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent">
+                        <Bot size={24} />
+                     </div>
+                     <div className="w-px h-8 bg-accent/30 border-dashed border-l" />
+                     <div className="w-20 h-10 rounded-lg bg-black/40 border border-accent/40 flex items-center justify-center text-[10px] font-bold text-accent">
+                        PII PROXY
+                     </div>
+                     <div className="w-px h-8 bg-accent/30 border-dashed border-l" />
+                     <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                        <Cpu size={24} />
+                     </div>
                   </div>
-               </div>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                     <div className="flex justify-between text-[10px] font-bold uppercase">
+                        <span className="text-muted-foreground">Redaction Accuracy</span>
+                        <span className="text-accent">99.9%</span>
+                     </div>
+                     <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent w-[99%]" />
+                     </div>
+                  </div>
+               </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="openbanking" className="space-y-6">

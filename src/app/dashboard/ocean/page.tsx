@@ -42,6 +42,7 @@ export default function OceanMixingPage() {
     setMounted(true);
   }, []);
 
+  // Stability Fix: Handle toast in useEffect to avoid state update loops
   useEffect(() => {
     if (testProgress === 100 && isTesting) {
       setIsTesting(false);
@@ -71,7 +72,7 @@ export default function OceanMixingPage() {
         }
         return prev + 5;
       });
-    }, 200);
+    }, 100);
   };
 
   const handleLiquiditySync = async () => {
