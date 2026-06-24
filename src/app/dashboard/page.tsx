@@ -188,7 +188,7 @@ export default function MissionControlCenter() {
           <h3 className="text-xl font-headline font-bold flex items-center gap-2"><SignalHigh size={20} className="text-primary"/> Inbound Fragments</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(search)} />
+            <Input className="pl-10 h-10 bg-secondary/50 border-white/5" placeholder="Filter fragments..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="grid gap-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-none">
             {filtered.map((msg) => (
